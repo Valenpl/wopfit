@@ -1,0 +1,11 @@
+/* Ajustes propios de la versión React */
+#root{height:100%}
+.toast{position:absolute}
+.desk .toast{position:fixed}
+.btn .spinner{margin:0 auto}
+.btn.ghost .spinner,.btn.outline .spinner{border-color:rgba(30,127,203,.25);border-top-color:var(--blue)}
+.formerr{color:#C24A35;font-size:14px;font-weight:700;margin-top:12px}
+.devcode{margin-top:14px;background:#FFF1C9;color:#8A6300;border-radius:14px;padding:10px 14px;font-weight:700;font-size:14px;text-align:center}
+.sq.mov{background:var(--blue-bg);color:var(--blue);font-size:9px}
+.link[disabled]{opacity:.5}
+.tabbar.sub{display:none}.desk .tabbar.sub{display:flex}
