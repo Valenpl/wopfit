@@ -17,6 +17,24 @@ wopfit/
 └── docker-compose.yml  MySQL 8 para desarrollo
 ```
 
+## Qué usamos y por qué
+
+| Herramienta | Para qué | Por qué |
+|---|---|---|
+| React + Vite | La interfaz web (celu y compu) | Ya estaba hecha y funcionando; Vite es el estándar actual para React |
+| Vercel | Publicar el frontend | Gratis, con HTTPS y deploy automático desde GitHub |
+| Java + Spring Boot | El backend: reglas de negocio y API | Lo conoce el equipo, es muy usado y trae web, seguridad y base de datos resueltos |
+| API REST (JSON) | Comunicación entre front y back | Simple y conocida: cada acción es una URL + GET, POST, PUT o DELETE |
+| 3 capas: controller → service → repository | Ordenar el backend | Cada capa tiene una tarea: recibir el pedido, aplicar las reglas, hablar con la base |
+| MySQL 8 | Guardar todos los datos | Los datos están relacionados entre sí y necesitan consistencia; el equipo ya domina MySQL |
+| JPA / Hibernate | Usar la base desde Java | Cada tabla es una clase; viene integrado con Spring |
+| Spring Security + JWT | Login y permisos | Estándar de Spring; el backend verifica en cada pedido quién sos con un token firmado |
+| BCrypt | Guardar contraseñas | Se guarda un hash que no se puede revertir, nunca la contraseña |
+
+Un solo backend (monolito) en 3 capas, en lugar de microservicios: para un equipo chico y una demo, varios servicios sólo suman servidores, costos y fallas entre ellos.
+
+**Planeado (en desarrollo):** migraciones con Flyway, sesión con token corto + token de renovación en cookie, planes versionados detrás de `PlanGenerationService` (hoy un generador simulado, mañana el modelo propio de Wopfit), Premium de demostración sin cobros, lugares cercanos con Leaflet + OpenStreetMap y promociones de demostración. Lo simulado siempre se muestra como demo.
+
 ## Cómo correrlo
 
 Necesitás **Java 17+**, **Maven 3.9+**, **Node 18+** y **Docker** (Docker solo para MySQL).
