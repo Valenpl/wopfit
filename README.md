@@ -35,6 +35,19 @@ Un solo backend (monolito) en 3 capas, en lugar de microservicios: para un equip
 
 **Planeado (en desarrollo):** migraciones con Flyway, sesión con token corto + token de renovación en cookie, planes versionados detrás de `PlanGenerationService` (hoy un generador simulado, mañana el modelo propio de Wopfit), Premium de demostración sin cobros, lugares cercanos con Leaflet + OpenStreetMap y promociones de demostración. Lo simulado siempre se muestra como demo.
 
+## Reglas del frontend
+
+**Sin doble fetch:** cada vez que una pantalla pide datos al backend, el pedido se hace una sola vez.
+
+- `React.StrictMode` (en `main.jsx`) ejecuta cada `useEffect` dos veces en desarrollo. Se mantiene a propósito porque deja ver los duplicados, así que cada efecto que pide datos tiene que estar preparado para eso.
+- `useLoad` cancela el pedido anterior con `AbortController` cuando el efecto se limpia.
+- `api.js` comparte el pedido en curso: si dos componentes piden la misma ruta al mismo tiempo, sale un solo `fetch`.
+- La carga inicial de `/me` y la renovación de la sesión usan una única promesa compartida.
+- Si un efecto escribe al montarse, lleva una protección con `useRef` para ejecutarse una sola vez.
+- Un test de Playwright cuenta los pedidos de red y falla si aparece uno repetido.
+
+> Estado actual: el código todavía hace algunos pedidos dobles en desarrollo (`useLoad` y `/me`). Se corrige en la etapa de integración del front.
+
 ## Cómo correrlo
 
 Necesitás **Java 17+**, **Maven 3.9+**, **Node 18+** y **Docker** (Docker solo para MySQL).
