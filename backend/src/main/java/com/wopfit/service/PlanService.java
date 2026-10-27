@@ -246,7 +246,7 @@ public class PlanService {
         return new ReportResponse("NOTED", null, null, "Gracias por contarnos. Lo tenemos en cuenta para tu plan.");
     }
 
-    private static String fmt(LocalDate d) {
+    static String fmt(LocalDate d) {
         String[] names = {"lunes", "martes", "miércoles", "jueves", "viernes", "sábado", "domingo"};
         return names[TimeService.dow(d)] + " " + d.getDayOfMonth() + "/" + d.getMonthValue();
     }

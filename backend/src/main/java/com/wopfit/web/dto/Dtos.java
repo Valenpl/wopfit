@@ -63,7 +63,7 @@ public final class Dtos {
             boolean verified, PreferencesDto preferences, PlanDto plan, SubscriptionDto subscription) {}
 
     /** `demo` siempre es true: Premium se activa sin pagar. */
-    public record SubscriptionDto(boolean premium, String period, String periodName, LocalDate until, boolean demo, int consultsLeft) {}
+    public record SubscriptionDto(boolean premium, String period, String periodName, LocalDate until, boolean demo, int consultsLeft, int wopiLeft) {}
     public record SubscriptionRequest(@NotBlank(message = "Elegí cada cuánto") String period) {}
 
     public record Change(String label, String before, String after) {}
@@ -115,6 +115,16 @@ public final class Dtos {
     public record BookRequest(@NotNull(message = "Elegí el día") LocalDate date, @NotBlank(message = "Elegí el horario") String time,
             @NotBlank(message = "Elegí la modalidad") String mode) {}
     public record BookResponse(ConsultDto consult, int left) {}
+
+    // ---------- Wopi ----------
+    /** kind: "go" (value = ruta del front), "ask" (value = pregunta), "meal" (value = "slot|comida") o "alt" (value = "sesión|alternativa"). */
+    public record WopiAction(String label, String kind, String value) {}
+    public record WopiCard(String title, String subtitle, WopiAction action) {}
+    /** `text` puede traer **negrita**. `more` = se puede pedir "Dame otras opciones". */
+    public record WopiMessageDto(Long id, String role, String text, List<WopiCard> cards, List<WopiAction> actions, boolean more) {}
+    public record WopiDto(boolean premium, int left, int limit, List<WopiMessageDto> messages) {}
+    public record WopiAskRequest(@NotBlank(message = "Escribile algo a Wopi") @Size(max = 300, message = "Máximo 300 caracteres") String text) {}
+    public record WopiAskResponse(int left, WopiMessageDto question, WopiMessageDto reply) {}
 
     // ---------- hábitos y metas ----------
     public record HabitsDto(LocalDate date, boolean water, boolean walk, boolean sleep) {}

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { api } from '../api.js';
 import { BUDGET, DAYF, Icon, MEAL_BG, MREASONS, add, cap, dayNum, dow, monday, monthName, today } from '../lib.jsx';
 import { CouponCard, useHere } from './Places.jsx';
@@ -24,7 +24,8 @@ function MealRow({ m, date, onEat }) {
 export function Comida() {
   const { me, toast } = useApp();
   const t = today();
-  const [tab, setTab] = useState(() => sessionStorage.getItem('wopfit-ct') || 'hoy');
+  const [params] = useSearchParams();
+  const [tab, setTab] = useState(() => params.get('tab') || sessionStorage.getItem('wopfit-ct') || 'hoy');
   const [sel, setSel] = useState(t);
   const [wo, setWo] = useState(0);
   useEffect(() => { sessionStorage.setItem('wopfit-ct', tab); }, [tab]);
