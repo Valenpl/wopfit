@@ -5,7 +5,6 @@ import { Note, Screen, TopBar } from '../ui.jsx';
 const SOON = {
   '/comunidad': ['Comunidad', 'Gente como vos, con tus mismos objetivos.', true],
   '/wopi': ['Preguntale a Wopi', 'Tu asistente de bienestar.'],
-  '/profesionales': ['Ayuda profesional', 'Nutricionistas y entrenadores matriculados.'],
   '/instalar': ['Instalá WopFit', 'Queda en tu pantalla de inicio como una app.']
 };
 

@@ -63,7 +63,7 @@ public final class Dtos {
             boolean verified, PreferencesDto preferences, PlanDto plan, SubscriptionDto subscription) {}
 
     /** `demo` siempre es true: Premium se activa sin pagar. */
-    public record SubscriptionDto(boolean premium, String period, String periodName, LocalDate until, boolean demo) {}
+    public record SubscriptionDto(boolean premium, String period, String periodName, LocalDate until, boolean demo, int consultsLeft) {}
     public record SubscriptionRequest(@NotBlank(message = "Elegí cada cuánto") String period) {}
 
     public record Change(String label, String before, String after) {}
@@ -102,6 +102,19 @@ public final class Dtos {
             String description, int daysLeft, List<String> ingredients, boolean forList, List<Branch> branches) {}
     /** `alerts`: con Premium se avisa cuando hay ofertas para tu lista. */
     public record OffersDto(boolean alerts, List<OfferDto> offers) {}
+
+    // ---------- ayuda profesional (profesionales de demostración) ----------
+    public record ProDto(Long id, String kind, String name, String specialty, String license, double rating, String experience, String bio,
+            LocalDate nextDate, String nextTime) {}
+    public record Slot(String time, boolean free) {}
+    public record SlotDay(LocalDate date, List<Slot> slots) {}
+    public record ConsultDto(Long id, Long proId, String proName, String specialty, LocalDate date, String time, String mode) {}
+    /** `left`: consultas que te quedan este mes (0 sin Premium); `limit`: las que trae Premium. */
+    public record ProsDto(boolean premium, int left, int limit, List<ConsultDto> mine, List<ProDto> pros) {}
+    public record ProDetailDto(ProDto pro, List<SlotDay> days, List<String> modes, boolean premium, int left) {}
+    public record BookRequest(@NotNull(message = "Elegí el día") LocalDate date, @NotBlank(message = "Elegí el horario") String time,
+            @NotBlank(message = "Elegí la modalidad") String mode) {}
+    public record BookResponse(ConsultDto consult, int left) {}
 
     // ---------- hábitos y metas ----------
     public record HabitsDto(LocalDate date, boolean water, boolean walk, boolean sleep) {}

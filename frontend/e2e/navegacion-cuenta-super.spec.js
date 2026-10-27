@@ -30,7 +30,7 @@ const tabs = page => page.locator('.tabbar');
 test('pestañas de la v6 y accesos rápidos', async ({ page }) => {
   await page.goto('/inicio');
   await expect(tabs(page).getByRole('button')).toHaveText(['Inicio', 'Entreno', 'Comida', 'Comunidad', 'Perfil', 'Preguntale a Wopi', 'Pasate a Premium', 'Ver versión celu']);
-  for (const [label, path, heading] of [['Preguntale a Wopi', '/wopi'], ['Ofertas', '/ofertas', 'Encontrar ofertas'], ['Cerca tuyo', '/cerca', 'Cerca tuyo'], ['Ayuda profesional', '/profesionales']]) {
+  for (const [label, path, heading] of [['Preguntale a Wopi', '/wopi'], ['Ofertas', '/ofertas', 'Encontrar ofertas'], ['Cerca tuyo', '/cerca', 'Cerca tuyo'], ['Ayuda profesional', '/profesionales', 'Ayuda profesional']]) {
     await page.locator('.qa').getByRole('button', { name: label }).click();
     await expect(page).toHaveURL(path);
     if (heading) await expect(page.getByRole('heading', { name: heading })).toBeVisible();
