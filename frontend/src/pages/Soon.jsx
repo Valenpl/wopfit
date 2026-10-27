@@ -3,7 +3,6 @@ import { Note, Screen, TopBar } from '../ui.jsx';
 
 // Secciones de la v6 que todavía no están conectadas al backend. Cada una se reemplaza por su pantalla real.
 const SOON = {
-  '/comunidad': ['Comunidad', 'Gente como vos, con tus mismos objetivos.', true],
   '/instalar': ['Instalá WopFit', 'Queda en tu pantalla de inicio como una app.']
 };
 
