@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api.js';
 import { BUDGET, DAYF, Icon, MEAL_BG, MREASONS, add, cap, dayNum, dow, monday, monthName, today } from '../lib.jsx';
-import { Btn, ErrorBox, Loading, Note, Screen, Sect, Sheet, TopBar, useAction, useApp, useLoad } from '../ui.jsx';
+import { Btn, ErrorBox, Loading, More, Note, Screen, Sect, Sheet, TopBar, useAction, useApp, useLoad } from '../ui.jsx';
 
 const eaten = m => m.status === 'EATEN' || m.status === 'ALTERNATIVE';
 const money = n => '$' + Math.round(n).toLocaleString('es-AR');
@@ -27,22 +27,23 @@ export function Comida() {
   const [sel, setSel] = useState(t);
   const [wo, setWo] = useState(0);
   useEffect(() => { sessionStorage.setItem('wopfit-ct', tab); }, [tab]);
-  const date = tab === 'hoy' ? t : sel;
-  const { data: day, error, reload, set } = useLoad(sig => api.get(`/meals/${date}`, sig), [date]);
+  const date = tab === 'semana' ? sel : t;
+  const { data: day, error, reload, set } = useLoad(sig => (tab === 'super' ? Promise.resolve(null) : api.get(`/meals/${date}`, sig)), [date, tab === 'super']);
   const eat = async m => { try { set(await api.post(`/meals/${date}/${m.slot}/eaten`)); toast('¡Bien ahí! 🍽️'); } catch (ex) { toast(ex.message); } };
   const B = BUDGET[me.preferences.budget];
   const m = add(monday(t), wo * 7);
   const days = [0, 1, 2, 3, 4, 5, 6].map(i => add(m, i));
 
   let body;
-  if (error) body = <ErrorBox error={error} onRetry={reload} />;
+  if (tab === 'super') body = <SuperTab />;
+  else if (error) body = <ErrorBox error={error} onRetry={reload} />;
   else if (!day) body = <p className="center muted">Cargando…</p>;
   else if (tab === 'hoy') {
     const over = day.weekCost > day.budgetMax;
     body = <>
-      <div className="card"><div className="row between" style={{ flexWrap: 'wrap', gap: 6 }}><span className="small" style={{ fontWeight: 800, color: 'var(--green-d)' }}>Presupuesto semanal</span><span className={`tag ${over ? 'peach' : ''}`}>{over ? 'Un poco arriba' : 'Dentro del presupuesto'}</span></div>
+      <button className="card" style={{ display: 'block', width: '100%', textAlign: 'left' }} onClick={() => setTab('super')}><div className="row between" style={{ flexWrap: 'wrap', gap: 6 }}><span className="small" style={{ fontWeight: 800, color: 'var(--green-d)' }}>Presupuesto semanal</span><span className={`tag ${over ? 'peach' : ''}`}>{over ? 'Un poco arriba' : 'Dentro del presupuesto'}</span></div>
         <div className="row between mt8"><b style={{ fontFamily: 'var(--h)', fontSize: 22, color: 'var(--navy)' }}>{money(day.weekCost)}</b><span className="small muted" style={{ fontWeight: 700 }}>de {money(day.budgetMax)}</span></div>
-        <div className="bar mt8"><i style={{ width: `${Math.min(100, day.weekCost / day.budgetMax * 100)}%` }} /></div></div>
+        <div className="bar mt8"><i style={{ width: `${Math.min(100, day.weekCost / day.budgetMax * 100)}%` }} /></div></button>
       <Sect title="Comidas de hoy" right={<span className="tag blue">{day.meals.filter(eaten).length} de 3</span>} />
       <div className="card">{day.meals.map(x => <MealRow key={x.slot} m={x} date={date} onEat={eat} />)}</div>
       <Note icon="heart" className="mt16">¿No pudiste con alguna? Tocala y contanos: te proponemos una alternativa.</Note>
@@ -61,9 +62,36 @@ export function Comida() {
   }
   return <div className="screen"><div className="scroll">
     <div className="row between"><h1 style={{ margin: 0 }}>Comida</h1><span className="tag">{B.t}</span></div>
-    <div className="seg"><button className={tab === 'hoy' ? 'on' : ''} onClick={() => setTab('hoy')}>Hoy</button><button className={tab === 'semana' ? 'on' : ''} onClick={() => { setTab('semana'); setSel(t); setWo(0); }}>Semana</button></div>
+    <div className="seg three"><button className={tab === 'hoy' ? 'on' : ''} onClick={() => setTab('hoy')}>Hoy</button><button className={tab === 'semana' ? 'on' : ''} onClick={() => { setTab('semana'); setSel(t); setWo(0); }}>Semana</button>
+      <button className={tab === 'super' ? 'on' : ''} onClick={() => setTab('super')}>Súper</button></div>
     {body}
   </div></div>;
+}
+
+/** Lista del súper de esta semana: ingredientes del menú, de los que más se usan a los que menos. */
+function SuperTab() {
+  const nav = useNavigate();
+  const { me, toast } = useApp();
+  const t = today();
+  const { data, error, reload, set } = useLoad(sig => api.get(`/shopping/${t}`, sig), [t]);
+  if (error) return <ErrorBox error={error} onRetry={reload} />;
+  if (!data) return <p className="center muted">Cargando…</p>;
+  const B = BUDGET[me.preferences.budget];
+  const done = data.items.filter(x => x.checked).length;
+  const flip = async x => {
+    const prev = data;
+    set({ ...data, items: data.items.map(i => (i.name === x.name ? { ...i, checked: !i.checked } : i)) });
+    try { set(await api.put(`/shopping/${t}`, { name: x.name, checked: !x.checked })); } catch (ex) { set(prev); toast(ex.message); }
+  };
+  return <>
+    <div className="card"><div className="row between"><div><b style={{ fontFamily: 'var(--h)', fontSize: 20, color: 'var(--navy)' }}>{money(data.weekCost)}</b>
+      <div className="tiny muted" style={{ fontWeight: 700 }}>estimado de la semana · presupuesto {B.t.toLowerCase()}</div></div><span className="tag blue">{done}/{data.items.length}</span></div></div>
+    <Sect title="Tu lista del súper" />
+    <div className="card">{data.items.map(x => <button key={x.name} className="listrow" onClick={() => flip(x)} aria-pressed={x.checked}>
+      <span className={`ck box ${x.checked ? 'on' : ''}`}><Icon n="check" /></span><span className={`t grow ${x.checked ? 'done-t' : ''}`}>{cap(x.name)}</span>
+      <span className="tiny muted" style={{ fontWeight: 700 }}>{x.count} {x.count > 1 ? 'comidas' : 'comida'}</span></button>)}</div>
+    <div className="center mt12"><More onClick={() => nav('/cerca')}>Ver súper y verdulerías cerca</More></div>
+  </>;
 }
 
 export function Meal() {

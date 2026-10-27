@@ -3,15 +3,38 @@ import { useNavigate } from 'react-router-dom';
 import { api, getToken, isAbort, setToken, setUnauthorizedHandler } from './api.js';
 import { Icon } from './lib.jsx';
 
-// ---------- sesión + toasts ----------
+// ---------- sesión + toasts + vista celu/compu ----------
 const Ctx = createContext(null);
 export const useApp = () => useContext(Ctx);
+
+const VIEW_KEY = 'wopfit-view';
+const WIDE = '(min-width: 1000px)';
+/** 'auto' (según el ancho), 'celu' o 'compu'. Se puede forzar con ?modo=celu|compu. */
+function initialView() {
+  try {
+    const q = new URLSearchParams(window.location.search).get('modo');
+    if (q === 'celu' || q === 'compu') return q;
+    return localStorage.getItem(VIEW_KEY) || 'auto';
+  } catch { return 'auto'; }
+}
 
 export function AppProvider({ children }) {
   const [me, setMe] = useState(null);
   const [ready, setReady] = useState(false);
   const [toastMsg, setToastMsg] = useState(null);
+  const [view, setViewState] = useState(initialView);
+  const [wide, setWide] = useState(() => window.matchMedia(WIDE).matches);
   const timer = useRef();
+  const desk = view === 'compu' || (view === 'auto' && wide);
+  const setView = useCallback(v => { setViewState(v); try { localStorage.setItem(VIEW_KEY, v); } catch { /* sin storage */ } }, []);
+
+  useEffect(() => {
+    const mq = window.matchMedia(WIDE);
+    const apply = () => setWide(mq.matches);
+    mq.addEventListener('change', apply);
+    return () => mq.removeEventListener('change', apply);
+  }, []);
+  useEffect(() => { document.documentElement.classList.toggle('desk', desk); }, [desk]);
 
   const toast = useCallback(msg => {
     clearTimeout(timer.current);
@@ -32,7 +55,7 @@ export function AppProvider({ children }) {
     refresh().catch(() => setToken(null)).finally(() => setReady(true));
   }, [refresh]);
 
-  return <Ctx.Provider value={{ me, setMe, ready, refresh, login, logout, toast, toastMsg }}>{children}</Ctx.Provider>;
+  return <Ctx.Provider value={{ me, setMe, ready, refresh, login, logout, toast, toastMsg, desk, wide, setView }}>{children}</Ctx.Provider>;
 }
 
 /**

@@ -31,6 +31,8 @@ public final class Dtos {
             @NotBlank @Pattern(regexp = "\\d{6}", message = "El código tiene 6 números") String code) {}
     public record LoginRequest(@NotBlank @Email String email, @NotBlank String password) {}
     public record AuthResponse(String token, Me me) {}
+    public record PasswordRequest(@NotBlank(message = "Escribí tu contraseña actual") String current,
+            @NotBlank @Size(min = 8, message = "Mínimo 8 caracteres") @Pattern(regexp = ".*\\d.*", message = "Tiene que tener al menos un número") String password) {}
 
     // ---------- perfil ----------
     public record AboutRequest(
@@ -84,6 +86,9 @@ public final class Dtos {
     public record MealDayDto(LocalDate date, List<MealDto> meals, int weekCost, int budgetMax) {}
     public record MealReportRequest(@NotBlank String reason) {}
     public record MealProposalDto(String text, MealDto current, MealDto alternative) {}
+    public record ShoppingItem(String name, int count, boolean checked) {}
+    public record ShoppingDto(LocalDate monday, int weekCost, int budgetMax, List<ShoppingItem> items) {}
+    public record ShoppingCheckRequest(@NotBlank String name, boolean checked) {}
 
     // ---------- hábitos y metas ----------
     public record HabitsDto(LocalDate date, boolean water, boolean walk, boolean sleep) {}

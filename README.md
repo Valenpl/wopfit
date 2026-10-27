@@ -108,11 +108,12 @@ El test de Playwright usa el front en modo desarrollo (con StrictMode) y el back
 
 | Módulo | Qué incluye |
 |---|---|
-| Cuenta | Registro con email y contraseña (BCrypt), código de verificación, login con JWT |
+| Cuenta | Registro con email y contraseña (BCrypt), código de verificación, login con JWT, cambio de contraseña |
 | Perfil | Nombre, fecha de nacimiento (13+), altura, peso |
 | Preferencias | Objetivos, días y minutos, presupuesto, actividades, alimentos que evita (sin TACC saca también la avena), salud, nivel, equipamiento |
 | Plan | Sesiones en los días elegidos. La rutina se arma según nivel, equipamiento y salud (bajo impacto con embarazo o lesión). Menú de 3 comidas filtrado por restricciones y ordenado por presupuesto |
 | Registro | Marcar la rutina como hecha y cómo se sintió, comidas, 3 hábitos diarios |
+| Lista del súper | Ingredientes del menú de la semana, de los más usados a los menos, sin las comidas marcadas como "no pude". Lo que tildás queda guardado por semana |
 | "No pude" | El motivo define una versión alternativa: exprés, liviana, suave, sin equipamiento o caminata. La rutina completa pasa al próximo día libre. Las comidas proponen una alternativa según el motivo |
 | Metas | Meta concreta (qué, cuántas veces por semana, cuántas semanas) que suma al objetivo |
 | Progreso | Semana actual, racha de semanas completas, % por objetivo, historial de entrenos, hábitos y dificultades |
@@ -131,11 +132,13 @@ El resto requiere `Authorization: Bearer <token>`:
 |---|---|---|
 | GET | `me` | Usuario, preferencias y plan |
 | PUT | `me/about`, `me/preferences` | Datos básicos / preferencias |
+| PUT | `me/password` | Cambiar la contraseña (pide la actual) |
 | POST · GET | `plan` | Crear o actualizar el plan · ver el plan |
 | GET | `workouts/today`, `workouts/week?start=AAAA-MM-DD`, `workouts/{id}` | Entrenamientos |
 | POST | `workouts/{id}/report` · `accept-alternative` · `rest` · `reschedule` · `done` | "No pude", alternativa, mover, completar |
 | GET | `meals/{fecha}` | Comidas del día y costo semanal |
 | POST | `meals/{fecha}/{0-2}/eaten` · `report` · `accept` · `skip` · `swap` | Registrar, alternativa, cambiar |
+| GET · PUT | `shopping/{fecha}` | Lista del súper de la semana de esa fecha · tildar o destildar un ingrediente |
 | GET · PUT | `habits/{fecha}` | Agua, caminar, dormir |
 | GET · POST · DELETE | `goals`, `goals/{id}/check`, `goals/{id}` | Metas |
 | GET | `progress`, `history` | Progreso e historial |

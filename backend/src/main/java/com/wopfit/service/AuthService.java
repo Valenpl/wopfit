@@ -80,6 +80,15 @@ public class AuthService {
         return new AuthResponse(jwt.create(u.getId(), u.getEmail()), profile.me(u.getId()));
     }
 
+    /** Pide la contraseña actual. Si no coincide es 400 y no 401: la sesión sigue siendo válida. */
+    @Transactional
+    public void changePassword(Long userId, String current, String password) {
+        User u = profile.user(userId);
+        if (!encoder.matches(current, u.getPasswordHash())) throw ApiException.badRequest("Tu contraseña actual no coincide");
+        if (encoder.matches(password, u.getPasswordHash())) throw ApiException.badRequest("La nueva contraseña tiene que ser distinta de la actual");
+        u.setPasswordHash(encoder.encode(password));
+    }
+
     @Transactional(readOnly = true)
     public AuthResponse login(String email, String password) {
         User u = users.findByEmailIgnoreCase(email.trim()).orElse(null);
