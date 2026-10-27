@@ -163,9 +163,12 @@ export function Ready() {
   const upd = state && state.upd;
   const plan = me.plan;
   const p = me.preferences;
+  const once = useRef(false);
   useEffect(() => {
-    // Preferencias guardadas pero sin plan (por ejemplo, se recargó la página a mitad de camino): lo creamos.
-    if (!plan) api.post('/plan').then(() => api.get('/me')).then(setMe).catch(ex => toast(ex.message));
+    // Preferencias guardadas pero sin plan (por ejemplo, se recargó la página a mitad de camino): lo creamos una sola vez.
+    if (plan || once.current) return;
+    once.current = true;
+    api.post('/plan').then(() => api.get('/me')).then(setMe).catch(ex => toast(ex.message));
   }, [plan, setMe, toast]);
   if (!plan) return <Loading text="Armando tu plan…" />;
   return <Screen narrow scrollStyle={{ paddingTop: 'calc(var(--sat) + 40px)' }}

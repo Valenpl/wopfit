@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { api, getToken, setToken, setUnauthorizedHandler } from './api.js';
+import { api, getToken, isAbort, setToken, setUnauthorizedHandler } from './api.js';
 import { Icon } from './lib.jsx';
 
 // ---------- sesión + toasts ----------
@@ -18,12 +18,16 @@ export function AppProvider({ children }) {
     setToastMsg({ msg, id: Date.now() });
     timer.current = setTimeout(() => setToastMsg(null), 2700);
   }, []);
+  // api.get comparte el pedido en curso: la carga inicial y cualquier renovación simultánea usan la misma promesa de /me.
   const refresh = useCallback(async () => { const m = await api.get('/me'); setMe(m); return m; }, []);
   const login = useCallback((token, m) => { setToken(token); setMe(m); }, []);
   const logout = useCallback(() => { setToken(null); setMe(null); }, []);
+  const booted = useRef(false);
 
   useEffect(() => {
     setUnauthorizedHandler(() => { setToken(null); setMe(null); });
+    if (booted.current) return;
+    booted.current = true;
     if (!getToken()) { setReady(true); return; }
     refresh().catch(() => setToken(null)).finally(() => setReady(true));
   }, [refresh]);
@@ -31,16 +35,20 @@ export function AppProvider({ children }) {
   return <Ctx.Provider value={{ me, setMe, ready, refresh, login, logout, toast, toastMsg }}>{children}</Ctx.Provider>;
 }
 
-/** Carga datos de la API; vuelve a pedirlos cuando cambian las dependencias. */
+/**
+ * Carga datos de la API; vuelve a pedirlos cuando cambian las dependencias.
+ * `fn` recibe un AbortSignal para pasarle a api.get: al limpiarse el efecto se cancela el pedido anterior.
+ */
 export function useLoad(fn, deps = []) {
   const [state, setState] = useState({ data: null, error: null, loading: true });
   const [n, setN] = useState(0);
   useEffect(() => {
-    let live = true;
+    const ctrl = new AbortController();
+    const live = () => !ctrl.signal.aborted;
     setState(s => ({ ...s, loading: true, error: null }));
-    fn().then(data => live && setState({ data, error: null, loading: false }))
-      .catch(error => live && setState({ data: null, error, loading: false }));
-    return () => { live = false; };
+    fn(ctrl.signal).then(data => live() && setState({ data, error: null, loading: false }))
+      .catch(error => live() && !isAbort(error) && setState({ data: null, error, loading: false }));
+    return () => ctrl.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...deps, n]);
   return { ...state, reload: () => setN(x => x + 1), set: data => setState(s => ({ ...s, data })) };

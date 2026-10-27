@@ -25,7 +25,7 @@ function TodayTab() {
   const nav = useNavigate();
   const { me } = useApp();
   const [report, setReport] = useState(null);
-  const { data, error, loading, reload } = useLoad(() => Promise.all([api.get('/workouts/today'), api.get('/workouts/week'), api.get('/progress')]), []);
+  const { data, error, loading, reload } = useLoad(sig => Promise.all([api.get('/workouts/today', sig), api.get('/workouts/week', sig), api.get('/progress', sig)]), []);
   if (loading && !data) return <p className="center muted">Cargando…</p>;
   if (error) return <ErrorBox error={error} onRetry={reload} />;
   const [td, week, progress] = data;
@@ -79,10 +79,10 @@ function WeekTab() {
   const [wo, setWo] = useState(0);
   const [sel, setSel] = useState(t);
   const m = add(monday(t), wo * 7);
-  const { data: week, error, reload } = useLoad(() => api.get(`/workouts/week?start=${m}`), [m]);
+  const { data: week, error, reload } = useLoad(sig => api.get(`/workouts/week?start=${m}`, sig), [m]);
   const day = week && week.days.find(d => d.date === sel);
   const sid = day && day.session && day.session.id;
-  const { data: detail } = useLoad(() => (sid ? api.get(`/workouts/${sid}`) : Promise.resolve(null)), [sid, week]);
+  const { data: detail } = useLoad(sig => (sid ? api.get(`/workouts/${sid}`, sig) : Promise.resolve(null)), [sid, week]);
   const [busy, run] = useAction();
   useEffect(() => {
     if (!week) return;
@@ -126,7 +126,7 @@ function WeekTab() {
 
 function ProgressTab() {
   const nav = useNavigate();
-  const { data: p, error, reload } = useLoad(() => api.get('/progress'), []);
+  const { data: p, error, reload } = useLoad(sig => api.get('/progress', sig), []);
   if (error) return <ErrorBox error={error} onRetry={reload} />;
   if (!p) return <p className="center muted">Cargando…</p>;
   return <>
@@ -146,9 +146,9 @@ export function Workout() {
   const nav = useNavigate();
   const { toast } = useApp();
   const walk = id === 'caminata';
-  const { data: s, error, reload } = useLoad(async () => {
-    if (!walk) return api.get(`/workouts/${id}`);
-    const td = await api.get('/workouts/today');
+  const { data: s, error, reload } = useLoad(async sig => {
+    if (!walk) return api.get(`/workouts/${id}`, sig);
+    const td = await api.get('/workouts/today', sig);
     return { id: 'caminata', date: today(), status: 'PENDING', title: td.alternativeToday?.title, minutes: 15, content: td.alternativeToday, extra: true };
   }, [id]);
   const altKey = s && isAlt(s) ? s.alternative : null;
@@ -211,7 +211,7 @@ export function Done() {
   const { id } = useParams();
   const nav = useNavigate();
   const { toast } = useApp();
-  const { data } = useLoad(() => Promise.all([api.get(`/workouts/${id}`), api.get('/workouts/week')]), [id]);
+  const { data } = useLoad(sig => Promise.all([api.get(`/workouts/${id}`, sig), api.get('/workouts/week', sig)]), [id]);
   const [feel, setFeel] = useState(null);
   const [note, setNote] = useState('');
   const [busy, run] = useAction();
