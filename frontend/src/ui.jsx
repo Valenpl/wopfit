@@ -74,7 +74,8 @@ export function useLoad(fn, deps = []) {
     return () => ctrl.abort();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [...deps, n]);
-  return { ...state, reload: () => setN(x => x + 1), set: data => setState(s => ({ ...s, data })) };
+  // `set` acepta el dato nuevo o una función que recibe el actual (para cambios encadenados sin pisarse).
+  return { ...state, reload: () => setN(x => x + 1), set: data => setState(s => ({ ...s, data: typeof data === 'function' ? data(s.data) : data })) };
 }
 
 // ---------- piezas de pantalla ----------

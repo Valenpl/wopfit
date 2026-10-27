@@ -1,5 +1,7 @@
 // Cliente de la API de WopFit. El token JWT se guarda en localStorage.
 const BASE = import.meta.env.VITE_API_URL || '/api';
+/** URL absoluta de algo que devuelve la API como "/api/..." (por ejemplo una foto), aunque el front esté en otro dominio. */
+export const apiUrl = path => BASE.replace(/\/api\/?$/, '') + path;
 const TOKEN_KEY = 'wopfit-token';
 
 export const getToken = () => { try { return localStorage.getItem(TOKEN_KEY); } catch { return null; } };

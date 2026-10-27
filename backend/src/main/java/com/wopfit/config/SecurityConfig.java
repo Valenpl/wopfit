@@ -30,6 +30,7 @@ public class SecurityConfig {
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(a -> a
                 .requestMatchers("/api/auth/**", "/api/health", "/api/catalog", "/h2-console/**").permitAll()
+                .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/photos/*").permitAll() // id imposible de adivinar; <img> no manda el token
                 .anyRequest().authenticated())
             .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

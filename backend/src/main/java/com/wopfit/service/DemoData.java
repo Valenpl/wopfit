@@ -4,8 +4,12 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,26 +19,39 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.wopfit.domain.CommunityProfile;
 import com.wopfit.domain.Offer;
 import com.wopfit.domain.Place;
+import com.wopfit.domain.Post;
+import com.wopfit.domain.PostComment;
 import com.wopfit.domain.Professional;
+import com.wopfit.repo.CommunityProfileRepository;
 import com.wopfit.repo.OfferRepository;
 import com.wopfit.repo.PlaceRepository;
+import com.wopfit.repo.PostCommentRepository;
+import com.wopfit.repo.PostRepository;
 import com.wopfit.repo.ProfessionalRepository;
 
-/** Carga los lugares, cupones y profesionales de demostración (resources/demo/*.tsv) la primera vez que arranca, si las tablas están vacías. */
+/** Carga los lugares, cupones, profesionales y la comunidad de demostración (resources/demo/*.tsv) la primera vez que arranca, si las tablas están vacías. */
 @Component
 public class DemoData implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(DemoData.class);
     private final PlaceRepository places;
     private final OfferRepository offers;
     private final ProfessionalRepository pros;
+    private final CommunityProfileRepository people;
+    private final PostRepository posts;
+    private final PostCommentRepository comments;
     private final TimeService time;
 
-    public DemoData(PlaceRepository places, OfferRepository offers, ProfessionalRepository pros, TimeService time) {
+    public DemoData(PlaceRepository places, OfferRepository offers, ProfessionalRepository pros, CommunityProfileRepository people, PostRepository posts,
+                    PostCommentRepository comments, TimeService time) {
         this.places = places;
         this.offers = offers;
         this.pros = pros;
+        this.people = people;
+        this.posts = posts;
+        this.comments = comments;
         this.time = time;
     }
 
@@ -52,6 +69,44 @@ public class DemoData implements ApplicationRunner {
 
     private static String orNull(String s) {
         return s == null || s.isBlank() || s.equals("-") ? null : s;
+    }
+
+    /** Personas, publicaciones y comentarios de ejemplo. Las fechas son relativas a hoy ("hace 2 h"). */
+    private void loadCommunity() throws IOException {
+        Map<String, CommunityProfile> byKey = new HashMap<>();
+        for (String[] c : rows("people.tsv")) {
+            CommunityProfile p = new CommunityProfile();
+            p.setName(c[1]);
+            p.setGoals(c[2]);
+            p.setDaysPerWeek(Integer.parseInt(c[3]));
+            p.setDemo(true);
+            byKey.put(c[0], people.save(p));
+        }
+        Instant now = Instant.now();
+        Map<String, Post> postByKey = new HashMap<>();
+        for (String[] c : rows("posts.tsv")) {
+            Post p = new Post();
+            p.setAuthor(byKey.get(c[1]));
+            p.setGoal(c[2]);
+            p.setType(c[3]);
+            p.setTitle(c[4]);
+            p.setBody(c[5]);
+            p.setEmoji(orNull(c[6]));
+            p.setBg(orNull(c[7]));
+            p.setTags(orNull(c[8]));
+            p.setBaseLikes(Integer.parseInt(c[9]));
+            p.setCreatedAt(now.minus(Long.parseLong(c[10]), ChronoUnit.HOURS));
+            postByKey.put(c[0], posts.save(p));
+        }
+        for (String[] c : rows("comments.tsv")) {
+            PostComment m = new PostComment();
+            m.setPost(postByKey.get(c[0]));
+            m.setAuthor(byKey.get(c[1]));
+            m.setText(c[2]);
+            m.setCreatedAt(now.minus(Long.parseLong(c[3]), ChronoUnit.HOURS));
+            comments.save(m);
+        }
+        log.info("Comunidad de demostración cargada: {} personas, {} publicaciones", byKey.size(), postByKey.size());
     }
 
     @Override
@@ -105,5 +160,6 @@ public class DemoData implements ApplicationRunner {
             }
             log.info("Profesionales de demostración cargados: {}", pros.count());
         }
+        if (!people.existsByDemoTrue()) loadCommunity();
     }
 }

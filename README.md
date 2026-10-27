@@ -95,9 +95,10 @@ El test de Playwright usa el front en modo desarrollo (con StrictMode) y el back
 
 ## Datos de demostración
 
-Los lugares, cupones y profesionales salen de `backend/src/main/resources/demo/*.tsv`. Se cargan solos al arrancar si las tablas `places`, `offers` y `professionals` están vacías.
+Los lugares, cupones y profesionales salen de `backend/src/main/resources/demo/*.tsv`. Se cargan solos al arrancar si las tablas `places`, `offers` y `professionals` están vacías (y la comunidad, si no hay personas de ejemplo).
 
 - **Lugares:** 9 cadenas ficticias (Súper Del Barrio, Mercado Verde, Gimnasio Impulso, Fit Club 24, etc.) con sucursales en direcciones reales de CABA y Vicente López, más 10 parques reales. Las coordenadas se sacaron de OpenStreetMap (Nominatim).
+- **Comunidad:** `people.tsv`, `posts.tsv` y `comments.tsv`. Las personas de ejemplo son perfiles de la comunidad, no usuarios: no se puede entrar con ellas.
 - **Profesionales:** `professionals.tsv`, con nombres y matrículas ficticios.
 - **Cupones:** 10 de aliados ficticios. Cada uno se renueva solo cada cierta cantidad de días, así la demo nunca queda con cupones vencidos.
 - **Tu ubicación:** si la compartís, el front ordena por distancia con ella; si no, se centra en UADE (Lima 775). La ubicación nunca se manda al servidor.
@@ -127,6 +128,7 @@ Los lugares, cupones y profesionales salen de `backend/src/main/resources/demo/*
 | Cerca tuyo y ofertas | Mapa real (Leaflet + OpenStreetMap) con 45 lugares de demostración en AMBA: cadenas ficticias en direcciones reales y parques reales. Cupones que se renuevan solos y marcan qué ingredientes de tu lista tienen oferta |
 | Ayuda profesional | 6 nutricionistas y entrenadores de ejemplo con agenda de lunes a sábado (algunos turnos ya vienen ocupados). Con Premium se reservan 2 consultas por mes, por videollamada o chat, y se pueden agregar al calendario (.ics) o cancelar |
 | Preguntale a Wopi | Asistente con respuestas armadas por reglas sobre tus datos: rutina de hoy, ideas de comida que respetan lo que no comés y tu presupuesto, lista del súper, ofertas, motivación y descanso. Si algo duele, deriva a un profesional. Los botones de cada respuesta llevan a la app (sumar una comida a hoy, hacer la versión corta, ver la lista). 3 consultas por mes gratis, 20 con Premium |
+| Comunidad | Personas como vos (por objetivos en común) para seguir, publicaciones de recetas, actividades y preguntas con foto, me gusta, guardados y comentarios. En la comunidad se ve el nombre y la inicial del apellido. Trae 6 personas y 5 publicaciones de ejemplo |
 | Lista del súper | Ingredientes del menú de la semana, de los más usados a los menos, sin las comidas marcadas como "no pude". Lo que tildás queda guardado por semana |
 | "No pude" | El motivo define una versión alternativa: exprés, liviana, suave, sin equipamiento o caminata. La rutina completa pasa al próximo día libre. Las comidas proponen una alternativa según el motivo |
 | Metas | Meta concreta (qué, cuántas veces por semana, cuántas semanas) que suma al objetivo |
@@ -159,6 +161,11 @@ El resto requiere `Authorization: Bearer <token>`:
 | GET | `pros`, `pros/{id}` | Profesionales, cupo del mes y tus próximas consultas · perfil con la agenda de los próximos 4 días |
 | POST · DELETE | `pros/{id}/book`, `consultations/{id}` | Reservar (`{ date, time, mode }`, solo Premium, 2 por mes) · cancelar una que no pasó |
 | GET · POST | `wopi` | Conversación con Wopi y consultas que quedan · preguntar (`{ text }`, 3 por mes gratis, 20 con Premium) |
+| GET | `community?f=para\|recetas\|act\|preg` | Personas como vos y publicaciones |
+| PUT | `community/people/{id}/follow` | Seguir o dejar de seguir (`{ on }`) |
+| POST · GET · DELETE | `posts`, `posts/{id}` | Publicar (`{ type, title, body, photo }`, foto como data URL) · ver con comentarios · borrar la propia |
+| POST · PUT | `posts/{id}/comments` · `posts/{id}/like` · `posts/{id}/save` | Comentar · me gusta · guardar |
+| GET | `photos/{id}` | Foto de una publicación (pública: el id es un UUID) |
 | GET · PUT | `habits/{fecha}` | Agua, caminar, dormir |
 | GET · POST · DELETE | `goals`, `goals/{id}/check`, `goals/{id}` | Metas |
 | GET | `progress`, `history` | Progreso e historial |
