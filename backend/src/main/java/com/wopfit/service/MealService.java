@@ -3,7 +3,13 @@ package com.wopfit.service;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
+import java.util.Set;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -13,11 +19,15 @@ import com.wopfit.domain.MealLog;
 import com.wopfit.domain.MealStatus;
 import com.wopfit.domain.Plan;
 import com.wopfit.domain.Preferences;
+import com.wopfit.domain.ShoppingCheck;
 import com.wopfit.repo.MealLogRepository;
+import com.wopfit.repo.ShoppingCheckRepository;
 import com.wopfit.service.MealCatalog.Meal;
 import com.wopfit.web.dto.Dtos.MealDayDto;
 import com.wopfit.web.dto.Dtos.MealDto;
 import com.wopfit.web.dto.Dtos.MealProposalDto;
+import com.wopfit.web.dto.Dtos.ShoppingDto;
+import com.wopfit.web.dto.Dtos.ShoppingItem;
 
 /** Plan de comidas: qué toca en cada momento del día, registros y alternativas. */
 @Service
@@ -25,12 +35,14 @@ public class MealService {
     private static final String[] TIMES = {"8:00", "13:00", "20:30"};
 
     private final MealLogRepository logs;
+    private final ShoppingCheckRepository checks;
     private final MealCatalog catalog;
     private final ProfileService profile;
     private final PlanService plans;
 
-    public MealService(MealLogRepository logs, MealCatalog catalog, ProfileService profile, PlanService plans) {
+    public MealService(MealLogRepository logs, ShoppingCheckRepository checks, MealCatalog catalog, ProfileService profile, PlanService plans) {
         this.logs = logs;
+        this.checks = checks;
         this.catalog = catalog;
         this.profile = profile;
         this.plans = plans;
@@ -76,19 +88,74 @@ public class MealService {
             MealLog log = logs.findByUserIdAndDateAndSlot(userId, date, slot).orElse(null);
             meals.add(dto(mealFor(plan, p, date, slot, log), p, slot, log));
         }
-        LocalDate monday = TimeService.monday(date);
+        int cost = weekMeals(userId, plan, p, TimeService.monday(date)).stream().mapToInt(Meal::price).sum();
+        return new MealDayDto(date, meals, cost, budgetMax(p.getBudget()));
+    }
+
+    /** Las comidas de la semana que arranca el lunes indicado, sin las que marcaste "no pude". */
+    private List<Meal> weekMeals(Long userId, Plan plan, Preferences p, LocalDate monday) {
         List<MealLog> week = logs.findByUserIdAndDateBetween(userId, monday, monday.plusDays(6));
-        int cost = 0;
+        List<Meal> out = new ArrayList<>();
         for (int d = 0; d < 7; d++) {
             LocalDate day = monday.plusDays(d);
             for (int slot = 0; slot < 3; slot++) {
                 final int s = slot;
                 MealLog log = week.stream().filter(x -> x.getDate().equals(day) && x.getSlot() == s).findFirst().orElse(null);
                 if (log != null && log.getStatus() == MealStatus.SKIPPED) continue;
-                cost += mealFor(plan, p, day, slot, log).price();
+                out.add(mealFor(plan, p, day, slot, log));
             }
         }
-        return new MealDayDto(date, meals, cost, budgetMax(p.getBudget()));
+        return out;
+    }
+
+    /** Ingredientes de la semana, de los que más se usan a los que menos. */
+    private static Map<String, Integer> ingredients(List<Meal> meals) {
+        Map<String, Integer> count = new HashMap<>();
+        for (Meal m : meals) {
+            for (String part : m.ingredients().split(",")) {
+                String n = part.trim().toLowerCase(Locale.ROOT);
+                if (!n.isEmpty() && !n.contains("lo que tengas")) count.merge(n, 1, Integer::sum);
+            }
+        }
+        Map<String, Integer> sorted = new LinkedHashMap<>();
+        count.entrySet().stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed().thenComparing(Map.Entry.comparingByKey()))
+                .forEach(e -> sorted.put(e.getKey(), e.getValue()));
+        return sorted;
+    }
+
+    /** Lista del súper de la semana de `date`, con lo que ya marcaste como comprado. */
+    @Transactional(readOnly = true)
+    public ShoppingDto shopping(Long userId, LocalDate date) {
+        Plan plan = plans.plan(userId);
+        Preferences p = profile.prefs(userId);
+        LocalDate monday = TimeService.monday(date);
+        List<Meal> meals = weekMeals(userId, plan, p, monday);
+        Set<String> checked = new HashSet<>();
+        checks.findByUserIdAndWeek(userId, monday).forEach(c -> checked.add(c.getItem()));
+        List<ShoppingItem> items = ingredients(meals).entrySet().stream()
+                .map(e -> new ShoppingItem(e.getKey(), e.getValue(), checked.contains(e.getKey()))).toList();
+        return new ShoppingDto(monday, meals.stream().mapToInt(Meal::price).sum(), budgetMax(p.getBudget()), items);
+    }
+
+    @Transactional
+    public ShoppingDto check(Long userId, LocalDate date, String name, boolean on) {
+        LocalDate monday = TimeService.monday(date);
+        String item = name.trim().toLowerCase(Locale.ROOT);
+        if (!ingredients(weekMeals(userId, plans.plan(userId), profile.prefs(userId), monday)).containsKey(item)) {
+            throw ApiException.badRequest("Ese ingrediente no está en tu lista de la semana");
+        }
+        var current = checks.findByUserIdAndWeekAndItem(userId, monday, item);
+        if (on && current.isEmpty()) {
+            ShoppingCheck c = new ShoppingCheck();
+            c.setUser(profile.user(userId));
+            c.setWeek(monday);
+            c.setItem(item);
+            checks.save(c);
+        } else if (!on) {
+            current.ifPresent(checks::delete);
+        }
+        return shopping(userId, monday);
     }
 
     private MealLog log(Long userId, LocalDate date, int slot) {

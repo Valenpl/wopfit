@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.wopfit.service.AuthService;
 import com.wopfit.service.Catalog;
 import com.wopfit.service.GoalService;
 import com.wopfit.service.HabitService;
@@ -38,6 +39,7 @@ import com.wopfit.web.dto.Dtos.MealReportRequest;
 import com.wopfit.web.dto.Dtos.Me;
 import com.wopfit.web.dto.Dtos.Message;
 import com.wopfit.web.dto.Dtos.MoveResponse;
+import com.wopfit.web.dto.Dtos.PasswordRequest;
 import com.wopfit.web.dto.Dtos.PlanDto;
 import com.wopfit.web.dto.Dtos.PlanUpdateResponse;
 import com.wopfit.web.dto.Dtos.PreferencesRequest;
@@ -45,6 +47,8 @@ import com.wopfit.web.dto.Dtos.ProgressDto;
 import com.wopfit.web.dto.Dtos.ReportRequest;
 import com.wopfit.web.dto.Dtos.ReportResponse;
 import com.wopfit.web.dto.Dtos.SessionDto;
+import com.wopfit.web.dto.Dtos.ShoppingCheckRequest;
+import com.wopfit.web.dto.Dtos.ShoppingDto;
 import com.wopfit.web.dto.Dtos.TodayDto;
 import com.wopfit.web.dto.Dtos.WeekDto;
 
@@ -55,15 +59,17 @@ import jakarta.validation.Valid;
 @RequestMapping("/api")
 public class MeController {
     private final ProfileService profile;
+    private final AuthService auth;
     private final PlanService plans;
     private final MealService meals;
     private final HabitService habits;
     private final GoalService goals;
     private final ProgressService progress;
 
-    public MeController(ProfileService profile, PlanService plans, MealService meals, HabitService habits, GoalService goals,
+    public MeController(ProfileService profile, AuthService auth, PlanService plans, MealService meals, HabitService habits, GoalService goals,
                         ProgressService progress) {
         this.profile = profile;
+        this.auth = auth;
         this.plans = plans;
         this.meals = meals;
         this.habits = habits;
@@ -89,6 +95,12 @@ public class MeController {
     @PutMapping("/me/preferences")
     public Me preferences(@AuthenticationPrincipal Long uid, @Valid @RequestBody PreferencesRequest r) {
         return profile.updatePreferences(uid, r);
+    }
+
+    @PutMapping("/me/password")
+    public Message password(@AuthenticationPrincipal Long uid, @Valid @RequestBody PasswordRequest r) {
+        auth.changePassword(uid, r.current(), r.password());
+        return new Message("Contraseña actualizada");
     }
 
     // ---- plan ----
@@ -166,6 +178,18 @@ public class MeController {
     public MealDayDto swap(@AuthenticationPrincipal Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
                            @PathVariable int slot) {
         return meals.swap(uid, date, slot);
+    }
+
+    // ---- lista del súper (semana de la fecha) ----
+    @GetMapping("/shopping/{date}")
+    public ShoppingDto shopping(@AuthenticationPrincipal Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        return meals.shopping(uid, date);
+    }
+
+    @PutMapping("/shopping/{date}")
+    public ShoppingDto check(@AuthenticationPrincipal Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                             @Valid @RequestBody ShoppingCheckRequest r) {
+        return meals.check(uid, date, r.name(), r.checked());
     }
 
     // ---- hábitos ----

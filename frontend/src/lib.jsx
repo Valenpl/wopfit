@@ -17,7 +17,10 @@ const P = {
   history: 'M3 12a9 9 0 1 0 3-6.7M3 4v5h5M12 8v4l3 2', info: C(12, 12, 9) + 'M12 11v5M12 8v.01',
   sun: C(12, 12, 4) + 'M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5',
   heart: 'M12 20s-8-4.5-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 9c0 6.5-8 11-8 11z', home: 'M3 11l9-7 9 7v9H3zM9 20v-6h6v6',
-  refresh: 'M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5', basket: 'M3 9h18l-2 11H5zM8 9l4-6 4 6', logout: 'M14 4h6v16h-6M10 8l-4 4 4 4M6 12h10'
+  refresh: 'M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5', basket: 'M3 9h18l-2 11H5zM8 9l4-6 4 6', logout: 'M14 4h6v16h-6M10 8l-4 4 4 4M6 12h10',
+  users: C(9, 8, 3.5) + 'M2 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5c2.5.6 4 2.3 4 5.5', chat: 'M4 5h16v11H9l-5 4z',
+  steth: 'M6 3v6a4 4 0 0 0 8 0V3M10 13v3a5 5 0 0 0 10 0v-2', pin: 'M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z',
+  tag: 'M3 12V4h8l10 10-8 8zM7.5 8.5v.01', phone: 'M8 3h8v18H8zM11 18h2', grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z'
 };
 export function Icon({ n, className = '', style }) {
   return <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={P[n]} /></svg>;

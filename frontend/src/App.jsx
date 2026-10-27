@@ -8,9 +8,10 @@ import Home from './pages/Home.jsx';
 import { Done, Entreno, Proposal, Workout } from './pages/Train.jsx';
 import { Comida, Meal, MealProposal } from './pages/Food.jsx';
 import { Adjust, Goals, History, NewGoal, Progress } from './pages/Progress.jsx';
-import Profile from './pages/Profile.jsx';
+import Profile, { Cuenta } from './pages/Profile.jsx';
+import Soon from './pages/Soon.jsx';
 
-const TABS = [['/inicio', 'Inicio', 'home'], ['/entreno', 'Entreno', 'dumb'], ['/comida', 'Comida', 'fork'], ['/progreso', 'Progreso', 'trend'], ['/perfil', 'Perfil', 'user']];
+const TABS = [['/inicio', 'Inicio', 'home'], ['/entreno', 'Entreno', 'dumb'], ['/comida', 'Comida', 'fork'], ['/comunidad', 'Comunidad', 'users'], ['/perfil', 'Perfil', 'user']];
 
 /** En qué etapa está la cuenta: sin sesión, completando datos, o usando la app. */
 function stage(me) {
@@ -19,16 +20,6 @@ function stage(me) {
   if (!me.preferences) return 'prefs';
   if (!me.plan) return 'ready';
   return 'app';
-}
-
-function useDesk() {
-  useEffect(() => {
-    const mq = window.matchMedia('(min-width: 1000px)');
-    const apply = () => document.documentElement.classList.toggle('desk', mq.matches);
-    apply();
-    mq.addEventListener('change', apply);
-    return () => mq.removeEventListener('change', apply);
-  }, []);
 }
 
 /** Con el teclado abierto en el celu, la app ocupa solo lo visible y esconde la barra de abajo. */
@@ -59,14 +50,18 @@ function useKeyboard() {
 
 function TabBar({ path, sub }) {
   const nav = useNavigate();
-  const { logout } = useApp();
+  const { setView } = useApp();
   return <nav className={`tabbar ${sub ? 'sub' : ''}`} aria-label="Secciones">
     <div className="sbrand"><img src="/logo.webp" alt="" /><b>Wop<i>Fit</i></b></div>
     {TABS.map(([to, t, i]) => {
       const on = path === to || path.startsWith(to + '/');
       return <button key={to} className={on ? 'on' : ''} aria-current={on ? 'page' : undefined} onClick={() => nav(to)}><Icon n={i} /><span>{t}</span></button>;
     })}
-    <div className="sfoot"><button className="sview" onClick={() => { logout(); nav('/', { replace: true }); }}><Icon n="logout" />Cerrar sesión</button></div>
+    <div className="sfoot">
+      <button className="swopi" onClick={() => nav('/wopi')}><span className="wopiav" style={{ width: 34, height: 34 }}><img src="/wopi.webp" alt="" /></span><span>Preguntale a Wopi</span></button>
+      <button className="sprem up" onClick={() => nav('/planes')}><Icon n="star" /><span>Pasate a Premium</span></button>
+      <button className="sview" onClick={() => setView('celu')}><Icon n="phone" /><span>Ver versión celu</span></button>
+    </div>
   </nav>;
 }
 
@@ -74,7 +69,6 @@ export default function App() {
   const { me, ready, toastMsg } = useApp();
   const loc = useLocation();
   const kb = useKeyboard();
-  useDesk();
   useEffect(() => { document.querySelector('.scroll')?.scrollTo(0, 0); }, [loc.pathname]);
 
   const st = stage(me);
@@ -108,8 +102,10 @@ export default function App() {
     <Route path="/historial" element={only(['app'], <History />)} />
     <Route path="/perfil" element={only(['app'], <Profile />)} />
     <Route path="/perfil/datos" element={only(['app'], <About edit />)} />
+    <Route path="/perfil/cuenta" element={only(['app'], <Cuenta />)} />
     <Route path="/perfil/preferencias/:step" element={only(['app'], <Prefs edit />)} />
     <Route path="/actualizando" element={only(['app'], <Updating />)} />
+    {['/comunidad', '/wopi', '/ofertas', '/cerca', '/profesionales', '/planes', '/instalar'].map(p => <Route key={p} path={p} element={only(['app'], <Soon />)} />)}
     <Route path="*" element={<Navigate to={home} replace />} />
   </Routes>;
 

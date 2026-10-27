@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 // Regla del README: cada pantalla pide cada dato al backend una sola vez, aun con el doble efecto de StrictMode.
 const API = 'http://localhost:8080/api';
-const SCREENS = ['/inicio', '/entreno', '/comida', '/progreso', '/metas', '/historial', '/perfil'];
+const SCREENS = ['/inicio', '/entreno', '/comida', '/progreso', '/metas', '/historial', '/perfil', '/perfil/cuenta', '/comunidad'];
 
 let token;
 
@@ -46,6 +46,7 @@ for (const path of SCREENS) {
     await page.waitForLoadState('networkidle');
     await expect(page.locator('.tabbar')).toBeVisible();
     expect(seen).toContain('GET /api/me');
+    await page.screenshot({ path: `test-results/pantalla${path.replaceAll('/', '_')}.png`, fullPage: true });
     expect(repeated(seen), `pedidos: ${seen.join(', ')}`).toEqual([]);
   });
 }
@@ -79,7 +80,7 @@ test('"Plan listo" sin plan lo crea una sola vez', async ({ page, request }) => 
 test('navegar por las pestañas no repite pedidos dentro de cada pantalla', async ({ page }) => {
   await page.goto('/inicio');
   await page.waitForLoadState('networkidle');
-  for (const name of ['Entreno', 'Comida', 'Progreso', 'Perfil', 'Inicio']) {
+  for (const name of ['Entreno', 'Comida', 'Comunidad', 'Perfil', 'Inicio']) {
     const seen = track(page);
     await page.locator('.tabbar').getByRole('button', { name, exact: true }).click();
     await page.waitForLoadState('networkidle');

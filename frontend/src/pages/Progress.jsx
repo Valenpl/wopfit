@@ -8,12 +8,13 @@ import { Strip } from './shared.jsx';
 export function Progress() {
   const nav = useNavigate();
   const { data: p, error, reload } = useLoad(sig => api.get('/progress', sig), []);
-  if (error) return <Screen><ErrorBox error={error} onRetry={reload} /></Screen>;
+  if (error) return <Screen><TopBar /><ErrorBox error={error} onRetry={reload} /></Screen>;
   if (!p) return <Loading />;
   const msg = p.sessionsDone ? (p.sessionsDone >= p.sessionsTotal ? '¡Semana completa! Sos imparable.' : `Vas ${p.sessionsDone} de ${p.sessionsTotal}. Cada sesión suma.`) : 'Tu primera sesión de la semana te espera.';
   const sug = p.suggestion;
   return <div className="screen"><div className="scroll">
-    <h1 style={{ marginTop: 0 }}>Tu progreso</h1><p className="sub">Vos vs. vos: así viene tu semana {p.weekNumber}.</p>
+    <TopBar />
+    <h1>Tu progreso</h1><p className="sub">Vos vs. vos: así viene tu semana {p.weekNumber}.</p>
     {sug && <button className={`banner ${sug.type === 'GROW' ? 'green' : ''}`} onClick={() => nav('/ajuste')}><Icon n={sug.type === 'GROW' ? 'trend' : 'heart'} />
       <span className="grow"><b style={{ display: 'block', color: 'var(--navy)' }}>{sug.type === 'GROW' ? 'Tu plan puede crecer' : 'Hagamos tu plan más liviano'}</b><span className="small" style={{ fontWeight: 600 }}>{sug.text}</span></span><Icon n="chev" /></button>}
     <div className="stats"><div className="stat"><b>{p.sessionsDone}/{p.sessionsTotal}</b><span>Entrenamientos</span></div><div className="stat"><b>{p.habitsToday}/3</b><span>Hábitos hoy</span></div><div className="stat"><b>{p.weeksStreak}</b><span>Semanas completas</span></div></div>

@@ -5,6 +5,9 @@ import { DAYF, Icon, add, cap, dayNum, dow, firstName, shortDate, today } from '
 import { ErrorBox, Loading, More, Sect, useApp, useLoad } from '../ui.jsx';
 import { Habits, ReportSheet, Strip, blocksDone } from './shared.jsx';
 
+/** Candado de "parte de Premium". Hasta que exista la suscripción, todos están en el plan Gratuito. */
+const LockTag = () => <span className="lk"><Icon n="lock" /></span>;
+
 export default function Home() {
   const nav = useNavigate();
   const { me, toast } = useApp();
@@ -63,10 +66,10 @@ export default function Home() {
 
     <Sect title="Accesos rápidos" />
     <div className="qa">
-      <button onClick={() => nav('/metas')}><div className="tile sm g"><Icon n="flag" /></div>Mis metas</button>
-      <button onClick={() => nav('/historial')}><div className="tile sm"><Icon n="history" /></div>Historial</button>
-      <button onClick={() => nav('/perfil/preferencias/1')}><div className="tile sm p"><Icon n="sliders" /></div>Mis objetivos</button>
-      <button onClick={() => nav('/comida')}><div className="tile sm g"><Icon n="cash" /></div>Presupuesto</button>
+      <button onClick={() => nav('/wopi')}><div className="wopiav" style={{ width: 34, height: 34 }}><img src="/wopi.webp" alt="" /></div>Preguntale a Wopi</button>
+      <button onClick={() => nav('/ofertas')}><div className="tile sm g"><Icon n="tag" /></div>Ofertas</button>
+      <button onClick={() => nav('/cerca')}><div className="tile sm"><Icon n="pin" /></div>Cerca tuyo<LockTag /></button>
+      <button onClick={() => nav('/profesionales')}><div className="tile sm p"><Icon n="steth" /></div>Ayuda profesional<LockTag /></button>
     </div>
     <div className="center mt12"><button className="textbtn" onClick={() => (s && s.status === 'PENDING' ? setReport(s) : toast(s ? 'Hoy ya no tenés entrenamiento pendiente' : 'Hoy es día de descanso: no hay nada que mover'))}>Hoy no puedo con todo</button></div>
     {report && <ReportSheet session={report} onClose={() => setReport(null)} onDone={reload} />}
