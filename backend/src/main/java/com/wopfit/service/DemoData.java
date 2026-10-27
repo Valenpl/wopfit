@@ -17,20 +17,24 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.wopfit.domain.Offer;
 import com.wopfit.domain.Place;
+import com.wopfit.domain.Professional;
 import com.wopfit.repo.OfferRepository;
 import com.wopfit.repo.PlaceRepository;
+import com.wopfit.repo.ProfessionalRepository;
 
-/** Carga los lugares y cupones de demostración (resources/demo/*.tsv) la primera vez que arranca, si las tablas están vacías. */
+/** Carga los lugares, cupones y profesionales de demostración (resources/demo/*.tsv) la primera vez que arranca, si las tablas están vacías. */
 @Component
 public class DemoData implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(DemoData.class);
     private final PlaceRepository places;
     private final OfferRepository offers;
+    private final ProfessionalRepository pros;
     private final TimeService time;
 
-    public DemoData(PlaceRepository places, OfferRepository offers, TimeService time) {
+    public DemoData(PlaceRepository places, OfferRepository offers, ProfessionalRepository pros, TimeService time) {
         this.places = places;
         this.offers = offers;
+        this.pros = pros;
         this.time = time;
     }
 
@@ -86,6 +90,20 @@ public class DemoData implements ApplicationRunner {
                 offers.save(o);
             }
             log.info("Cupones de demostración cargados: {}", offers.count());
+        }
+        if (pros.count() == 0) {
+            for (String[] c : rows("professionals.tsv")) {
+                Professional p = new Professional();
+                p.setKind(c[0]);
+                p.setName(c[1]);
+                p.setSpecialty(c[2]);
+                p.setLicense(c[3]);
+                p.setRating(Double.parseDouble(c[4]));
+                p.setExperience(c[5]);
+                p.setBio(c[6]);
+                pros.save(p);
+            }
+            log.info("Profesionales de demostración cargados: {}", pros.count());
         }
     }
 }

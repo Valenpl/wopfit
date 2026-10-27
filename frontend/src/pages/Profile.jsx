@@ -26,7 +26,7 @@ export default function Profile() {
     <Sect title="Mi plan" />
     <div className="card">
       {row('star', 'Suscripción', pr ? `Premium ${P2.t} · ${P2.s} ${P2.u}` : 'Gratuito · con anuncios', '/planes', pr ? null : <span className="tag blue">Mejorar</span>)}
-      {row('steth', 'Ayuda profesional', pr ? '2 consultas por mes incluidas' : 'Incluida en Premium', '/profesionales')}
+      {row('steth', 'Ayuda profesional', pr ? `${me.subscription.consultsLeft} ${me.subscription.consultsLeft === 1 ? 'consulta disponible' : 'consultas disponibles'} este mes` : 'Incluida en Premium', '/profesionales')}
       {row('chat', 'Preguntale a Wopi', 'Tu asistente de bienestar', '/wopi')}
     </div>
     <Sect title="Mis preferencias" />

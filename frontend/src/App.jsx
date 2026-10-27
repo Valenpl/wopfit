@@ -12,6 +12,7 @@ import Profile, { Cuenta } from './pages/Profile.jsx';
 import Soon from './pages/Soon.jsx';
 import { Planes, YaPremium } from './pages/Premium.jsx';
 import { Cerca, Ofertas } from './pages/Places.jsx';
+import { Pro, ProConf, Pros } from './pages/Pros.jsx';
 
 const TABS = [['/inicio', 'Inicio', 'home'], ['/entreno', 'Entreno', 'dumb'], ['/comida', 'Comida', 'fork'], ['/comunidad', 'Comunidad', 'users'], ['/perfil', 'Perfil', 'user']];
 
@@ -108,10 +109,13 @@ export default function App() {
     <Route path="/planes" element={only(['app'], <Planes />)} />
     <Route path="/ofertas" element={only(['app'], <Ofertas />)} />
     <Route path="/cerca" element={only(['app'], <Cerca />)} />
+    <Route path="/profesionales" element={only(['app'], <Pros />)} />
+    <Route path="/profesionales/confirmada" element={only(['app'], <ProConf />)} />
+    <Route path="/profesionales/:id" element={only(['app'], <Pro />)} />
     <Route path="/premium" element={only(['app'], <YaPremium />)} />
     <Route path="/perfil/preferencias/:step" element={only(['app'], <Prefs edit />)} />
     <Route path="/actualizando" element={only(['app'], <Updating />)} />
-    {['/comunidad', '/wopi', '/profesionales', '/instalar'].map(p => <Route key={p} path={p} element={only(['app'], <Soon />)} />)}
+    {['/comunidad', '/wopi', '/instalar'].map(p => <Route key={p} path={p} element={only(['app'], <Soon />)} />)}
     <Route path="*" element={<Navigate to={home} replace />} />
   </Routes>;
 
