@@ -8,7 +8,6 @@ const SOON = {
   '/ofertas': ['Encontrar ofertas', 'Ahorrá en lo que te hace bien.'],
   '/cerca': ['Cerca tuyo', 'Supermercados, dietéticas, gimnasios y parques.'],
   '/profesionales': ['Ayuda profesional', 'Nutricionistas y entrenadores matriculados.'],
-  '/planes': ['Elegí tu plan', 'Empezá gratis y mejorá cuando quieras.'],
   '/instalar': ['Instalá WopFit', 'Queda en tu pantalla de inicio como una app.']
 };
 

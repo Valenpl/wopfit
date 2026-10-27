@@ -28,11 +28,13 @@ public class ProfileService {
     private final UserRepository users;
     private final PreferencesRepository prefsRepo;
     private final PlanRepository plans;
+    private final PremiumService premium;
 
-    public ProfileService(UserRepository users, PreferencesRepository prefsRepo, PlanRepository plans) {
+    public ProfileService(UserRepository users, PreferencesRepository prefsRepo, PlanRepository plans, PremiumService premium) {
         this.users = users;
         this.prefsRepo = prefsRepo;
         this.plans = plans;
+        this.premium = premium;
     }
 
     public User user(Long id) {
@@ -49,7 +51,7 @@ public class ProfileService {
         Preferences p = prefsRepo.findByUserId(userId).orElse(null);
         Plan plan = plans.findByUserId(userId).orElse(null);
         return new Me(u.getId(), u.getEmail(), u.getName(), u.getBirthDate(), u.getHeightCm(), u.getWeightKg(), u.isVerified(),
-                p == null ? null : toDto(p), plan == null || p == null ? null : planDto(plan, p));
+                p == null ? null : toDto(p), plan == null || p == null ? null : planDto(plan, p), premium.status(userId));
     }
 
     @Transactional

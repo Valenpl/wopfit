@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
-import { DAYF, Icon, add, cap, dayNum, dow, firstName, shortDate, today } from '../lib.jsx';
+import { DAYF, Icon, add, cap, dayNum, dow, firstName, isPremium, shortDate, today } from '../lib.jsx';
 import { ErrorBox, Loading, More, Sect, useApp, useLoad } from '../ui.jsx';
 import { Habits, ReportSheet, Strip, blocksDone } from './shared.jsx';
 
-/** Candado de "parte de Premium". Hasta que exista la suscripción, todos están en el plan Gratuito. */
+/** Candado de "parte de Premium" para el plan Gratuito. */
 const LockTag = () => <span className="lk"><Icon n="lock" /></span>;
 
 export default function Home() {
@@ -40,6 +40,7 @@ export default function Home() {
   const hb = [habits.water, habits.walk, habits.sleep].filter(Boolean).length;
   const sug = progress.suggestion;
   const pending = me.preferences.pendingChanges.length > 0;
+  const prem = isPremium(me);
 
   return <div className="screen"><div className="scroll">
     <div className="row between"><div><div className="small muted" style={{ fontWeight: 700 }}>{shortDate(t)}</div><h1 style={{ margin: '2px 0 0' }}>Hola, {firstName(me)}</h1></div>
@@ -68,9 +69,11 @@ export default function Home() {
     <div className="qa">
       <button onClick={() => nav('/wopi')}><div className="wopiav" style={{ width: 34, height: 34 }}><img src="/wopi.webp" alt="" /></div>Preguntale a Wopi</button>
       <button onClick={() => nav('/ofertas')}><div className="tile sm g"><Icon n="tag" /></div>Ofertas</button>
-      <button onClick={() => nav('/cerca')}><div className="tile sm"><Icon n="pin" /></div>Cerca tuyo<LockTag /></button>
-      <button onClick={() => nav('/profesionales')}><div className="tile sm p"><Icon n="steth" /></div>Ayuda profesional<LockTag /></button>
+      <button onClick={() => nav('/cerca')}><div className="tile sm"><Icon n="pin" /></div>Cerca tuyo{!prem && <LockTag />}</button>
+      <button onClick={() => nav('/profesionales')}><div className="tile sm p"><Icon n="steth" /></div>Ayuda profesional{!prem && <LockTag />}</button>
     </div>
+    {!prem && <div className="ad"><div className="tile sm"><Icon n="star" /></div><div className="grow small"><b style={{ color: 'var(--navy)' }}>Anuncio de aliado · 20% en zapatillas</b>
+      <div className="muted">Deportes Andes. <button className="link" onClick={() => nav('/planes')}>Quitá los anuncios</button></div></div></div>}
     <div className="center mt12"><button className="textbtn" onClick={() => (s && s.status === 'PENDING' ? setReport(s) : toast(s ? 'Hoy ya no tenés entrenamiento pendiente' : 'Hoy es día de descanso: no hay nada que mover'))}>Hoy no puedo con todo</button></div>
     {report && <ReportSheet session={report} onClose={() => setReport(null)} onDone={reload} />}
   </div></div>;
