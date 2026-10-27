@@ -21,7 +21,8 @@ const P = {
   users: C(9, 8, 3.5) + 'M2 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5c2.5.6 4 2.3 4 5.5', chat: 'M4 5h16v11H9l-5 4z',
   steth: 'M6 3v6a4 4 0 0 0 8 0V3M10 13v3a5 5 0 0 0 10 0v-2', pin: 'M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z',
   tag: 'M3 12V4h8l10 10-8 8zM7.5 8.5v.01', phone: 'M8 3h8v18H8zM11 18h2', grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
-  search: C(11, 11, 7) + 'M20 20l-4-4', copy: 'M8 8h12v12H8zM4 16V4h12', nav: 'M3 11l18-8-8 18-2-8z', bell: 'M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 21h4'
+  search: C(11, 11, 7) + 'M20 20l-4-4', copy: 'M8 8h12v12H8zM4 16V4h12', nav: 'M3 11l18-8-8 18-2-8z', bell: 'M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 21h4',
+  send: 'M4 12l16-8-6 16-3-7z'
 };
 export function Icon({ n, className = '', style }) {
   return <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={P[n]} /></svg>;
