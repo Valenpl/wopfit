@@ -1,0 +1,12 @@
+# Cupones de demostración de aliados ficticios. "días" = cada cuántos días se renuevan; ingredientes = los de la lista del súper que cubren.
+# código	cadena	comercio	categoría	descuento	unidad	descripción	días	ingredientes
+WOPLEG25	sdb	Súper Del Barrio	super	25%	OFF	Legumbres secas: lentejas, garbanzos y porotos	13	lentejas,garbanzos,porotos
+VERDE2X1	mv	Mercado Verde	super	2x1		Frutas y verduras de estación todos los martes	20	zapallo,calabaza,tomate,espinaca,banana,palta,lechuga
+AHORRO15	ahorro	Súper Ahorro Express	super	15%	OFF	Huevos y arroz pagando con billetera virtual	6	huevo,arroz
+SEMILLA15	semilla	Dietética La Semilla	diet	15%	OFF	Avena, semillas y frutos secos a granel	10	avena,semillas,granola
+VIDA10	vida	Dietética Natural Vida	diet	10%	OFF	Tofu y bebidas vegetales	8	tofu,bebida vegetal
+IMPULSO50	impulso	Gimnasio Impulso	gym	50%	OFF	Primer mes para usuarios WopFit	25	
+FIT7	fit24	Fit Club 24	gym	7	días gratis	Pase libre una semana, sin matrícula	15	
+ANDES20	-	Deportes Andes	ropa	20%	OFF	Zapatillas de running y training	12	
+MOVETE3X2	-	Tienda Movete	ropa	3x2		Calzas, tops y remeras deportivas	9	
+PRO10	-	Suplementos Pro	supl	10%	OFF	Proteína vegetal y creatina	18	

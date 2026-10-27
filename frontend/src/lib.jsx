@@ -20,7 +20,8 @@ const P = {
   refresh: 'M20 12a8 8 0 1 1-2.3-5.7M20 4v5h-5', basket: 'M3 9h18l-2 11H5zM8 9l4-6 4 6', logout: 'M14 4h6v16h-6M10 8l-4 4 4 4M6 12h10',
   users: C(9, 8, 3.5) + 'M2 20c0-3.5 3-5.5 7-5.5s7 2 7 5.5M16 4.5a3.5 3.5 0 0 1 0 7M18 14.5c2.5.6 4 2.3 4 5.5', chat: 'M4 5h16v11H9l-5 4z',
   steth: 'M6 3v6a4 4 0 0 0 8 0V3M10 13v3a5 5 0 0 0 10 0v-2', pin: 'M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z',
-  tag: 'M3 12V4h8l10 10-8 8zM7.5 8.5v.01', phone: 'M8 3h8v18H8zM11 18h2', grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z'
+  tag: 'M3 12V4h8l10 10-8 8zM7.5 8.5v.01', phone: 'M8 3h8v18H8zM11 18h2', grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
+  search: C(11, 11, 7) + 'M20 20l-4-4', copy: 'M8 8h12v12H8zM4 16V4h12', nav: 'M3 11l18-8-8 18-2-8z', bell: 'M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 21h4'
 };
 export function Icon({ n, className = '', style }) {
   return <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={P[n]} /></svg>;
@@ -51,6 +52,22 @@ export const PRICES = {
 export const FREE_F = ['Plan básico de alimentación y entrenamiento', 'Asistente IA (consultas limitadas)', 'Comunidad', 'Buscador básico de precios', 'Con anuncios de aliados'];
 export const PREM_F = ['Todo lo del Gratuito', 'Asistente IA con más consultas', 'Seguimiento de hábitos y progreso', 'Buscador de lugares cercanos', '2 consultas por mes con nutricionistas o entrenadores', 'Alertas de ofertas', 'Promociones de aliados', 'Sin anuncios'];
 export const isPremium = me => !!(me && me.subscription && me.subscription.premium);
+
+// Lugares y ofertas de demostración
+export const PCATS = [['todos', 'Todos', '📍'], ['super', 'Supermercados', '🛒'], ['diet', 'Dietéticas', '🌾'], ['verdu', 'Verdulerías', '🥬'], ['gym', 'Gimnasios', '🏋️'], ['parque', 'Parques', '🌳']];
+export const PCOL = { super: '#1E7FCB', diet: '#C08A2B', verdu: '#6DBB3A', gym: '#8E6BD1', parque: '#2E9E6A' };
+export const PEMO = { super: '🛒', diet: '🌾', verdu: '🥬', gym: '🏋️', parque: '🌳' };
+export const OCATS = [['todas', 'Todas', '🏷️'], ['super', 'Supermercados', '🛒'], ['diet', 'Dietéticas', '🌾'], ['gym', 'Gimnasios', '🏋️'], ['ropa', 'Ropa deportiva', '👟'], ['supl', 'Suplementos', '💊']];
+/** Si no hay ubicación, la demo se centra en UADE (Lima 775, Monserrat). */
+export const DEFAULT_HERE = { lat: -34.6170, lng: -58.3818, real: false };
+/** Distancia en metros entre dos puntos {lat, lng}. */
+export function meters(a, b) {
+  const R = 6371000, rad = x => x * Math.PI / 180;
+  const dLat = rad(b.lat - a.lat), dLng = rad(b.lng - a.lng);
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(rad(a.lat)) * Math.cos(rad(b.lat)) * Math.sin(dLng / 2) ** 2;
+  return Math.round(2 * R * Math.asin(Math.sqrt(h)));
+}
+export const distTxt = m => (m < 1000 ? m + ' m' : (m / 1000).toFixed(1).replace('.', ',') + ' km');
 export const ACTS = [{ k: 'caminar', t: 'Caminar', i: 'walk' }, { k: 'correr', t: 'Correr', i: 'run' }, { k: 'yoga', t: 'Yoga', i: 'yoga' }, { k: 'pesas', t: 'Pesas', i: 'dumb' }, { k: 'bici', t: 'Bici', i: 'bike' }, { k: 'baile', t: 'Baile', i: 'music' }];
 export const AVOID = [{ k: 'lacteos', t: 'Lácteos', s: 'Sin lácteos' }, { k: 'gluten', t: 'Gluten', s: 'Sin gluten' }, { k: 'tacc', t: 'Soy celíaca/o (sin TACC)', s: 'Sin TACC' }, { k: 'carne', t: 'Carne', s: 'Sin carne' }];
 export const HEALTH = [{ k: 'diabetes', t: 'Diabetes' }, { k: 'presion', t: 'Presión alta' }, { k: 'embarazo', t: 'Embarazo' }, { k: 'lesion', t: 'Lesión o dolor crónico' }];

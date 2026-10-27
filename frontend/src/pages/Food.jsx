@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { api } from '../api.js';
 import { BUDGET, DAYF, Icon, MEAL_BG, MREASONS, add, cap, dayNum, dow, monday, monthName, today } from '../lib.jsx';
+import { CouponCard, useHere } from './Places.jsx';
 import { Btn, ErrorBox, Loading, More, Note, Screen, Sect, Sheet, TopBar, useAction, useApp, useLoad } from '../ui.jsx';
 
 const eaten = m => m.status === 'EATEN' || m.status === 'ALTERNATIVE';
@@ -47,6 +48,7 @@ export function Comida() {
       <Sect title="Comidas de hoy" right={<span className="tag blue">{day.meals.filter(eaten).length} de 3</span>} />
       <div className="card">{day.meals.map(x => <MealRow key={x.slot} m={x} date={date} onEat={eat} />)}</div>
       <Note icon="heart" className="mt16">¿No pudiste con alguna? Tocala y contanos: te proponemos una alternativa.</Note>
+      <ListOffer />
     </>;
   } else {
     body = <>
@@ -69,11 +71,23 @@ export function Comida() {
 }
 
 /** Lista del súper de esta semana: ingredientes del menú, de los que más se usan a los que menos. */
+/** "Ofertas para tu lista": el primer cupón que sirve para la lista de esta semana. */
+function ListOffer() {
+  const nav = useNavigate();
+  const here = useHere();
+  const { data } = useLoad(sig => api.get('/offers', sig), []);
+  if (!data || !data.offers.length) return null;
+  const o = data.offers.find(x => x.forList) || data.offers[0];
+  return <><Sect title="Ofertas para tu lista" right={<More onClick={() => nav('/ofertas')}>Ver todas</More>} /><CouponCard o={o} here={here} /></>;
+}
+
 function SuperTab() {
   const nav = useNavigate();
   const { me, toast } = useApp();
   const t = today();
   const { data, error, reload, set } = useLoad(sig => api.get(`/shopping/${t}`, sig), [t]);
+  const { data: offers } = useLoad(sig => api.get('/offers', sig), []);
+  const forList = offers ? offers.offers.filter(o => o.forList).length : 0;
   if (error) return <ErrorBox error={error} onRetry={reload} />;
   if (!data) return <p className="center muted">Cargando…</p>;
   const B = BUDGET[me.preferences.budget];
@@ -86,10 +100,11 @@ function SuperTab() {
   return <>
     <div className="card"><div className="row between"><div><b style={{ fontFamily: 'var(--h)', fontSize: 20, color: 'var(--navy)' }}>{money(data.weekCost)}</b>
       <div className="tiny muted" style={{ fontWeight: 700 }}>estimado de la semana · presupuesto {B.t.toLowerCase()}</div></div><span className="tag blue">{done}/{data.items.length}</span></div></div>
+    {forList > 0 && <button className="banner green mt12" onClick={() => nav('/ofertas')}><Icon n="tag" /><span className="grow">{forList} {forList === 1 ? 'oferta' : 'ofertas'} para ingredientes de tu lista</span><Icon n="chev" /></button>}
     <Sect title="Tu lista del súper" />
     <div className="card">{data.items.map(x => <button key={x.name} className="listrow" onClick={() => flip(x)} aria-pressed={x.checked}>
       <span className={`ck box ${x.checked ? 'on' : ''}`}><Icon n="check" /></span><span className={`t grow ${x.checked ? 'done-t' : ''}`}>{cap(x.name)}</span>
-      <span className="tiny muted" style={{ fontWeight: 700 }}>{x.count} {x.count > 1 ? 'comidas' : 'comida'}</span></button>)}</div>
+      {x.offer ? <span className="tag">Oferta</span> : <span className="tiny muted" style={{ fontWeight: 700 }}>{x.count} {x.count > 1 ? 'comidas' : 'comida'}</span>}</button>)}</div>
     <div className="center mt12"><More onClick={() => nav('/cerca')}>Ver súper y verdulerías cerca</More></div>
   </>;
 }

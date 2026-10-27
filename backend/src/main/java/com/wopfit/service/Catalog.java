@@ -34,6 +34,11 @@ public final class Catalog {
             "tiempo", "No tuve tiempo de cocinar", "ingred", "No tenía los ingredientes", "afuera", "Comí afuera",
             "caro", "Era caro para mi presupuesto", "hambre", "No tenía hambre", "otro", "Otro motivo");
     public static final List<String> SLOTS = List.of("Desayuno", "Almuerzo", "Cena");
+    /** Categorías del mapa "Cerca tuyo" y de los cupones. */
+    public static final Map<String, String> PLACE_CATEGORIES = ordered(
+            "super", "Supermercados", "diet", "Dietéticas", "verdu", "Verdulerías", "gym", "Gimnasios", "parque", "Parques");
+    public static final Map<String, String> OFFER_CATEGORIES = ordered(
+            "super", "Supermercados", "diet", "Dietéticas", "gym", "Gimnasios", "ropa", "Ropa deportiva", "supl", "Suplementos");
     /** Períodos de Premium (demostración, sin cobros). */
     public static final Map<String, String> PREMIUM_PERIODS = ordered("mensual", "Mensual", "semestral", "Semestral", "anual", "Anual");
     public static final Map<String, List<String>> GOAL_OPTIONS = Map.of(
