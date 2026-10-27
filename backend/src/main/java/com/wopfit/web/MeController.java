@@ -24,6 +24,7 @@ import com.wopfit.service.GoalService;
 import com.wopfit.service.HabitService;
 import com.wopfit.service.MealService;
 import com.wopfit.service.PlanService;
+import com.wopfit.service.PremiumService;
 import com.wopfit.service.ProfileService;
 import com.wopfit.service.ProgressService;
 import com.wopfit.web.dto.Dtos.AboutRequest;
@@ -47,6 +48,7 @@ import com.wopfit.web.dto.Dtos.ProgressDto;
 import com.wopfit.web.dto.Dtos.ReportRequest;
 import com.wopfit.web.dto.Dtos.ReportResponse;
 import com.wopfit.web.dto.Dtos.SessionDto;
+import com.wopfit.web.dto.Dtos.SubscriptionRequest;
 import com.wopfit.web.dto.Dtos.ShoppingCheckRequest;
 import com.wopfit.web.dto.Dtos.ShoppingDto;
 import com.wopfit.web.dto.Dtos.TodayDto;
@@ -60,16 +62,18 @@ import jakarta.validation.Valid;
 public class MeController {
     private final ProfileService profile;
     private final AuthService auth;
+    private final PremiumService premium;
     private final PlanService plans;
     private final MealService meals;
     private final HabitService habits;
     private final GoalService goals;
     private final ProgressService progress;
 
-    public MeController(ProfileService profile, AuthService auth, PlanService plans, MealService meals, HabitService habits, GoalService goals,
+    public MeController(ProfileService profile, AuthService auth, PremiumService premium, PlanService plans, MealService meals, HabitService habits, GoalService goals,
                         ProgressService progress) {
         this.profile = profile;
         this.auth = auth;
+        this.premium = premium;
         this.plans = plans;
         this.meals = meals;
         this.habits = habits;
@@ -80,9 +84,11 @@ public class MeController {
     // ---- catálogo (opciones para los formularios) ----
     @GetMapping("/catalog")
     public Map<String, Object> catalog() {
-        return Map.of("goals", Catalog.GOALS, "activities", Catalog.ACTIVITIES, "avoid", Catalog.AVOID, "health", Catalog.HEALTH,
-                "equipment", Catalog.EQUIPMENT, "levels", Catalog.LEVELS, "budgets", Catalog.BUDGETS,
-                "workoutReasons", Catalog.WORKOUT_REASONS, "mealReasons", Catalog.MEAL_REASONS, "goalOptions", Catalog.GOAL_OPTIONS);
+        return Map.ofEntries(Map.entry("goals", Catalog.GOALS), Map.entry("activities", Catalog.ACTIVITIES), Map.entry("avoid", Catalog.AVOID),
+                Map.entry("health", Catalog.HEALTH), Map.entry("equipment", Catalog.EQUIPMENT), Map.entry("levels", Catalog.LEVELS),
+                Map.entry("budgets", Catalog.BUDGETS), Map.entry("workoutReasons", Catalog.WORKOUT_REASONS),
+                Map.entry("mealReasons", Catalog.MEAL_REASONS), Map.entry("goalOptions", Catalog.GOAL_OPTIONS),
+                Map.entry("premiumPeriods", Catalog.PREMIUM_PERIODS));
     }
 
     // ---- perfil ----
@@ -101,6 +107,19 @@ public class MeController {
     public Message password(@AuthenticationPrincipal Long uid, @Valid @RequestBody PasswordRequest r) {
         auth.changePassword(uid, r.current(), r.password());
         return new Message("Contraseña actualizada");
+    }
+
+    // ---- Premium de demostración (sin cobros) ----
+    @PostMapping("/subscription")
+    public Me subscribe(@AuthenticationPrincipal Long uid, @Valid @RequestBody SubscriptionRequest r) {
+        premium.activate(uid, r.period());
+        return profile.me(uid);
+    }
+
+    @DeleteMapping("/subscription")
+    public Me unsubscribe(@AuthenticationPrincipal Long uid) {
+        premium.cancel(uid);
+        return profile.me(uid);
     }
 
     // ---- plan ----

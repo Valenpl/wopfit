@@ -41,6 +41,16 @@ export const BUDGET = {
   medio: { t: 'Medio', r: '$25.000 a $45.000' },
   alto: { t: 'Alto', r: 'Más de $45.000', tag: 'Variado' }
 };
+
+// Premium (demostración: se activa sin pagar)
+export const PRICES = {
+  mensual: { t: 'Mensual', s: 'US$ 9,99', u: 'por mes' },
+  semestral: { t: 'Semestral', s: 'US$ 53,99', u: 'cada 6 meses', save: 'Ahorrás 10%', eq: 'Equivale a US$ 9 por mes' },
+  anual: { t: 'Anual', s: 'US$ 95,99', u: 'por año', save: 'Ahorrás 20%', eq: 'Equivale a US$ 8 por mes' }
+};
+export const FREE_F = ['Plan básico de alimentación y entrenamiento', 'Asistente IA (consultas limitadas)', 'Comunidad', 'Buscador básico de precios', 'Con anuncios de aliados'];
+export const PREM_F = ['Todo lo del Gratuito', 'Asistente IA con más consultas', 'Seguimiento de hábitos y progreso', 'Buscador de lugares cercanos', '2 consultas por mes con nutricionistas o entrenadores', 'Alertas de ofertas', 'Promociones de aliados', 'Sin anuncios'];
+export const isPremium = me => !!(me && me.subscription && me.subscription.premium);
 export const ACTS = [{ k: 'caminar', t: 'Caminar', i: 'walk' }, { k: 'correr', t: 'Correr', i: 'run' }, { k: 'yoga', t: 'Yoga', i: 'yoga' }, { k: 'pesas', t: 'Pesas', i: 'dumb' }, { k: 'bici', t: 'Bici', i: 'bike' }, { k: 'baile', t: 'Baile', i: 'music' }];
 export const AVOID = [{ k: 'lacteos', t: 'Lácteos', s: 'Sin lácteos' }, { k: 'gluten', t: 'Gluten', s: 'Sin gluten' }, { k: 'tacc', t: 'Soy celíaca/o (sin TACC)', s: 'Sin TACC' }, { k: 'carne', t: 'Carne', s: 'Sin carne' }];
 export const HEALTH = [{ k: 'diabetes', t: 'Diabetes' }, { k: 'presion', t: 'Presión alta' }, { k: 'embarazo', t: 'Embarazo' }, { k: 'lesion', t: 'Lesión o dolor crónico' }];

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { Icon } from './lib.jsx';
+import { Icon, isPremium } from './lib.jsx';
 import { Loading, useApp } from './ui.jsx';
 import { Login, Signup, Verify, Welcome } from './pages/Auth.jsx';
 import { About, Prefs, Ready, Updating } from './pages/Setup.jsx';
@@ -10,6 +10,7 @@ import { Comida, Meal, MealProposal } from './pages/Food.jsx';
 import { Adjust, Goals, History, NewGoal, Progress } from './pages/Progress.jsx';
 import Profile, { Cuenta } from './pages/Profile.jsx';
 import Soon from './pages/Soon.jsx';
+import { Planes, YaPremium } from './pages/Premium.jsx';
 
 const TABS = [['/inicio', 'Inicio', 'home'], ['/entreno', 'Entreno', 'dumb'], ['/comida', 'Comida', 'fork'], ['/comunidad', 'Comunidad', 'users'], ['/perfil', 'Perfil', 'user']];
 
@@ -50,7 +51,7 @@ function useKeyboard() {
 
 function TabBar({ path, sub }) {
   const nav = useNavigate();
-  const { setView } = useApp();
+  const { me, setView } = useApp();
   return <nav className={`tabbar ${sub ? 'sub' : ''}`} aria-label="Secciones">
     <div className="sbrand"><img src="/logo.webp" alt="" /><b>Wop<i>Fit</i></b></div>
     {TABS.map(([to, t, i]) => {
@@ -59,7 +60,7 @@ function TabBar({ path, sub }) {
     })}
     <div className="sfoot">
       <button className="swopi" onClick={() => nav('/wopi')}><span className="wopiav" style={{ width: 34, height: 34 }}><img src="/wopi.webp" alt="" /></span><span>Preguntale a Wopi</span></button>
-      <button className="sprem up" onClick={() => nav('/planes')}><Icon n="star" /><span>Pasate a Premium</span></button>
+      {isPremium(me) ? <div className="sprem">★ Premium</div> : <button className="sprem up" onClick={() => nav('/planes')}><Icon n="star" /><span>Pasate a Premium</span></button>}
       <button className="sview" onClick={() => setView('celu')}><Icon n="phone" /><span>Ver versión celu</span></button>
     </div>
   </nav>;
@@ -103,9 +104,11 @@ export default function App() {
     <Route path="/perfil" element={only(['app'], <Profile />)} />
     <Route path="/perfil/datos" element={only(['app'], <About edit />)} />
     <Route path="/perfil/cuenta" element={only(['app'], <Cuenta />)} />
+    <Route path="/planes" element={only(['app'], <Planes />)} />
+    <Route path="/premium" element={only(['app'], <YaPremium />)} />
     <Route path="/perfil/preferencias/:step" element={only(['app'], <Prefs edit />)} />
     <Route path="/actualizando" element={only(['app'], <Updating />)} />
-    {['/comunidad', '/wopi', '/ofertas', '/cerca', '/profesionales', '/planes', '/instalar'].map(p => <Route key={p} path={p} element={only(['app'], <Soon />)} />)}
+    {['/comunidad', '/wopi', '/ofertas', '/cerca', '/profesionales', '/instalar'].map(p => <Route key={p} path={p} element={only(['app'], <Soon />)} />)}
     <Route path="*" element={<Navigate to={home} replace />} />
   </Routes>;
 

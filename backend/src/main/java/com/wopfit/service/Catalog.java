@@ -34,6 +34,8 @@ public final class Catalog {
             "tiempo", "No tuve tiempo de cocinar", "ingred", "No tenía los ingredientes", "afuera", "Comí afuera",
             "caro", "Era caro para mi presupuesto", "hambre", "No tenía hambre", "otro", "Otro motivo");
     public static final List<String> SLOTS = List.of("Desayuno", "Almuerzo", "Cena");
+    /** Períodos de Premium (demostración, sin cobros). */
+    public static final Map<String, String> PREMIUM_PERIODS = ordered("mensual", "Mensual", "semestral", "Semestral", "anual", "Anual");
     public static final Map<String, List<String>> GOAL_OPTIONS = Map.of(
             "mover", List.of("Caminar 20 min", "Entrenar 30 min", "Estirar 10 min"),
             "comer", List.of("Cocinar en casa", "Comer 2 frutas", "Tomar 2 L de agua"),

@@ -60,7 +60,11 @@ public final class Dtos {
             String trainingSummary, String foodSummary, List<String> healthNotes) {}
 
     public record Me(Long id, String email, String name, LocalDate birthDate, Integer heightCm, Double weightKg,
-            boolean verified, PreferencesDto preferences, PlanDto plan) {}
+            boolean verified, PreferencesDto preferences, PlanDto plan, SubscriptionDto subscription) {}
+
+    /** `demo` siempre es true: Premium se activa sin pagar. */
+    public record SubscriptionDto(boolean premium, String period, String periodName, LocalDate until, boolean demo) {}
+    public record SubscriptionRequest(@NotBlank(message = "Elegí cada cuánto") String period) {}
 
     public record Change(String label, String before, String after) {}
     public record PlanUpdateResponse(PlanDto plan, List<Change> changes) {}
