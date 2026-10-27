@@ -17,10 +17,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.wopfit.config.ApiException;
 import com.wopfit.domain.MealLog;
 import com.wopfit.domain.MealStatus;
+import com.wopfit.domain.Offer;
 import com.wopfit.domain.Plan;
 import com.wopfit.domain.Preferences;
 import com.wopfit.domain.ShoppingCheck;
 import com.wopfit.repo.MealLogRepository;
+import com.wopfit.repo.OfferRepository;
 import com.wopfit.repo.ShoppingCheckRepository;
 import com.wopfit.service.MealCatalog.Meal;
 import com.wopfit.web.dto.Dtos.MealDayDto;
@@ -36,13 +38,15 @@ public class MealService {
 
     private final MealLogRepository logs;
     private final ShoppingCheckRepository checks;
+    private final OfferRepository offers;
     private final MealCatalog catalog;
     private final ProfileService profile;
     private final PlanService plans;
 
-    public MealService(MealLogRepository logs, ShoppingCheckRepository checks, MealCatalog catalog, ProfileService profile, PlanService plans) {
+    public MealService(MealLogRepository logs, ShoppingCheckRepository checks, OfferRepository offers, MealCatalog catalog, ProfileService profile, PlanService plans) {
         this.logs = logs;
         this.checks = checks;
+        this.offers = offers;
         this.catalog = catalog;
         this.profile = profile;
         this.plans = plans;
@@ -133,9 +137,17 @@ public class MealService {
         List<Meal> meals = weekMeals(userId, plan, p, monday);
         Set<String> checked = new HashSet<>();
         checks.findByUserIdAndWeek(userId, monday).forEach(c -> checked.add(c.getItem()));
+        List<Offer> all = offers.findAll();
         List<ShoppingItem> items = ingredients(meals).entrySet().stream()
-                .map(e -> new ShoppingItem(e.getKey(), e.getValue(), checked.contains(e.getKey()))).toList();
+                .map(e -> new ShoppingItem(e.getKey(), e.getValue(), checked.contains(e.getKey()), all.stream().anyMatch(o -> o.covers(e.getKey()))))
+                .toList();
         return new ShoppingDto(monday, meals.stream().mapToInt(Meal::price).sum(), budgetMax(p.getBudget()), items);
+    }
+
+    /** Los ingredientes de la lista de la semana de `date` (para saber qué ofertas te sirven). */
+    @Transactional(readOnly = true)
+    public Set<String> weekIngredients(Long userId, LocalDate date) {
+        return ingredients(weekMeals(userId, plans.plan(userId), profile.prefs(userId), TimeService.monday(date))).keySet();
     }
 
     @Transactional

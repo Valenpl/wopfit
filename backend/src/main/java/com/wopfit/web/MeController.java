@@ -23,6 +23,7 @@ import com.wopfit.service.Catalog;
 import com.wopfit.service.GoalService;
 import com.wopfit.service.HabitService;
 import com.wopfit.service.MealService;
+import com.wopfit.service.PlaceService;
 import com.wopfit.service.PlanService;
 import com.wopfit.service.PremiumService;
 import com.wopfit.service.ProfileService;
@@ -40,7 +41,9 @@ import com.wopfit.web.dto.Dtos.MealReportRequest;
 import com.wopfit.web.dto.Dtos.Me;
 import com.wopfit.web.dto.Dtos.Message;
 import com.wopfit.web.dto.Dtos.MoveResponse;
+import com.wopfit.web.dto.Dtos.OffersDto;
 import com.wopfit.web.dto.Dtos.PasswordRequest;
+import com.wopfit.web.dto.Dtos.PlaceDto;
 import com.wopfit.web.dto.Dtos.PlanDto;
 import com.wopfit.web.dto.Dtos.PlanUpdateResponse;
 import com.wopfit.web.dto.Dtos.PreferencesRequest;
@@ -63,17 +66,19 @@ public class MeController {
     private final ProfileService profile;
     private final AuthService auth;
     private final PremiumService premium;
+    private final PlaceService placeService;
     private final PlanService plans;
     private final MealService meals;
     private final HabitService habits;
     private final GoalService goals;
     private final ProgressService progress;
 
-    public MeController(ProfileService profile, AuthService auth, PremiumService premium, PlanService plans, MealService meals, HabitService habits, GoalService goals,
+    public MeController(ProfileService profile, AuthService auth, PremiumService premium, PlaceService placeService, PlanService plans, MealService meals, HabitService habits, GoalService goals,
                         ProgressService progress) {
         this.profile = profile;
         this.auth = auth;
         this.premium = premium;
+        this.placeService = placeService;
         this.plans = plans;
         this.meals = meals;
         this.habits = habits;
@@ -88,7 +93,8 @@ public class MeController {
                 Map.entry("health", Catalog.HEALTH), Map.entry("equipment", Catalog.EQUIPMENT), Map.entry("levels", Catalog.LEVELS),
                 Map.entry("budgets", Catalog.BUDGETS), Map.entry("workoutReasons", Catalog.WORKOUT_REASONS),
                 Map.entry("mealReasons", Catalog.MEAL_REASONS), Map.entry("goalOptions", Catalog.GOAL_OPTIONS),
-                Map.entry("premiumPeriods", Catalog.PREMIUM_PERIODS));
+                Map.entry("premiumPeriods", Catalog.PREMIUM_PERIODS), Map.entry("placeCategories", Catalog.PLACE_CATEGORIES),
+                Map.entry("offerCategories", Catalog.OFFER_CATEGORIES));
     }
 
     // ---- perfil ----
@@ -210,6 +216,13 @@ public class MeController {
                              @Valid @RequestBody ShoppingCheckRequest r) {
         return meals.check(uid, date, r.name(), r.checked());
     }
+
+    // ---- lugares cercanos (Premium) y ofertas, de demostración ----
+    @GetMapping("/places")
+    public List<PlaceDto> places(@AuthenticationPrincipal Long uid) { return placeService.places(uid); }
+
+    @GetMapping("/offers")
+    public OffersDto offers(@AuthenticationPrincipal Long uid) { return placeService.offers(uid); }
 
     // ---- hábitos ----
     @GetMapping("/habits/{date}")

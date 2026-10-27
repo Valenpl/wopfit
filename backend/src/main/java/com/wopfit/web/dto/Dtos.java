@@ -90,9 +90,18 @@ public final class Dtos {
     public record MealDayDto(LocalDate date, List<MealDto> meals, int weekCost, int budgetMax) {}
     public record MealReportRequest(@NotBlank String reason) {}
     public record MealProposalDto(String text, MealDto current, MealDto alternative) {}
-    public record ShoppingItem(String name, int count, boolean checked) {}
+    public record ShoppingItem(String name, int count, boolean checked, boolean offer) {}
     public record ShoppingDto(LocalDate monday, int weekCost, int budgetMax, List<ShoppingItem> items) {}
     public record ShoppingCheckRequest(@NotBlank String name, boolean checked) {}
+
+    // ---------- lugares y ofertas (datos de demostración) ----------
+    public record PlaceDto(Long id, String name, String brand, String category, String categoryName, String address, String barrio,
+            double lat, double lng, boolean openNow, String status, boolean discount, int offers) {}
+    public record Branch(Long id, String address, String barrio, double lat, double lng) {}
+    public record OfferDto(Long id, String code, String store, String category, String categoryName, String off, String unit,
+            String description, int daysLeft, List<String> ingredients, boolean forList, List<Branch> branches) {}
+    /** `alerts`: con Premium se avisa cuando hay ofertas para tu lista. */
+    public record OffersDto(boolean alerts, List<OfferDto> offers) {}
 
     // ---------- hábitos y metas ----------
     public record HabitsDto(LocalDate date, boolean water, boolean walk, boolean sleep) {}

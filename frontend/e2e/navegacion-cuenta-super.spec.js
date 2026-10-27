@@ -30,10 +30,11 @@ const tabs = page => page.locator('.tabbar');
 test('pestañas de la v6 y accesos rápidos', async ({ page }) => {
   await page.goto('/inicio');
   await expect(tabs(page).getByRole('button')).toHaveText(['Inicio', 'Entreno', 'Comida', 'Comunidad', 'Perfil', 'Preguntale a Wopi', 'Pasate a Premium', 'Ver versión celu']);
-  for (const [label, path] of [['Preguntale a Wopi', '/wopi'], ['Ofertas', '/ofertas'], ['Cerca tuyo', '/cerca'], ['Ayuda profesional', '/profesionales']]) {
+  for (const [label, path, heading] of [['Preguntale a Wopi', '/wopi'], ['Ofertas', '/ofertas', 'Encontrar ofertas'], ['Cerca tuyo', '/cerca', 'Cerca tuyo'], ['Ayuda profesional', '/profesionales']]) {
     await page.locator('.qa').getByRole('button', { name: label }).click();
     await expect(page).toHaveURL(path);
-    await expect(page.getByText('Estamos armando esta sección')).toBeVisible();
+    if (heading) await expect(page.getByRole('heading', { name: heading })).toBeVisible();
+    else await expect(page.getByText('Estamos armando esta sección')).toBeVisible();
     await page.getByRole('button', { name: 'Volver' }).click();
     await expect(page).toHaveURL('/inicio');
   }

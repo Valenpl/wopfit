@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 // Regla del README: cada pantalla pide cada dato al backend una sola vez, aun con el doble efecto de StrictMode.
 const API = 'http://localhost:8080/api';
-const SCREENS = ['/inicio', '/entreno', '/comida', '/progreso', '/metas', '/historial', '/perfil', '/perfil/cuenta', '/comunidad', '/planes'];
+const SCREENS = ['/inicio', '/entreno', '/comida', '/progreso', '/metas', '/historial', '/perfil', '/perfil/cuenta', '/comunidad', '/planes', '/ofertas', '/cerca'];
 
 let token;
 

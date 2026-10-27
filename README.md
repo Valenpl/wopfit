@@ -93,6 +93,15 @@ npm run test:e2e                  # sin doble fetch: falla si una pantalla repit
 ```
 El test de Playwright usa el front en modo desarrollo (con StrictMode) y el backend con H2; si ya están corriendo, los reutiliza. Con `PW_CHANNEL=chrome` usa el Chrome instalado en lugar de bajar Chromium.
 
+## Datos de demostración
+
+Los lugares y cupones salen de `backend/src/main/resources/demo/places.tsv` y `offers.tsv`. Se cargan solos al arrancar si las tablas `places` y `offers` están vacías.
+
+- **Lugares:** 9 cadenas ficticias (Súper Del Barrio, Mercado Verde, Gimnasio Impulso, Fit Club 24, etc.) con sucursales en direcciones reales de CABA y Vicente López, más 10 parques reales. Las coordenadas se sacaron de OpenStreetMap (Nominatim).
+- **Cupones:** 10 de aliados ficticios. Cada uno se renueva solo cada cierta cantidad de días, así la demo nunca queda con cupones vencidos.
+- **Tu ubicación:** si la compartís, el front ordena por distancia con ella; si no, se centra en UADE (Lima 775). La ubicación nunca se manda al servidor.
+- Para cambiar los datos, editá los `.tsv` y vaciá las tablas (con H2 alcanza con reiniciar).
+
 ## Configuración (variables de entorno)
 
 | Variable | Default | Para qué |
@@ -114,6 +123,7 @@ El test de Playwright usa el front en modo desarrollo (con StrictMode) y el back
 | Plan | Sesiones en los días elegidos. La rutina se arma según nivel, equipamiento y salud (bajo impacto con embarazo o lesión). Menú de 3 comidas filtrado por restricciones y ordenado por presupuesto |
 | Registro | Marcar la rutina como hecha y cómo se sintió, comidas, 3 hábitos diarios |
 | Premium | De demostración, sin pagos: se elige el período y se activa al instante, vence solo y se puede volver al Gratuito. Saca los anuncios y los candados. `GET me` trae `subscription` |
+| Cerca tuyo y ofertas | Mapa real (Leaflet + OpenStreetMap) con 45 lugares de demostración en AMBA: cadenas ficticias en direcciones reales y parques reales. Cupones que se renuevan solos y marcan qué ingredientes de tu lista tienen oferta |
 | Lista del súper | Ingredientes del menú de la semana, de los más usados a los menos, sin las comidas marcadas como "no pude". Lo que tildás queda guardado por semana |
 | "No pude" | El motivo define una versión alternativa: exprés, liviana, suave, sin equipamiento o caminata. La rutina completa pasa al próximo día libre. Las comidas proponen una alternativa según el motivo |
 | Metas | Meta concreta (qué, cuántas veces por semana, cuántas semanas) que suma al objetivo |
@@ -141,6 +151,8 @@ El resto requiere `Authorization: Bearer <token>`:
 | GET | `meals/{fecha}` | Comidas del día y costo semanal |
 | POST | `meals/{fecha}/{0-2}/eaten` · `report` · `accept` · `skip` · `swap` | Registrar, alternativa, cambiar |
 | GET · PUT | `shopping/{fecha}` | Lista del súper de la semana de esa fecha · tildar o destildar un ingrediente |
+| GET | `places` | Lugares cercanos (solo Premium; si no, 403): coordenadas, si está abierto ahora y si tiene descuento |
+| GET | `offers` | Cupones de aliados con sus sucursales y si sirven para tu lista del súper; `alerts` = Premium |
 | GET · PUT | `habits/{fecha}` | Agua, caminar, dormir |
 | GET · POST · DELETE | `goals`, `goals/{id}/check`, `goals/{id}` | Metas |
 | GET | `progress`, `history` | Progreso e historial |

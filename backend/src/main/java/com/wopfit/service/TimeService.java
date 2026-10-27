@@ -2,6 +2,7 @@ package com.wopfit.service;
 
 import java.time.Clock;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.ZoneId;
 
 import org.springframework.stereotype.Service;
@@ -14,6 +15,10 @@ public class TimeService {
 
     public LocalDate today() {
         return LocalDate.now(clock);
+    }
+
+    public LocalTime now() {
+        return LocalTime.now(clock);
     }
 
     public void setClock(Clock clock) {

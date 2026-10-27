@@ -1,0 +1,47 @@
+# Lugares de demostración: cadenas ficticias en direcciones reales de AMBA (coordenadas de OpenStreetMap). Los parques son reales.
+# cadena	nombre	categoría	dirección	barrio	abre	cierra	descuento	lat	lng
+sdb	Súper Del Barrio	super	Av. Belgrano 1100	Monserrat	08:00	21:00	1	-34.612847	-58.377389
+mv	Mercado Verde	verdu	Tacuarí 650	Monserrat	08:00	20:00	1	-34.615778	-58.378796
+semilla	Dietética La Semilla	diet	Av. de Mayo 1200	Monserrat	09:00	19:30	1	-34.609328	-58.383524
+impulso	Gimnasio Impulso	gym	Moreno 950	Monserrat	07:00	23:00	1	-34.611822	-58.379781
+-	Plaza del Congreso	parque	Av. Entre Ríos y Av. Rivadavia	Congreso	00:00	24:00	0	-34.609782	-58.390271
+ahorro	Súper Ahorro Express	super	Defensa 900	San Telmo	08:00	22:00	1	-34.618411	-58.371539
+huerto	Verdulería El Huerto	verdu	Bolívar 1000	San Telmo	08:00	20:30	0	-34.619512	-58.372881
+-	Parque Lezama	parque	Av. Brasil y Defensa	San Telmo	00:00	24:00	0	-34.627121	-58.369279
+sdb	Súper Del Barrio	super	Av. Santa Fe 2100	Recoleta	08:00	21:00	1	-34.595686	-58.397273
+vida	Dietética Natural Vida	diet	Av. Callao 1100	Recoleta	09:00	20:00	1	-34.596032	-58.393465
+fit24	Fit Club 24	gym	Av. Pueyrredón 1500	Recoleta	00:00	24:00	1	-34.593340	-58.402026
+-	Plaza Francia	parque	Av. del Libertador y Av. Pueyrredón	Recoleta	00:00	24:00	0	-34.586684	-58.391224
+mv	Mercado Verde	verdu	Av. Santa Fe 4200	Palermo	08:00	20:00	1	-34.581319	-58.421787
+ahorro	Súper Ahorro Express	super	Av. Scalabrini Ortiz 2300	Palermo	08:00	22:00	1	-34.586889	-58.418977
+semilla	Dietética La Semilla	diet	Honduras 4800	Palermo	09:00	19:30	1	-34.590180	-58.428116
+impulso	Gimnasio Impulso	gym	Thames 1700	Palermo	07:00	23:00	1	-34.587381	-58.430277
+-	Parque Tres de Febrero	parque	Av. Infanta Isabel y Av. Iraola (Rosedal)	Palermo	00:00	24:00	0	-34.569676	-58.431962
+sdb	Súper Del Barrio	super	Av. Corrientes 4800	Villa Crespo	08:00	21:00	1	-34.601755	-58.433484
+huerto	Verdulería El Huerto	verdu	Av. Díaz Vélez 4000	Almagro	08:00	20:30	0	-34.608686	-58.422848
+fit24	Fit Club 24	gym	Av. Corrientes 4000	Almagro	00:00	24:00	1	-34.603292	-58.420848
+vida	Dietética Natural Vida	diet	Av. Medrano 900	Almagro	09:00	20:00	1	-34.598983	-58.420465
+-	Parque Centenario	parque	Av. Díaz Vélez y Av. Leopoldo Marechal	Caballito	00:00	24:00	0	-34.606516	-58.435569
+ahorro	Súper Ahorro Express	super	Av. Rivadavia 5200	Caballito	08:00	22:00	1	-34.619516	-58.438885
+mv	Mercado Verde	verdu	Av. José María Moreno 400	Caballito	08:00	20:00	1	-34.622898	-58.434558
+semilla	Dietética La Semilla	diet	Av. Acoyte 300	Caballito	09:00	19:30	1	-34.614659	-58.437869
+impulso	Gimnasio Impulso	gym	Av. Rivadavia 4700	Caballito	07:00	23:00	1	-34.616376	-58.431824
+-	Parque Rivadavia	parque	Av. Rivadavia y Doblas	Caballito	00:00	24:00	0	-34.617837	-58.433482
+sdb	Súper Del Barrio	super	Av. Rivadavia 6900	Flores	08:00	21:00	1	-34.628921	-58.462581
+huerto	Verdulería El Huerto	verdu	Av. Carabobo 300	Flores	08:00	20:30	0	-34.630300	-58.454830
+fit24	Fit Club 24	gym	Av. Nazca 300	Flores	00:00	24:00	1	-34.628536	-58.470755
+-	Plaza Flores	parque	Av. Rivadavia y Yerbal	Flores	00:00	24:00	0	-34.628447	-58.463628
+ahorro	Súper Ahorro Express	super	Av. Cabildo 2000	Belgrano	08:00	22:00	1	-34.563162	-58.455998
+mv	Mercado Verde	verdu	Juramento 2300	Belgrano	08:00	20:00	1	-34.561489	-58.455442
+vida	Dietética Natural Vida	diet	Echeverría 2500	Belgrano	09:00	20:00	1	-34.563568	-58.456731
+impulso	Gimnasio Impulso	gym	Av. Cabildo 1500	Belgrano	07:00	23:00	1	-34.567139	-58.450775
+-	Barrancas de Belgrano	parque	11 de Septiembre y Juramento	Belgrano	00:00	24:00	0	-34.559327	-58.448662
+sdb	Súper Del Barrio	super	Av. Cabildo 3800	Núñez	08:00	21:00	1	-34.548648	-58.468681
+huerto	Verdulería El Huerto	verdu	Manuela Pedraza 2300	Núñez	08:00	20:30	0	-34.550753	-58.465177
+fit24	Fit Club 24	gym	Av. del Libertador 7500	Núñez	00:00	24:00	1	-34.544898	-58.459836
+-	Parque Saavedra	parque	García del Río y Pinto	Saavedra	00:00	24:00	0	-34.550692	-58.480000
+ahorro	Súper Ahorro Express	super	Av. Maipú 1500	Vicente López	08:00	22:00	1	-34.524199	-58.483933
+mv	Mercado Verde	verdu	Av. Maipú 2400	Olivos	08:00	20:00	1	-34.513336	-58.489478
+semilla	Dietética La Semilla	diet	Av. Maipú 800	Vicente López	09:00	19:30	1	-34.519622	-58.485878
+impulso	Gimnasio Impulso	gym	Av. del Libertador 1100	Vicente López	07:00	23:00	1	-34.523990	-58.472796
+-	Paseo de la Costa	parque	Av. Juan Díaz de Solís y Av. Laprida	Vicente López	00:00	24:00	0	-34.519630	-58.471761
