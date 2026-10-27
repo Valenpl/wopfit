@@ -7,7 +7,7 @@ import { Strip } from './shared.jsx';
 
 export function Progress() {
   const nav = useNavigate();
-  const { data: p, error, reload } = useLoad(() => api.get('/progress'), []);
+  const { data: p, error, reload } = useLoad(sig => api.get('/progress', sig), []);
   if (error) return <Screen><ErrorBox error={error} onRetry={reload} /></Screen>;
   if (!p) return <Loading />;
   const msg = p.sessionsDone ? (p.sessionsDone >= p.sessionsTotal ? '¡Semana completa! Sos imparable.' : `Vas ${p.sessionsDone} de ${p.sessionsTotal}. Cada sesión suma.`) : 'Tu primera sesión de la semana te espera.';
@@ -33,7 +33,7 @@ const WHY = { tiempo: 'Lo que más se repite es la falta de tiempo.', cansada: '
 export function Adjust() {
   const nav = useNavigate();
   const { refresh, toast } = useApp();
-  const { data: p, error, reload } = useLoad(() => api.get('/progress'), []);
+  const { data: p, error, reload } = useLoad(sig => api.get('/progress', sig), []);
   const [busy, run] = useAction();
   if (error) return <Screen><TopBar /><ErrorBox error={error} onRetry={reload} /></Screen>;
   if (!p) return <Loading />;
@@ -60,7 +60,7 @@ export function Adjust() {
 export function Goals() {
   const nav = useNavigate();
   const { toast } = useApp();
-  const { data: goals, error, reload, set } = useLoad(() => api.get('/goals'), []);
+  const { data: goals, error, reload, set } = useLoad(sig => api.get('/goals', sig), []);
   const [busy, run] = useAction();
   if (error) return <Screen><TopBar fallback="/progreso" /><ErrorBox error={error} onRetry={reload} /></Screen>;
   if (!goals) return <Loading />;
@@ -115,7 +115,7 @@ export function History() {
   const nav = useNavigate();
   const [tab, setTab] = useState('train');
   const [all, setAll] = useState(false);
-  const { data: h, error, reload } = useLoad(() => api.get('/history'), []);
+  const { data: h, error, reload } = useLoad(sig => api.get('/history', sig), []);
   if (error) return <Screen><TopBar fallback="/progreso" /><ErrorBox error={error} onRetry={reload} /></Screen>;
   if (!h) return <Loading />;
   const [cur, prev] = [h.weeks[0], h.weeks[1]];

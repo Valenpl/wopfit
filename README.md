@@ -46,8 +46,6 @@ Un solo backend (monolito) en 3 capas, en lugar de microservicios: para un equip
 - Si un efecto escribe al montarse, lleva una protección con `useRef` para ejecutarse una sola vez.
 - Un test de Playwright cuenta los pedidos de red y falla si aparece uno repetido.
 
-> Estado actual: el código todavía hace algunos pedidos dobles en desarrollo (`useLoad` y `/me`). Se corrige en la etapa de integración del front.
-
 ## Cómo correrlo
 
 Necesitás **Java 17+**, **Maven 3.9+**, **Node 18+** y **Docker** (Docker solo para MySQL).
@@ -88,6 +86,12 @@ Todavía no se mandan emails reales. En desarrollo (`WOPFIT_DEV_CODES=true`, que
 ```bash
 cd backend && mvn test        # recorre todo el MVP contra la API (H2)
 ```
+```bash
+cd frontend
+npx playwright install chromium   # una sola vez
+npm run test:e2e                  # sin doble fetch: falla si una pantalla repite un pedido
+```
+El test de Playwright usa el front en modo desarrollo (con StrictMode) y el backend con H2; si ya están corriendo, los reutiliza. Con `PW_CHANNEL=chrome` usa el Chrome instalado en lugar de bajar Chromium.
 
 ## Configuración (variables de entorno)
 

@@ -28,7 +28,7 @@ export function Comida() {
   const [wo, setWo] = useState(0);
   useEffect(() => { sessionStorage.setItem('wopfit-ct', tab); }, [tab]);
   const date = tab === 'hoy' ? t : sel;
-  const { data: day, error, reload, set } = useLoad(() => api.get(`/meals/${date}`), [date]);
+  const { data: day, error, reload, set } = useLoad(sig => api.get(`/meals/${date}`, sig), [date]);
   const eat = async m => { try { set(await api.post(`/meals/${date}/${m.slot}/eaten`)); toast('¡Bien ahí! 🍽️'); } catch (ex) { toast(ex.message); } };
   const B = BUDGET[me.preferences.budget];
   const m = add(monday(t), wo * 7);
@@ -70,7 +70,7 @@ export function Meal() {
   const { date, slot } = useParams();
   const nav = useNavigate();
   const { toast } = useApp();
-  const { data: day, error, reload, set } = useLoad(() => api.get(`/meals/${date}`), [date]);
+  const { data: day, error, reload, set } = useLoad(sig => api.get(`/meals/${date}`, sig), [date]);
   const [acc, setAcc] = useState('ing');
   const [np, setNp] = useState(false);
   const [reason, setReason] = useState('tiempo');

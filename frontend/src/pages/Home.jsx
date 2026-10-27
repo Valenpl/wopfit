@@ -10,11 +10,11 @@ export default function Home() {
   const { me, toast } = useApp();
   const t = today();
   const [report, setReport] = useState(null);
-  const { data, error, loading, reload, set } = useLoad(async () => {
+  const { data, error, loading, reload, set } = useLoad(async sig => {
     const y = add(t, -1);
     const [td, week, meals, habits, progress, yweek] = await Promise.all([
-      api.get('/workouts/today'), api.get('/workouts/week'), api.get(`/meals/${t}`), api.get(`/habits/${t}`), api.get('/progress'),
-      dow(t) === 0 ? api.get(`/workouts/week?start=${y}`) : Promise.resolve(null)
+      api.get('/workouts/today', sig), api.get('/workouts/week', sig), api.get(`/meals/${t}`, sig), api.get(`/habits/${t}`, sig), api.get('/progress', sig),
+      dow(t) === 0 ? api.get(`/workouts/week?start=${y}`, sig) : Promise.resolve(null)
     ]);
     const ydays = (yweek || week).days;
     const yday = ydays.find(d => d.date === y);
