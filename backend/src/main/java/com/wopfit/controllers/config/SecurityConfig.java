@@ -1,5 +1,7 @@
 package com.wopfit.controllers.config;
 
+import java.io.IOException;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -9,8 +11,9 @@ import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+
+import jakarta.servlet.http.HttpServletResponse;
 
 @Configuration
 public class SecurityConfig {
@@ -34,9 +37,19 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/v1/photos/*").permitAll() // id imposible de adivinar; <img> no manda el token
                 .requestMatchers("/api/v1/admin/**").hasAuthority("ADMIN")
                 .anyRequest().authenticated())
-            .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
+            // Se responde acá mismo: con sendError Spring pasaría por /error, que no tiene sesión, y un 403 llegaría como 401.
+            .exceptionHandling(e -> e
+                .authenticationEntryPoint((req, res, ex) -> writeError(res, HttpStatus.UNAUTHORIZED, "Tu sesión venció. Volvé a entrar."))
+                .accessDeniedHandler((req, res, ex) -> writeError(res, HttpStatus.FORBIDDEN, "No tenés permiso para hacer esto")))
             .authenticationProvider(authenticationProvider)
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
+    }
+
+    /** Mismo formato que GlobalExceptionHandler: { "error": "..." }. */
+    private static void writeError(HttpServletResponse res, HttpStatus status, String message) throws IOException {
+        res.setStatus(status.value());
+        res.setContentType("application/json;charset=UTF-8");
+        res.getWriter().write("{\"error\":\"" + message + "\"}");
     }
 }
