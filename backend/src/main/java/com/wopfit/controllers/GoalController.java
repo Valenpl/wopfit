@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.wopfit.entity.dto.GoalRequest;
 import com.wopfit.entity.dto.GoalResponse;
-import com.wopfit.entity.dto.MessageResponse;
+import com.wopfit.entity.dto.DeleteResponse;
 import com.wopfit.service.GoalService;
 
 import jakarta.validation.Valid;
@@ -46,8 +46,8 @@ public class GoalController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<MessageResponse> deleteGoal(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable Long id) {
+    public ResponseEntity<DeleteResponse> deleteGoal(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable Long id) {
         goals.delete(uid, id);
-        return ResponseEntity.ok(new MessageResponse("Meta eliminada"));
+        return ResponseEntity.ok(new DeleteResponse(id, "Meta eliminada"));
     }
 }
