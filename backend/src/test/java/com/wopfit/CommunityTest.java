@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.wopfit.service.CommunityService;
+import com.wopfit.service.CommunityServiceImpl;
 
 /** Comunidad: feed "para vos", me gusta, guardados, comentarios, seguir, publicar con foto y borrar. */
 class CommunityTest extends ApiTest {
@@ -116,9 +117,9 @@ class CommunityTest extends ApiTest {
 
     @Test
     void nombreEnLaComunidad() {
-        assertThat(CommunityService.displayName("Lucía Fernández")).isEqualTo("Lucía F.");
-        assertThat(CommunityService.displayName("  Ana María  López ")).isEqualTo("Ana L.");
-        assertThat(CommunityService.displayName("Sofi")).isEqualTo("Sofi");
-        assertThat(CommunityService.displayName(null)).isEqualTo("Vos");
+        assertThat(CommunityServiceImpl.displayName("Lucía Fernández")).isEqualTo("Lucía F.");
+        assertThat(CommunityServiceImpl.displayName("  Ana María  López ")).isEqualTo("Ana L.");
+        assertThat(CommunityServiceImpl.displayName("Sofi")).isEqualTo("Sofi");
+        assertThat(CommunityServiceImpl.displayName(null)).isEqualTo("Vos");
     }
 }

@@ -6,7 +6,7 @@ import java.util.Set;
 
 import org.springframework.stereotype.Component;
 
-import com.wopfit.domain.Preferences;
+import com.wopfit.entity.Preferences;
 
 /** Arma el contenido de cada rutina según nivel, equipamiento, gustos y salud. */
 @Component
