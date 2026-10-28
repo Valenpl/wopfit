@@ -29,27 +29,27 @@ public class ProgressController {
     }
 
     @GetMapping("/progress")
-    public ResponseEntity<ProgressResponse> progress(@AuthenticationPrincipal Long uid) {
+    public ResponseEntity<ProgressResponse> progress(@AuthenticationPrincipal(expression = "id") Long uid) {
         return ResponseEntity.ok(progress.progress(uid));
     }
 
     @GetMapping("/history")
-    public ResponseEntity<HistoryResponse> history(@AuthenticationPrincipal Long uid) {
+    public ResponseEntity<HistoryResponse> history(@AuthenticationPrincipal(expression = "id") Long uid) {
         return ResponseEntity.ok(progress.history(uid));
     }
 
     @PostMapping("/adjust/lighten")
-    public ResponseEntity<PlanResponse> lighten(@AuthenticationPrincipal Long uid) {
+    public ResponseEntity<PlanResponse> lighten(@AuthenticationPrincipal(expression = "id") Long uid) {
         return ResponseEntity.ok(progress.lighten(uid));
     }
 
     @PostMapping("/adjust/grow")
-    public ResponseEntity<PlanResponse> grow(@AuthenticationPrincipal Long uid) {
+    public ResponseEntity<PlanResponse> grow(@AuthenticationPrincipal(expression = "id") Long uid) {
         return ResponseEntity.ok(progress.grow(uid));
     }
 
     @PostMapping("/adjust/dismiss")
-    public ResponseEntity<MessageResponse> dismiss(@AuthenticationPrincipal Long uid, @Valid @RequestBody DismissRequest r) {
+    public ResponseEntity<MessageResponse> dismiss(@AuthenticationPrincipal(expression = "id") Long uid, @Valid @RequestBody DismissRequest r) {
         progress.dismiss(uid, r.type());
         return ResponseEntity.ok(new MessageResponse("Listo"));
     }

@@ -28,13 +28,13 @@ public class SubscriptionController {
     }
 
     @PostMapping
-    public ResponseEntity<MeResponse> subscribe(@AuthenticationPrincipal Long uid, @Valid @RequestBody SubscriptionRequest r) {
+    public ResponseEntity<MeResponse> subscribe(@AuthenticationPrincipal(expression = "id") Long uid, @Valid @RequestBody SubscriptionRequest r) {
         premium.activate(uid, r.period());
         return ResponseEntity.ok(profile.me(uid));
     }
 
     @DeleteMapping
-    public ResponseEntity<MeResponse> unsubscribe(@AuthenticationPrincipal Long uid) {
+    public ResponseEntity<MeResponse> unsubscribe(@AuthenticationPrincipal(expression = "id") Long uid) {
         premium.cancel(uid);
         return ResponseEntity.ok(profile.me(uid));
     }

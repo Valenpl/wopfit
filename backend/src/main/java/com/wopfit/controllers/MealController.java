@@ -31,36 +31,36 @@ public class MealController {
     }
 
     @GetMapping("/{date}")
-    public ResponseEntity<MealDayResponse> mealDay(@AuthenticationPrincipal Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+    public ResponseEntity<MealDayResponse> mealDay(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return ResponseEntity.ok(meals.day(uid, date));
     }
 
     @PostMapping("/{date}/{slot}/eaten")
-    public ResponseEntity<MealDayResponse> eaten(@AuthenticationPrincipal Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+    public ResponseEntity<MealDayResponse> eaten(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
                             @PathVariable int slot) {
         return ResponseEntity.ok(meals.eaten(uid, date, slot));
     }
 
     @PostMapping("/{date}/{slot}/report")
-    public ResponseEntity<MealProposalResponse> mealReport(@AuthenticationPrincipal Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+    public ResponseEntity<MealProposalResponse> mealReport(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
                                       @PathVariable int slot, @Valid @RequestBody MealReportRequest r) {
         return ResponseEntity.ok(meals.report(uid, date, slot, r.reason()));
     }
 
     @PostMapping("/{date}/{slot}/accept")
-    public ResponseEntity<MealDayResponse> mealAccept(@AuthenticationPrincipal Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+    public ResponseEntity<MealDayResponse> mealAccept(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
                                  @PathVariable int slot, @Valid @RequestBody MealAcceptRequest r) {
         return ResponseEntity.ok(meals.accept(uid, date, slot, r.name()));
     }
 
     @PostMapping("/{date}/{slot}/skip")
-    public ResponseEntity<MealDayResponse> skip(@AuthenticationPrincipal Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+    public ResponseEntity<MealDayResponse> skip(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
                            @PathVariable int slot) {
         return ResponseEntity.ok(meals.skip(uid, date, slot));
     }
 
     @PostMapping("/{date}/{slot}/swap")
-    public ResponseEntity<MealDayResponse> swap(@AuthenticationPrincipal Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+    public ResponseEntity<MealDayResponse> swap(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
                            @PathVariable int slot) {
         return ResponseEntity.ok(meals.swap(uid, date, slot));
     }

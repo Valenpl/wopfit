@@ -168,7 +168,7 @@ Se pueden poner en el `.env` de la raíz (ver `.env.example`) o como variables d
 
 Rutas públicas:
 
-- `POST` `auth/register`, `auth/verify`, `auth/login`, `auth/resend`
+- `POST` `auth/register`, `auth/verify`, `auth/authenticate`, `auth/resend`
 - `GET` `health`, `catalog`
 
 El resto requiere `Authorization: Bearer <token>`:

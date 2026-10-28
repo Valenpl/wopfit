@@ -24,12 +24,12 @@ class FlowTest extends ApiTest {
 
         JsonNode reg = call(post("/api/v1/auth/register"), null, "{\"email\":\"Lucia@mail.com\",\"password\":\"clave1234\"}", 201);
         String code = reg.get("devCode").asText();
-        call(post("/api/v1/auth/login"), null, "{\"email\":\"lucia@mail.com\",\"password\":\"clave1234\"}", 403);
+        call(post("/api/v1/auth/authenticate"), null, "{\"email\":\"lucia@mail.com\",\"password\":\"clave1234\"}", 403);
         call(post("/api/v1/auth/verify"), null, "{\"email\":\"lucia@mail.com\",\"code\":\"000000\"}".replace("000000", code.equals("000000") ? "111111" : "000000"), 400);
         JsonNode auth = call(post("/api/v1/auth/verify"), null, "{\"email\":\"lucia@mail.com\",\"code\":\"" + code + "\"}", 200);
         String t = auth.get("token").asText();
-        call(post("/api/v1/auth/login"), null, "{\"email\":\"lucia@mail.com\",\"password\":\"otra12345\"}", 401);
-        t = call(post("/api/v1/auth/login"), null, "{\"email\":\"lucia@mail.com\",\"password\":\"clave1234\"}", 200).get("token").asText();
+        call(post("/api/v1/auth/authenticate"), null, "{\"email\":\"lucia@mail.com\",\"password\":\"otra12345\"}", 401);
+        t = call(post("/api/v1/auth/authenticate"), null, "{\"email\":\"lucia@mail.com\",\"password\":\"clave1234\"}", 200).get("token").asText();
 
         call(put("/api/v1/me/about"), t, "{\"name\":\"Lucía\",\"birthDate\":\"1990-05-02\",\"heightCm\":165,\"weightKg\":70}", 200);
         call(post("/api/v1/plan"), t, null, 400); // sin preferencias

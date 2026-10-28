@@ -26,12 +26,12 @@ public class WopiController {
     }
 
     @GetMapping
-    public ResponseEntity<WopiResponse> chat(@AuthenticationPrincipal Long uid) {
+    public ResponseEntity<WopiResponse> chat(@AuthenticationPrincipal(expression = "id") Long uid) {
         return ResponseEntity.ok(wopi.chat(uid));
     }
 
     @PostMapping
-    public ResponseEntity<WopiAskResponse> ask(@AuthenticationPrincipal Long uid, @Valid @RequestBody WopiAskRequest r) {
+    public ResponseEntity<WopiAskResponse> ask(@AuthenticationPrincipal(expression = "id") Long uid, @Valid @RequestBody WopiAskRequest r) {
         return ResponseEntity.ok(wopi.ask(uid, r.text()));
     }
 }

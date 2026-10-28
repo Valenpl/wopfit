@@ -10,11 +10,13 @@ import javax.crypto.SecretKey;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import io.jsonwebtoken.Claims;
+import com.wopfit.entity.User;
+
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 
+/** Firma y lee los JWT. El token lleva sub (email), role y userId. */
 @Service
 public class JwtService {
     private final SecretKey key;
@@ -29,22 +31,22 @@ public class JwtService {
         this.ttl = Duration.ofHours(hours);
     }
 
-    public String create(Long userId, String email) {
+    public String generateToken(User user) {
         Instant now = Instant.now();
         return Jwts.builder()
-                .subject(String.valueOf(userId))
-                .claim("email", email)
+                .subject(user.getEmail())
+                .claim("role", user.getRole().name())
+                .claim("userId", user.getId())
                 .issuedAt(Date.from(now))
                 .expiration(Date.from(now.plus(ttl)))
                 .signWith(key)
                 .compact();
     }
 
-    /** Devuelve el id del usuario o null si el token no es válido. */
-    public Long parseUserId(String token) {
+    /** Devuelve el email del token, o null si la firma no es válida o ya venció. */
+    public String extractEmail(String token) {
         try {
-            Claims claims = Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload();
-            return Long.valueOf(claims.getSubject());
+            return Jwts.parser().verifyWith(key).build().parseSignedClaims(token).getPayload().getSubject();
         } catch (JwtException | IllegalArgumentException e) {
             return null;
         }

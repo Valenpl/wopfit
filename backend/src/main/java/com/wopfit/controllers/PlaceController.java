@@ -23,12 +23,12 @@ public class PlaceController {
     }
 
     @GetMapping("/places")
-    public ResponseEntity<List<PlaceResponse>> places(@AuthenticationPrincipal Long uid) {
+    public ResponseEntity<List<PlaceResponse>> places(@AuthenticationPrincipal(expression = "id") Long uid) {
         return ResponseEntity.ok(placeService.places(uid));
     }
 
     @GetMapping("/offers")
-    public ResponseEntity<OffersResponse> offers(@AuthenticationPrincipal Long uid) {
+    public ResponseEntity<OffersResponse> offers(@AuthenticationPrincipal(expression = "id") Long uid) {
         return ResponseEntity.ok(placeService.offers(uid));
     }
 }

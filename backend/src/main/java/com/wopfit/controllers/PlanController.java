@@ -22,12 +22,12 @@ public class PlanController {
     }
 
     @PostMapping
-    public ResponseEntity<PlanUpdateResponse> createPlan(@AuthenticationPrincipal Long uid) {
+    public ResponseEntity<PlanUpdateResponse> createPlan(@AuthenticationPrincipal(expression = "id") Long uid) {
         return ResponseEntity.ok(plans.createOrUpdate(uid));
     }
 
     @GetMapping
-    public ResponseEntity<PlanResponse> plan(@AuthenticationPrincipal Long uid) {
+    public ResponseEntity<PlanResponse> plan(@AuthenticationPrincipal(expression = "id") Long uid) {
         return ResponseEntity.ok(plans.get(uid));
     }
 }

@@ -36,43 +36,43 @@ public class WorkoutController {
     }
 
     @GetMapping("/today")
-    public ResponseEntity<TodayResponse> today(@AuthenticationPrincipal Long uid) {
+    public ResponseEntity<TodayResponse> today(@AuthenticationPrincipal(expression = "id") Long uid) {
         return ResponseEntity.ok(plans.today(uid));
     }
 
     @GetMapping("/week")
-    public ResponseEntity<WeekResponse> week(@AuthenticationPrincipal Long uid,
+    public ResponseEntity<WeekResponse> week(@AuthenticationPrincipal(expression = "id") Long uid,
                         @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate start) {
         return ResponseEntity.ok(plans.week(uid, start));
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<SessionResponse> session(@AuthenticationPrincipal Long uid, @PathVariable Long id) {
+    public ResponseEntity<SessionResponse> session(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable Long id) {
         return ResponseEntity.ok(plans.session(uid, id));
     }
 
     @PostMapping("/{id}/report")
-    public ResponseEntity<ReportResponse> report(@AuthenticationPrincipal Long uid, @PathVariable Long id, @Valid @RequestBody ReportRequest r) {
+    public ResponseEntity<ReportResponse> report(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable Long id, @Valid @RequestBody ReportRequest r) {
         return ResponseEntity.ok(plans.report(uid, id, r.reason(), r.note()));
     }
 
     @PostMapping("/{id}/accept-alternative")
-    public ResponseEntity<MoveResponse> accept(@AuthenticationPrincipal Long uid, @PathVariable Long id, @Valid @RequestBody AlternativeRequest r) {
+    public ResponseEntity<MoveResponse> accept(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable Long id, @Valid @RequestBody AlternativeRequest r) {
         return ResponseEntity.ok(plans.acceptAlternative(uid, id, r.kind()));
     }
 
     @PostMapping("/{id}/rest")
-    public ResponseEntity<MoveResponse> rest(@AuthenticationPrincipal Long uid, @PathVariable Long id) {
+    public ResponseEntity<MoveResponse> rest(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable Long id) {
         return ResponseEntity.ok(plans.rest(uid, id));
     }
 
     @PostMapping("/{id}/reschedule")
-    public ResponseEntity<MoveResponse> reschedule(@AuthenticationPrincipal Long uid, @PathVariable Long id) {
+    public ResponseEntity<MoveResponse> reschedule(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable Long id) {
         return ResponseEntity.ok(plans.reschedule(uid, id));
     }
 
     @PostMapping("/{id}/done")
-    public ResponseEntity<SessionResponse> done(@AuthenticationPrincipal Long uid, @PathVariable Long id, @Valid @RequestBody(required = false) DoneRequest r) {
+    public ResponseEntity<SessionResponse> done(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable Long id, @Valid @RequestBody(required = false) DoneRequest r) {
         return ResponseEntity.ok(plans.done(uid, id, r == null ? null : r.feel(), r == null ? null : r.note()));
     }
 }

@@ -31,22 +31,22 @@ public class ProController {
     }
 
     @GetMapping("/pros")
-    public ResponseEntity<ProsResponse> list(@AuthenticationPrincipal Long uid) {
+    public ResponseEntity<ProsResponse> list(@AuthenticationPrincipal(expression = "id") Long uid) {
         return ResponseEntity.ok(pros.list(uid));
     }
 
     @GetMapping("/pros/{id}")
-    public ResponseEntity<ProDetailResponse> detail(@AuthenticationPrincipal Long uid, @PathVariable Long id) {
+    public ResponseEntity<ProDetailResponse> detail(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable Long id) {
         return ResponseEntity.ok(pros.detail(uid, id));
     }
 
     @PostMapping("/pros/{id}/book")
-    public ResponseEntity<BookResponse> book(@AuthenticationPrincipal Long uid, @PathVariable Long id, @Valid @RequestBody BookRequest r) {
+    public ResponseEntity<BookResponse> book(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable Long id, @Valid @RequestBody BookRequest r) {
         return ResponseEntity.status(HttpStatus.CREATED).body(pros.book(uid, id, r.date(), r.time(), r.mode()));
     }
 
     @DeleteMapping("/consultations/{id}")
-    public ResponseEntity<CancelResponse> cancel(@AuthenticationPrincipal Long uid, @PathVariable Long id) {
+    public ResponseEntity<CancelResponse> cancel(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable Long id) {
         return ResponseEntity.ok(pros.cancel(uid, id));
     }
 }

@@ -13,7 +13,7 @@ import com.wopfit.entity.dto.MeResponse;
 import com.wopfit.entity.dto.MessageResponse;
 import com.wopfit.entity.dto.PasswordRequest;
 import com.wopfit.entity.dto.PreferencesRequest;
-import com.wopfit.service.AuthService;
+import com.wopfit.service.AuthenticationService;
 import com.wopfit.service.ProfileService;
 
 import jakarta.validation.Valid;
@@ -23,30 +23,30 @@ import jakarta.validation.Valid;
 @RequestMapping("/api/v1/me")
 public class ProfileController {
     private final ProfileService profile;
-    private final AuthService auth;
+    private final AuthenticationService auth;
 
-    public ProfileController(ProfileService profile, AuthService auth) {
+    public ProfileController(ProfileService profile, AuthenticationService auth) {
         this.profile = profile;
         this.auth = auth;
     }
 
     @GetMapping
-    public ResponseEntity<MeResponse> me(@AuthenticationPrincipal Long uid) {
+    public ResponseEntity<MeResponse> me(@AuthenticationPrincipal(expression = "id") Long uid) {
         return ResponseEntity.ok(profile.me(uid));
     }
 
     @PutMapping("/about")
-    public ResponseEntity<MeResponse> about(@AuthenticationPrincipal Long uid, @Valid @RequestBody AboutRequest r) {
+    public ResponseEntity<MeResponse> about(@AuthenticationPrincipal(expression = "id") Long uid, @Valid @RequestBody AboutRequest r) {
         return ResponseEntity.ok(profile.updateAbout(uid, r));
     }
 
     @PutMapping("/preferences")
-    public ResponseEntity<MeResponse> preferences(@AuthenticationPrincipal Long uid, @Valid @RequestBody PreferencesRequest r) {
+    public ResponseEntity<MeResponse> preferences(@AuthenticationPrincipal(expression = "id") Long uid, @Valid @RequestBody PreferencesRequest r) {
         return ResponseEntity.ok(profile.updatePreferences(uid, r));
     }
 
     @PutMapping("/password")
-    public ResponseEntity<MessageResponse> password(@AuthenticationPrincipal Long uid, @Valid @RequestBody PasswordRequest r) {
+    public ResponseEntity<MessageResponse> password(@AuthenticationPrincipal(expression = "id") Long uid, @Valid @RequestBody PasswordRequest r) {
         auth.changePassword(uid, r.current(), r.password());
         return ResponseEntity.ok(new MessageResponse("Contraseña actualizada"));
     }

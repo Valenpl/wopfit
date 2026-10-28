@@ -6,14 +6,17 @@ import java.time.Instant;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.wopfit.controllers.auth.AuthenticationResponse;
+import com.wopfit.controllers.auth.RegisterResponse;
 import com.wopfit.controllers.config.JwtService;
 import com.wopfit.entity.User;
-import com.wopfit.entity.dto.AuthResponse;
-import com.wopfit.entity.dto.RegisterResponse;
 import com.wopfit.exceptions.EmailAlreadyUsedException;
 import com.wopfit.exceptions.EmailNotVerifiedException;
 import com.wopfit.exceptions.InvalidCredentialsException;
@@ -22,20 +25,23 @@ import com.wopfit.exceptions.UserNotFoundException;
 import com.wopfit.repository.UserRepository;
 
 @Service
-public class AuthServiceImpl implements AuthService {
-    private static final Logger log = LoggerFactory.getLogger(AuthServiceImpl.class);
+public class AuthenticationServiceImpl implements AuthenticationService {
+    private static final Logger log = LoggerFactory.getLogger(AuthenticationServiceImpl.class);
     private final SecureRandom random = new SecureRandom();
     private final UserRepository users;
     private final PasswordEncoder encoder;
     private final JwtService jwt;
+    private final AuthenticationManager authenticationManager;
     private final ProfileService profile;
     private final boolean devCodes;
 
-    public AuthServiceImpl(UserRepository users, PasswordEncoder encoder, JwtService jwt, ProfileService profile,
+    public AuthenticationServiceImpl(UserRepository users, PasswordEncoder encoder, JwtService jwt,
+                       AuthenticationManager authenticationManager, ProfileService profile,
                        @Value("${wopfit.dev-codes}") boolean devCodes) {
         this.users = users;
         this.encoder = encoder;
         this.jwt = jwt;
+        this.authenticationManager = authenticationManager;
         this.profile = profile;
         this.devCodes = devCodes;
     }
@@ -75,7 +81,7 @@ public class AuthServiceImpl implements AuthService {
 
     @Transactional
     @Override
-    public AuthResponse verify(String email, String code) {
+    public AuthenticationResponse verify(String email, String code) {
         User u = users.findByEmailIgnoreCase(email.trim()).orElseThrow(() -> new UserNotFoundException());
         if (!u.isVerified()) {
             if (u.getVerificationCode() == null || !u.getVerificationCode().equals(code)) {
@@ -84,7 +90,7 @@ public class AuthServiceImpl implements AuthService {
             u.setVerified(true);
             u.setVerificationCode(null);
         }
-        return new AuthResponse(jwt.create(u.getId(), u.getEmail()), profile.me(u.getId()));
+        return new AuthenticationResponse(jwt.generateToken(u), profile.me(u.getId()));
     }
 
     /** Pide la contraseña actual. Si no coincide es 400 y no 401: la sesión sigue siendo válida. */
@@ -97,14 +103,17 @@ public class AuthServiceImpl implements AuthService {
         u.setPasswordHash(encoder.encode(password));
     }
 
+    /** El AuthenticationManager revisa email y contraseña (ver ApplicationConfig); después se pide el email verificado. */
     @Transactional(readOnly = true)
     @Override
-    public AuthResponse login(String email, String password) {
-        User u = users.findByEmailIgnoreCase(email.trim()).orElse(null);
-        if (u == null || !encoder.matches(password, u.getPasswordHash())) {
+    public AuthenticationResponse authenticate(String email, String password) {
+        User u;
+        try {
+            u = (User) authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(email.trim(), password)).getPrincipal();
+        } catch (AuthenticationException e) {
             throw new InvalidCredentialsException();
         }
         if (!u.isVerified()) throw new EmailNotVerifiedException();
-        return new AuthResponse(jwt.create(u.getId(), u.getEmail()), profile.me(u.getId()));
+        return new AuthenticationResponse(jwt.generateToken(u), profile.me(u.getId()));
     }
 }

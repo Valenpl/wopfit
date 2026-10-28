@@ -8,22 +8,16 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.wopfit.entity.dto.ResendRequest;
-import com.wopfit.entity.dto.AuthResponse;
-import com.wopfit.entity.dto.LoginRequest;
-import com.wopfit.entity.dto.RegisterRequest;
-import com.wopfit.entity.dto.RegisterResponse;
-import com.wopfit.entity.dto.VerifyRequest;
-import com.wopfit.service.AuthService;
+import com.wopfit.service.AuthenticationService;
 
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/v1/auth")
 public class AuthenticationController {
-    private final AuthService auth;
+    private final AuthenticationService auth;
 
-    public AuthenticationController(AuthService auth) {
+    public AuthenticationController(AuthenticationService auth) {
         this.auth = auth;
     }
 
@@ -38,12 +32,12 @@ public class AuthenticationController {
     }
 
     @PostMapping("/verify")
-    public ResponseEntity<AuthResponse> verify(@Valid @RequestBody VerifyRequest r) {
+    public ResponseEntity<AuthenticationResponse> verify(@Valid @RequestBody VerifyRequest r) {
         return ResponseEntity.ok(auth.verify(r.email(), r.code()));
     }
 
-    @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest r) {
-        return ResponseEntity.ok(auth.login(r.email(), r.password()));
+    @PostMapping("/authenticate")
+    public ResponseEntity<AuthenticationResponse> authenticate(@Valid @RequestBody AuthenticationRequest r) {
+        return ResponseEntity.ok(auth.authenticate(r.email(), r.password()));
     }
 }
