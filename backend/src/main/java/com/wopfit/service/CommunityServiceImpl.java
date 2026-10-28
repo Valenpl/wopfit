@@ -9,7 +9,6 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -29,8 +28,6 @@ import com.wopfit.entity.Photo;
 import com.wopfit.entity.Post;
 import com.wopfit.entity.PostComment;
 import com.wopfit.entity.PostMark;
-import com.wopfit.entity.Preferences;
-import com.wopfit.entity.User;
 import com.wopfit.entity.dto.CommentResponse;
 import com.wopfit.entity.dto.MarkResponse;
 import com.wopfit.entity.dto.PageResponse;
@@ -50,7 +47,6 @@ import com.wopfit.repository.PhotoRepository;
 import com.wopfit.repository.PostCommentRepository;
 import com.wopfit.repository.PostMarkRepository;
 import com.wopfit.repository.PostRepository;
-import com.wopfit.repository.PreferencesRepository;
 
 @RequiredArgsConstructor
 @Service
@@ -66,39 +62,16 @@ public class CommunityServiceImpl implements CommunityService {
     private final PostMarkRepository marks;
     private final FollowRepository follows;
     private final PhotoRepository photos;
-    private final PreferencesRepository prefs;
-    private final ProfileService profile;
 
     private record Candidate(CommunityProfile p, List<String> goals, List<String> shared) {}
-
-    /** "Lucía Fernández" → "Lucía F.": en la comunidad se ve el nombre y la inicial del apellido. */
-    public static String displayName(String full) {
-        if (full == null || full.isBlank()) return "Vos";
-        String[] p = full.trim().split("\\s+");
-        return p.length == 1 ? p[0] : p[0] + " " + Character.toUpperCase(p[p.length - 1].charAt(0)) + ".";
-    }
 
     private static List<String> list(String csv) {
         return csv == null || csv.isBlank() ? List.of() : Arrays.stream(csv.split(",")).map(String::trim).filter(s -> !s.isEmpty()).toList();
     }
 
-    /** El perfil de la persona en la comunidad: se crea la primera vez y se mantiene al día con su nombre y objetivos. */
+    /** El perfil de la persona en la comunidad. Lo crea CommunityProfileService al guardar el nombre: acá solo se lee. */
     private CommunityProfile me(Long userId) {
-        User u = profile.user(userId);
-        Preferences p = prefs.findByUserId(userId).orElse(null);
-        CommunityProfile c = profiles.findByUserId(userId).orElseGet(() -> {
-            CommunityProfile n = new CommunityProfile();
-            n.setUser(u);
-            return n;
-        });
-        String name = displayName(u.getName());
-        String goals = p == null ? c.getGoals() : String.join(",", Catalog.GOALS.keySet().stream().filter(p.getGoals()::contains).toList());
-        int days = p == null ? c.getDaysPerWeek() : p.getDays().size();
-        if (c.getId() != null && name.equals(c.getName()) && Objects.equals(goals, c.getGoals()) && days == c.getDaysPerWeek()) return c;
-        c.setName(name);
-        c.setGoals(goals);
-        c.setDaysPerWeek(days);
-        return profiles.save(c);
+        return profiles.findByUserId(userId).orElseThrow(() -> new InvalidDataException("Primero contanos cómo te llamás"));
     }
 
     private String myGoal(CommunityProfile me) {
