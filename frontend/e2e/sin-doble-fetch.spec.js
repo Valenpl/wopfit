@@ -30,7 +30,7 @@ for (const path of SCREENS) {
     await page.goto(path);
     await page.waitForLoadState('networkidle');
     await expect(page.locator('.tabbar')).toBeVisible();
-    expect(seen).toContain('GET /api/me');
+    expect(seen).toContain('GET /api/v1/me');
     await shot(page, `pantalla${path.replaceAll('/', '_')}`);
     expect(repeated(seen), `pedidos: ${seen.join(', ')}`).toEqual([]);
   });
@@ -46,7 +46,7 @@ test('"Plan listo" sin plan lo crea una sola vez', async ({ page, request }) => 
   await p2.goto('/plan-listo');
   await expect(p2.getByRole('heading', { name: '¡Tu plan está listo!' })).toBeVisible();
   await p2.waitForLoadState('networkidle');
-  expect(seen.filter(x => x === 'POST /api/plan'), seen.join(', ')).toHaveLength(1);
+  expect(seen.filter(x => x === 'POST /api/v1/plan'), seen.join(', ')).toHaveLength(1);
   await ctx.close();
 });
 

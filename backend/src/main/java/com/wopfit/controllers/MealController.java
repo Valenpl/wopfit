@@ -22,7 +22,7 @@ import jakarta.validation.Valid;
 
 /** Comidas del día: registrar, alternativa, saltear y cambiar. */
 @RestController
-@RequestMapping("/api/meals")
+@RequestMapping("/api/v1/meals")
 public class MealController {
     private final MealService meals;
 

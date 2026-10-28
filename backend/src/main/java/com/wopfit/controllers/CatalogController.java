@@ -10,7 +10,7 @@ import com.wopfit.service.CatalogService;
 
 /** Opciones para armar los formularios (objetivos, actividades, motivos...). */
 @RestController
-@RequestMapping("/api/catalog")
+@RequestMapping("/api/v1/catalog")
 public class CatalogController {
     private final CatalogService catalog;
 

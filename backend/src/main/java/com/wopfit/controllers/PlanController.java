@@ -13,7 +13,7 @@ import com.wopfit.service.PlanService;
 
 /** Crear, actualizar y ver el plan. */
 @RestController
-@RequestMapping("/api/plan")
+@RequestMapping("/api/v1/plan")
 public class PlanController {
     private final PlanService plans;
 

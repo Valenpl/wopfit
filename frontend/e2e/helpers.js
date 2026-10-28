@@ -1,7 +1,7 @@
 import { expect } from '@playwright/test';
 
 // Ayudas compartidas por los tests e2e: crear usuarios contra la API, entrar con su token y sacar capturas.
-export const API = 'http://localhost:8080/api';
+export const API = 'http://localhost:8080/api/v1';
 export const PASS = 'clave1234';
 
 /**

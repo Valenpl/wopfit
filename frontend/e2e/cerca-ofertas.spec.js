@@ -74,7 +74,7 @@ test('sin ubicación se centra en UADE', async ({ page }) => {
 test('Gratuito: el mapa queda bloqueado y no pide lugares', async ({ page }) => {
   await loginAs(page, users.free);
   const asked = [];
-  page.on('request', r => { if (r.url().includes('/api/places')) asked.push(r.url()); });
+  page.on('request', r => { if (r.url().includes('/api/v1/places')) asked.push(r.url()); });
   await page.goto('/cerca');
   await expect(page.getByText('El buscador de lugares cercanos es parte de Premium')).toBeVisible();
   await expect(page.locator('.lpin')).toHaveCount(0);

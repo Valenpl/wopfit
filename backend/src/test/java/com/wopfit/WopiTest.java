@@ -15,7 +15,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 /** Preguntale a Wopi: respuestas con los datos de la persona y cupo de 3 (Gratuito) o 20 (Premium) por mes. */
 class WopiTest extends ApiTest {
     private JsonNode ask(String t, String q, int expected) throws Exception {
-        return call(post("/api/wopi"), t, om.writeValueAsString(Map.of("text", q)), expected);
+        return call(post("/api/v1/wopi"), t, om.writeValueAsString(Map.of("text", q)), expected);
     }
 
     private static List<String> values(JsonNode actions) {
@@ -27,12 +27,12 @@ class WopiTest extends ApiTest {
     @Test
     void cupoGratisYRespuestas() throws Exception {
         String t = newUser("wopi@mail.com"); // sin TACC, presupuesto medio, entrena hoy (miércoles)
-        call(get("/api/wopi"), null, null, 401);
-        JsonNode chat = call(get("/api/wopi"), t, null, 200);
+        call(get("/api/v1/wopi"), null, null, 401);
+        JsonNode chat = call(get("/api/v1/wopi"), t, null, 200);
         assertThat(chat.get("left").asInt()).isEqualTo(3);
         assertThat(chat.get("limit").asInt()).isEqualTo(3);
         assertThat(chat.get("messages").size()).isZero();
-        assertThat(call(get("/api/me"), t, null, 200).at("/subscription/wopiLeft").asInt()).isEqualTo(3);
+        assertThat(call(get("/api/v1/me"), t, null, 200).at("/subscription/wopiLeft").asInt()).isEqualTo(3);
         ask(t, "   ", 400);
         ask(t, "x".repeat(301), 400);
 
@@ -66,13 +66,13 @@ class WopiTest extends ApiTest {
 
         JsonNode none = ask(t, "hola", 409);
         assertThat(none.get("error").asText()).contains("3 consultas gratis");
-        JsonNode msgs = call(get("/api/wopi"), t, null, 200).get("messages");
+        JsonNode msgs = call(get("/api/v1/wopi"), t, null, 200).get("messages");
         assertThat(msgs.size()).isEqualTo(6);
         for (int i = 0; i < 6; i++) assertThat(msgs.get(i).get("role").asText()).isEqualTo(i % 2 == 0 ? "user" : "wopi");
 
         // con Premium son 20 por mes (ya usó 3)
-        call(post("/api/subscription"), t, "{\"period\":\"mensual\"}", 200);
-        assertThat(call(get("/api/wopi"), t, null, 200).get("left").asInt()).isEqualTo(17);
+        call(post("/api/v1/subscription"), t, "{\"period\":\"mensual\"}", 200);
+        assertThat(call(get("/api/v1/wopi"), t, null, 200).get("left").asInt()).isEqualTo(17);
 
         JsonNode pain = ask(t, "Me duele la rodilla", 200).get("reply");
         assertThat(pain.get("text").asText()).contains("consultá con un profesional");
@@ -92,6 +92,6 @@ class WopiTest extends ApiTest {
 
         // el mes que viene se renueva
         setToday(TODAY.plusMonths(1).withDayOfMonth(1));
-        assertThat(call(get("/api/wopi"), t, null, 200).get("left").asInt()).isEqualTo(20);
+        assertThat(call(get("/api/v1/wopi"), t, null, 200).get("left").asInt()).isEqualTo(20);
     }
 }

@@ -9,7 +9,7 @@ import com.wopfit.entity.dto.HealthResponse;
 
 /** Público: sirve para ver si el backend está levantado. */
 @RestController
-@RequestMapping("/api/health")
+@RequestMapping("/api/v1/health")
 public class HealthController {
     @GetMapping
     public ResponseEntity<HealthResponse> health() {

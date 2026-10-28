@@ -7,7 +7,7 @@ export default defineConfig({
   timeout: 60_000,
   use: { baseURL: 'http://localhost:5173', channel: process.env.PW_CHANNEL || undefined },
   webServer: [
-    { command: 'mvn spring-boot:run -Dspring-boot.run.profiles=h2', cwd: '../backend', url: 'http://localhost:8080/api/health', reuseExistingServer: true, timeout: 180_000 },
+    { command: 'mvn spring-boot:run -Dspring-boot.run.profiles=h2', cwd: '../backend', url: 'http://localhost:8080/api/v1/health', reuseExistingServer: true, timeout: 180_000 },
     { command: 'npm run dev', url: 'http://localhost:5173', reuseExistingServer: true }
   ]
 });

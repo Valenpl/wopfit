@@ -20,7 +20,7 @@ import jakarta.validation.Valid;
 
 /** Progreso, historial y ajustes sugeridos del plan. */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/v1")
 public class ProgressController {
     private final ProgressService progress;
 

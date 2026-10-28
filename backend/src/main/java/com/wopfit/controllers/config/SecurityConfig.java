@@ -30,8 +30,8 @@ public class SecurityConfig {
             .headers(h -> h.frameOptions(f -> f.sameOrigin())) // consola H2
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(a -> a
-                .requestMatchers("/api/auth/**", "/api/health", "/api/catalog", "/h2-console/**").permitAll()
-                .requestMatchers(HttpMethod.GET, "/api/photos/*").permitAll() // id imposible de adivinar; <img> no manda el token
+                .requestMatchers("/api/v1/auth/**", "/api/v1/health", "/api/v1/catalog", "/h2-console/**").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/v1/photos/*").permitAll() // id imposible de adivinar; <img> no manda el token
                 .anyRequest().authenticated())
             .exceptionHandling(e -> e.authenticationEntryPoint(new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED)))
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);

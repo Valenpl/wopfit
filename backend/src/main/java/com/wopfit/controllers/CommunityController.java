@@ -34,7 +34,7 @@ import jakarta.validation.Valid;
 
 /** Comunidad: feed, publicaciones con foto, comentarios, me gusta, guardados y seguir personas. */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/v1")
 public class CommunityController {
     private final CommunityService community;
 

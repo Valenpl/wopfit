@@ -22,7 +22,7 @@ import jakarta.validation.Valid;
 
 /** Ayuda profesional: listado, agenda, reservar y cancelar. Reservar es solo con Premium (2 por mes). */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/v1")
 public class ProController {
     private final ProService pros;
 
