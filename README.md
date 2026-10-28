@@ -186,34 +186,35 @@ Rutas públicas:
 - `POST` `auth/register`, `auth/verify`, `auth/authenticate`, `auth/resend`
 - `GET` `health`, `catalog`
 
-El resto requiere `Authorization: Bearer <token>`:
+El resto requiere `Authorization: Bearer <token>`. Criterio de las rutas (REGLAS 2.9): cada una empieza con un recurso en plural; lo que la persona logueada tiene una sola vez cuelga de `users/me`; las acciones sobre un recurso que no son alta, edición ni baja (marcar como hecho, saltear, reservar...) van como `POST` a una sub-ruta.
 
 | Método | Ruta | Qué hace |
 |---|---|---|
-| GET | `me` | Usuario, preferencias y plan |
-| PUT | `me/about`, `me/preferences` | Datos básicos / preferencias |
-| PUT | `me/password` | Cambiar la contraseña (pide la actual) |
-| POST · DELETE | `subscription` | Activar Premium de demostración (`{ "period": "mensual" \| "semestral" \| "anual" }`, sin cobro) · volver al Gratuito |
-| POST · GET | `plan` | Crear o actualizar el plan · ver el plan |
+| GET · PUT | `users/me` | Usuario, preferencias y plan · datos básicos |
+| PUT | `users/me/preferences` | Preferencias |
+| PUT | `users/me/password` | Cambiar la contraseña (pide la actual) |
+| POST · DELETE | `users/me/subscription` | Activar Premium de demostración (`{ "period": "mensual" \| "semestral" \| "anual" }`, sin cobro) · volver al Gratuito |
+| POST · GET | `users/me/plan` | Crear o actualizar el plan · ver el plan |
+| POST | `users/me/plan/lighten`, `users/me/plan/grow`, `users/me/plan/dismiss` | Ajustes del plan |
+| GET | `users/me/progress`, `users/me/history` | Progreso e historial |
 | GET | `workouts/today`, `workouts/week?start=AAAA-MM-DD`, `workouts/{id}` | Entrenamientos |
 | POST | `workouts/{id}/report` · `accept-alternative` · `rest` · `reschedule` · `done` | "No pude", alternativa, mover, completar |
 | GET | `meals/{fecha}` | Comidas del día y costo semanal |
 | POST | `meals/{fecha}/{0-2}/eaten` · `report` · `accept` · `skip` · `swap` | Registrar, alternativa, cambiar |
-| GET · PUT | `shopping/{fecha}` | Lista del súper de la semana de esa fecha · tildar o destildar un ingrediente |
+| GET · PUT | `shopping-lists/{fecha}` | Lista del súper de la semana de esa fecha · tildar o destildar un ingrediente |
 | GET | `places` | Lugares cercanos (solo Premium; si no, 403): coordenadas, si está abierto ahora y si tiene descuento |
 | GET | `offers` | Cupones de aliados con sus sucursales y si sirven para tu lista del súper; `alerts` = Premium |
-| GET | `pros`, `pros/{id}` | Profesionales, cupo del mes y tus próximas consultas · perfil con la agenda de los próximos 4 días |
-| POST · DELETE | `pros/{id}/book`, `consultations/{id}` | Reservar (`{ date, time, mode }`, solo Premium, 2 por mes; devuelve la consulta y el cupo) · cancelar una que no pasó (devuelve `{ id, message, left }`) |
-| GET · POST | `wopi` | Conversación con Wopi y consultas que quedan · preguntar (`{ text }`, 3 por mes gratis, 20 con Premium) |
-| GET | `community?f=para\|recetas\|act\|preg` | Personas como vos y publicaciones |
-| PUT | `community/people/{id}/follow` | Seguir o dejar de seguir (`{ on }`) |
-| POST · GET · DELETE | `posts`, `posts/{id}` | Publicar (`{ type, title, body, photo }`, foto como data URL) · ver con comentarios · borrar la propia |
+| GET | `professionals`, `professionals/{id}` | Profesionales, cupo del mes y tus próximas consultas · perfil con la agenda de los próximos 4 días |
+| POST · DELETE | `professionals/{id}/consultations`, `consultations/{id}` | Reservar (`{ date, time, mode }`, solo Premium, 2 por mes; devuelve la consulta y el cupo) · cancelar una que no pasó (devuelve `{ id, message, left }`) |
+| GET · POST | `wopi/messages` | Conversación con Wopi y consultas que quedan · preguntar (`{ text }`, 3 por mes gratis, 20 con Premium) |
+| GET | `people` | Personas como vos (las 5 que más objetivos comparten) y tu perfil de la comunidad |
+| PUT | `people/{id}/follow` | Seguir o dejar de seguir (`{ on }`) |
+| GET | `posts?filter=para\|recetas\|act\|preg&page=0&size=10` | Feed paginado: `{ content, page, size, totalElements, last }` |
+| POST · GET · DELETE | `posts`, `posts/{id}` | Publicar (`{ type, title, body, photo }`, foto como data URL) · ver con comentarios · borrar la propia (devuelve `{ id, message }`) |
 | POST · PUT | `posts/{id}/comments` · `posts/{id}/like` · `posts/{id}/save` | Comentar · me gusta · guardar |
 | GET | `photos/{id}` | Foto de una publicación (pública: el id es un UUID) |
 | GET · PUT | `habits/{fecha}` | Agua, caminar, dormir |
-| GET · POST · DELETE | `goals`, `goals/{id}/check`, `goals/{id}` | Metas |
-| GET | `progress`, `history` | Progreso e historial |
-| POST | `adjust/lighten`, `adjust/grow`, `adjust/dismiss` | Ajustes del plan |
+| GET · POST · DELETE | `goals`, `goals/{id}/check`, `goals/{id}` | Metas (borrar devuelve `{ id, message }`) |
 
 Los errores vuelven como `{ "error": "mensaje para mostrar" }`. En los errores de validación se suma `fields`.
 

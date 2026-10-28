@@ -18,10 +18,10 @@ export async function newUser(request, { name = 'Prueba', goals = ['mover'], day
   };
   const { devCode } = await call('POST', '/auth/register', { email, password: PASS });
   ({ token } = await call('POST', '/auth/verify', { email, code: devCode }));
-  await call('PUT', '/me/about', { name, birthDate: '1995-03-10', heightCm: 170, weightKg: 68 });
-  await call('PUT', '/me/preferences', { goals, days, minutes: 30, budget, activities: [], avoid, otherAvoid: '', health: [], level: 'principiante', equipment: ['nada'] });
-  if (plan) await call('POST', '/plan');
-  if (premium) await call('POST', '/subscription', { period: premium });
+  await call('PUT', '/users/me', { name, birthDate: '1995-03-10', heightCm: 170, weightKg: 68 });
+  await call('PUT', '/users/me/preferences', { goals, days, minutes: 30, budget, activities: [], avoid, otherAvoid: '', health: [], level: 'principiante', equipment: ['nada'] });
+  if (plan) await call('POST', '/users/me/plan');
+  if (premium) await call('POST', '/users/me/subscription', { period: premium });
   return { token, email, call };
 }
 

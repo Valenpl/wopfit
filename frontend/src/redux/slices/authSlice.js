@@ -3,8 +3,8 @@ import { http } from '../../api/axios';
 import { apiThunk } from '../helpers';
 import { loadLocal } from '../../utils/storage';
 
-// Sesión: el token JWT y el usuario (GET /me). Los cambios de perfil, preferencias y Premium devuelven el usuario actualizado.
-export const fetchMe = apiThunk('auth/fetchMe', () => http.get('/me'), {
+// Sesión: el token JWT y el usuario (GET /users/me). Los cambios de perfil, preferencias y Premium devuelven el usuario actualizado.
+export const fetchMe = apiThunk('auth/fetchMe', () => http.get('/users/me'), {
   toastError: false,
   condition: (_, { getState }) => { const a = getState().auth; return !!a.token && !a.meLoaded && !a.meLoading; }
 });
@@ -12,11 +12,11 @@ export const register = apiThunk('auth/register', body => http.post('/auth/regis
 export const verify = apiThunk('auth/verify', body => http.post('/auth/verify', body), { toastError: false });
 export const resendCode = apiThunk('auth/resend', email => http.post('/auth/resend', { email }), { toastError: false });
 export const login = apiThunk('auth/login', body => http.post('/auth/authenticate', body), { toastError: false });
-export const updateAbout = apiThunk('auth/updateAbout', body => http.put('/me/about', body));
-export const updatePreferences = apiThunk('auth/updatePreferences', body => http.put('/me/preferences', body));
-export const changePassword = apiThunk('auth/changePassword', body => http.put('/me/password', body), { toastError: false, toast: 'Contraseña actualizada' });
-export const activatePremium = apiThunk('auth/activatePremium', period => http.post('/subscription', { period }));
-export const cancelPremium = apiThunk('auth/cancelPremium', () => http.del('/subscription'), { toast: 'Volviste al plan Gratuito' });
+export const updateAbout = apiThunk('auth/updateAbout', body => http.put('/users/me', body));
+export const updatePreferences = apiThunk('auth/updatePreferences', body => http.put('/users/me/preferences', body));
+export const changePassword = apiThunk('auth/changePassword', body => http.put('/users/me/password', body), { toastError: false, toast: 'Contraseña actualizada' });
+export const activatePremium = apiThunk('auth/activatePremium', period => http.post('/users/me/subscription', { period }));
+export const cancelPremium = apiThunk('auth/cancelPremium', () => http.del('/users/me/subscription'), { toast: 'Volviste al plan Gratuito' });
 
 const initialState = { token: loadLocal('wopfit-token'), me: null, meLoaded: false, meLoading: false };
 
