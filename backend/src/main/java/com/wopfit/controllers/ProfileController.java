@@ -20,7 +20,7 @@ import jakarta.validation.Valid;
 
 /** Datos del usuario, preferencias y contraseña. */
 @RestController
-@RequestMapping("/api/me")
+@RequestMapping("/api/v1/me")
 public class ProfileController {
     private final ProfileService profile;
     private final AuthService auth;

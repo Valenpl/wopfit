@@ -22,7 +22,7 @@ import jakarta.validation.Valid;
 
 /** Metas chicas que suman a un objetivo. */
 @RestController
-@RequestMapping("/api/goals")
+@RequestMapping("/api/v1/goals")
 public class GoalController {
     private final GoalService goals;
 

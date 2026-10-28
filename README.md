@@ -135,7 +135,7 @@ Los lugares, cupones y profesionales salen de `backend/src/main/resources/demo/*
 | `WOPFIT_JWT_SECRET` | secreto de desarrollo | **Cambialo en producción** (mínimo 32 caracteres) |
 | `WOPFIT_CORS_ORIGINS` | `http://localhost:5173` | Dominios del front, separados por coma |
 | `WOPFIT_DEV_CODES` | `true` | Mostrar el código de verificación (poné `false` en producción) |
-| `VITE_API_URL` (front) | `/api` | URL de la API, si el front se publica en otro dominio |
+| `VITE_API_URL` (front) | `/api/v1` | URL de la API, si el front se publica en otro dominio |
 
 ## Qué hace (historias de usuario)
 
@@ -158,7 +158,7 @@ Los lugares, cupones y profesionales salen de `backend/src/main/resources/demo/*
 | Progreso | Semana actual, racha de semanas completas, % por objetivo, historial de entrenos, hábitos y dificultades |
 | Ajustes | Con 2 o más sesiones complicadas en 7 días, propone alivianar el plan. Con una semana completa, propone subir de nivel. Si cambiás preferencias, el cambio queda pendiente hasta "Actualizar mi plan", que muestra qué cambió |
 
-## API (todo bajo `/api`, JSON)
+## API (todo bajo `/api/v1`, JSON)
 
 Rutas públicas:
 

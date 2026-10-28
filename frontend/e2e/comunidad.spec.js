@@ -33,14 +33,14 @@ test('feed, seguir, filtros, me gusta y comentar', async ({ page }) => {
   await expect(page.locator('.person').first().getByRole('button', { name: 'Siguiendo' })).toBeVisible();
 
   // filtros
-  const recetas = page.waitForResponse(r => r.url().includes('/api/community?f=recetas'));
+  const recetas = page.waitForResponse(r => r.url().includes('/api/v1/community?f=recetas'));
   await page.locator('.seg').getByRole('button', { name: 'Recetas' }).click();
   await recetas;
   await expect(page.locator('article.post').filter({ hasText: 'Hice la rutina exprés' })).toHaveCount(0);
   for (const t of await page.locator('article.post .tiny.muted').allInnerTexts()) expect(t).toContain('Receta');
   // volver a "Para vos" usa el feed que ya está en el store: no se pide de nuevo
   const again = [];
-  page.on('request', r => { if (r.url().includes('/api/community?f=para')) again.push(r.url()); });
+  page.on('request', r => { if (r.url().includes('/api/v1/community?f=para')) again.push(r.url()); });
   await page.locator('.seg').getByRole('button', { name: 'Para vos' }).click();
   await expect(page.locator('article.post').filter({ hasText: 'Bowl de lentejas' })).toBeVisible();
   expect(again).toHaveLength(0);
@@ -80,7 +80,7 @@ test('publicar con foto y borrar', async ({ page }) => {
   await page.locator('#pfile').setInputFiles({ name: 'foto.png', mimeType: 'image/png', buffer: PNG });
   await expect(page.locator('.pprev img')).toBeVisible();
   await shot(page, 'compartir');
-  const created = page.waitForResponse(r => r.url().endsWith('/api/posts') && r.request().method() === 'POST');
+  const created = page.waitForResponse(r => r.url().endsWith('/api/v1/posts') && r.request().method() === 'POST');
   await page.getByRole('button', { name: 'Publicar' }).click();
   expect((await created).status()).toBe(201);
   await expect(page.locator('.toast')).toHaveText('¡Publicado en la comunidad!');

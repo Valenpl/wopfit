@@ -19,7 +19,7 @@ import com.wopfit.service.AuthService;
 import jakarta.validation.Valid;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 public class AuthenticationController {
     private final AuthService auth;
 

@@ -59,7 +59,7 @@ test('lista del súper: tildar se guarda en el backend', async ({ page }) => {
   await expect(page.getByText(/avena/i)).toHaveCount(0); // sin TACC
   const first = rows.first();
   await expect(first).toHaveAttribute('aria-pressed', 'false');
-  const saved = page.waitForResponse(r => r.url().includes('/api/shopping/') && r.request().method() === 'PUT');
+  const saved = page.waitForResponse(r => r.url().includes('/api/v1/shopping/') && r.request().method() === 'PUT');
   await first.click();
   expect((await saved).ok()).toBeTruthy();
   await expect(first).toHaveAttribute('aria-pressed', 'true');

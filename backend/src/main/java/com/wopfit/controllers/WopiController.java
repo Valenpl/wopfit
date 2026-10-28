@@ -17,7 +17,7 @@ import jakarta.validation.Valid;
 
 /** Chat con Wopi: 3 preguntas por mes con el plan Gratuito, 20 con Premium. */
 @RestController
-@RequestMapping("/api/wopi")
+@RequestMapping("/api/v1/wopi")
 public class WopiController {
     private final WopiService wopi;
 

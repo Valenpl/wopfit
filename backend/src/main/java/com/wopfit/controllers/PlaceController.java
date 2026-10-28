@@ -14,7 +14,7 @@ import com.wopfit.service.PlaceService;
 
 /** Lugares cercanos (Premium) y ofertas, con datos de demostración. */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/v1")
 public class PlaceController {
     private final PlaceService placeService;
 

@@ -27,7 +27,7 @@ import jakarta.validation.Valid;
 
 /** Entrenamientos del plan: hoy, semana, "no pude", mover y completar. */
 @RestController
-@RequestMapping("/api/workouts")
+@RequestMapping("/api/v1/workouts")
 public class WorkoutController {
     private final PlanService plans;
 

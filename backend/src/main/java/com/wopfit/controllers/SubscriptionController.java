@@ -17,7 +17,7 @@ import jakarta.validation.Valid;
 
 /** Premium de demostración: se activa y se cancela sin cobros. */
 @RestController
-@RequestMapping("/api/subscription")
+@RequestMapping("/api/v1/subscription")
 public class SubscriptionController {
     private final ProfileService profile;
     private final PremiumService premium;

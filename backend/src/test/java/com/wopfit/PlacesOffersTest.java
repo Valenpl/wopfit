@@ -29,12 +29,12 @@ class PlacesOffersTest extends ApiTest {
     @Test
     void lugaresSoloConPremium() throws Exception {
         String t = newUser("lugares@mail.com");
-        call(get("/api/places"), null, null, 401);
-        JsonNode denied = call(get("/api/places"), t, null, 403);
+        call(get("/api/v1/places"), null, null, 401);
+        JsonNode denied = call(get("/api/v1/places"), t, null, 403);
         assertThat(denied.get("error").asText()).contains("Premium");
 
-        call(post("/api/subscription"), t, "{\"period\":\"mensual\"}", 200);
-        JsonNode places = call(get("/api/places"), t, null, 200);
+        call(post("/api/v1/subscription"), t, "{\"period\":\"mensual\"}", 200);
+        JsonNode places = call(get("/api/v1/places"), t, null, 200);
         assertThat(places.size()).isEqualTo(45);
         Set<String> cats = Set.of("super", "verdu", "diet", "gym", "parque");
         for (JsonNode p : places) {
@@ -54,24 +54,24 @@ class PlacesOffersTest extends ApiTest {
         assertThat(noon.get("Av. Belgrano 1100").get("status").asText()).isEqualTo("Abierto hasta las 21:00");
         assertThat(noon.get("Av. Belgrano 1100").get("offers").asInt()).isEqualTo(1);
         setTime(22, 30);
-        Map<String, JsonNode> night = byAddress(call(get("/api/places"), t, null, 200));
+        Map<String, JsonNode> night = byAddress(call(get("/api/v1/places"), t, null, 200));
         assertThat(night.get("Av. Belgrano 1100").get("status").asText()).isEqualTo("Cerrado · abre a las 08:00");
         assertThat(night.get("Defensa 900").get("openNow").asBoolean()).isFalse(); // cierra 22:00
         assertThat(night.get("Moreno 950").get("openNow").asBoolean()).isTrue(); // cierra 23:00
         assertThat(night.get("Av. Pueyrredón 1500").get("status").asText()).isEqualTo("Abierto 24 h");
         setTime(7, 0);
-        assertThat(byAddress(call(get("/api/places"), t, null, 200)).get("Moreno 950").get("openNow").asBoolean()).isTrue(); // abre 07:00
+        assertThat(byAddress(call(get("/api/v1/places"), t, null, 200)).get("Moreno 950").get("openNow").asBoolean()).isTrue(); // abre 07:00
     }
 
     @Test
     void ofertasParaTuLista() throws Exception {
         String t = newUser("ofertas@mail.com"); // sin TACC
-        JsonNode res = call(get("/api/offers"), t, null, 200);
+        JsonNode res = call(get("/api/v1/offers"), t, null, 200);
         assertThat(res.get("alerts").asBoolean()).isFalse();
         JsonNode offers = res.get("offers");
         assertThat(offers.size()).isEqualTo(10);
 
-        JsonNode list = call(get("/api/shopping/2026-10-21"), t, null, 200).get("items");
+        JsonNode list = call(get("/api/v1/shopping/2026-10-21"), t, null, 200).get("items");
         int forList = 0;
         for (JsonNode o : offers) {
             int days = o.get("daysLeft").asInt();
@@ -93,10 +93,10 @@ class PlacesOffersTest extends ApiTest {
 
         // los cupones se renuevan solos: nunca vencen en la demo
         setToday(TODAY.plusDays(40));
-        for (JsonNode o : call(get("/api/offers"), t, null, 200).get("offers")) assertThat(o.get("daysLeft").asInt()).isPositive();
+        for (JsonNode o : call(get("/api/v1/offers"), t, null, 200).get("offers")) assertThat(o.get("daysLeft").asInt()).isPositive();
 
         setToday(TODAY);
-        call(post("/api/subscription"), t, "{\"period\":\"anual\"}", 200);
-        assertThat(call(get("/api/offers"), t, null, 200).get("alerts").asBoolean()).isTrue();
+        call(post("/api/v1/subscription"), t, "{\"period\":\"anual\"}", 200);
+        assertThat(call(get("/api/v1/offers"), t, null, 200).get("alerts").asBoolean()).isTrue();
     }
 }

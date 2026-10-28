@@ -144,7 +144,7 @@ public class CommunityServiceImpl implements CommunityService {
         CommunityProfile a = p.getAuthor();
         Long id = p.getId();
         return new PostResponse(id, a.getId(), a.getName(), a.getId().equals(me.getId()), p.getGoal(), Catalog.GOALS.get(p.getGoal()), p.getType(),
-                p.getTitle(), p.getBody(), p.getEmoji(), p.getBg(), list(p.getTags()), p.getPhotoId() == null ? null : "/api/photos/" + p.getPhotoId(),
+                p.getTitle(), p.getBody(), p.getEmoji(), p.getBg(), list(p.getTags()), p.getPhotoId() == null ? null : "/api/v1/photos/" + p.getPhotoId(),
                 p.getBaseLikes() + s.likes().getOrDefault(id, 0L).intValue(), s.liked().contains(id), s.saved().contains(id),
                 s.comments().getOrDefault(id, 0L).intValue(), p.getCreatedAt());
     }

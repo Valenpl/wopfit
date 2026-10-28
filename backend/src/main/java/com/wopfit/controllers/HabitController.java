@@ -18,7 +18,7 @@ import com.wopfit.service.HabitService;
 
 /** Hábitos diarios: agua, caminar y dormir. */
 @RestController
-@RequestMapping("/api/habits")
+@RequestMapping("/api/v1/habits")
 public class HabitController {
     private final HabitService habits;
 

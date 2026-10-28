@@ -1,10 +1,10 @@
 import axios from 'axios';
 
 // Única instancia de axios de la app. Solo la usan los thunks de redux/slices.
-export const BASE_URL = import.meta.env.VITE_API_URL || '/api';
+export const BASE_URL = import.meta.env.VITE_API_URL || '/api/v1';
 
-/** URL absoluta de algo que devuelve la API como "/api/..." (por ejemplo una foto), aunque el front esté en otro dominio. */
-export const apiUrl = path => BASE_URL.replace(/\/api\/?$/, '') + path;
+/** URL absoluta de algo que devuelve la API como "/api/v1/..." (por ejemplo una foto), aunque el front esté en otro dominio. */
+export const apiUrl = path => BASE_URL.replace(/\/api\/v1\/?$/, '') + path;
 
 const api = axios.create({ baseURL: BASE_URL, headers: { Accept: 'application/json' } });
 
