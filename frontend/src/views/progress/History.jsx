@@ -42,7 +42,7 @@ export default function History() {
   else list = h.difficulties.length ? <>
     {h.mostCommon && <div className="card" style={{ background: 'var(--peach)' }}><h3>Lo que más se repite</h3><p className="small" style={{ margin: '6px 0 0', color: 'var(--peach-ink)', fontWeight: 700 }}>{h.mostCommon} · {h.mostCommonCount} {h.mostCommonCount === 1 ? 'vez' : 'veces'}</p>
       {h.mostCommonCount >= 2 && <button className="btn sm mt12" onClick={() => nav('/ajuste')}>Ver ajustes de mi plan</button>}</div>}
-    <div className="mt12">{h.difficulties.slice(0, all ? 999 : 8).map((x, i) => <div className="hist" key={i}><span className="circ" /><div className="grow"><div className="t">{x.label}</div>
+    <div className="mt12">{h.difficulties.slice(0, all ? 999 : 8).map(x => <div className="hist" key={`${x.kind}-${x.id}`}><span className="circ" /><div className="grow"><div className="t">{x.label}</div>
       <div className="d">{shortDate(x.date)} · {x.kind === 'WORKOUT' ? 'Entrenamiento' : x.note}{x.kind === 'WORKOUT' && x.note ? ` · «${x.note}»` : ''}</div></div></div>)}</div></>
     : <div className="card center muted">Todavía no nos contaste ninguna dificultad. Cuando algo no salga, tocá «No puedo hoy».</div>;
 

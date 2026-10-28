@@ -42,7 +42,7 @@ export default function WeekTab() {
     card = <div className="card mt12"><div className="row between"><span className="kicker">{s.date === t ? 'Hoy · ' : ''}{longDay(s.date)}</span><span className="tag blue">{s.minutes} min</span></div>
       <h3 style={{ fontSize: 18, marginTop: 6 }}>{s.title}</h3>
       {s.status === 'MOVED' ? <Note tone="blue" className="mt12">Esta sesión pasó al {longDay(s.movedTo)}.</Note> : <>
-        <div className="mt8">{blocks.map((b, i) => <div className="blk" key={i}><span className="num">{i + 1}</span><span className="grow" style={{ fontWeight: 700, color: 'var(--navy)', fontSize: 14 }}>{b.summary}</span><span className="small muted">{b.minutes} min</span></div>)}</div>
+        <div className="mt8">{blocks.map((b, i) => <div className="blk" key={b.name}><span className="num">{i + 1}</span><span className="grow" style={{ fontWeight: 700, color: 'var(--navy)', fontSize: 14 }}>{b.summary}</span><span className="small muted">{b.minutes} min</span></div>)}</div>
         {s.status === 'DONE' ? <Note icon="check" className="mt12">¡Sesión completada!</Note>
           : s.status === 'MISSED' ? <><Note tone="peach" className="mt12">Esta sesión quedó sin hacer. No pasa nada.</Note><Btn className="ghost sm mt12" busy={reschedule.busy} disabled={busy} onClick={() => reschedule.run(s.id)}>Reprogramarla</Btn></>
             : <div className="row between mt12"><More onClick={() => nav(`/entreno/${s.id}`)}>{s.date === t ? 'Comenzar' : 'Ver rutina'}</More>

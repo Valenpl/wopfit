@@ -228,10 +228,10 @@ public class ProgressServiceImpl implements ProgressService {
         List<Difficulty> diffs = new ArrayList<>();
         for (WorkoutSession s : sessions.findByUserIdOrderByDateDesc(userId)) {
             if (s.getReason() == null) continue;
-            diffs.add(new Difficulty(s.getDate(), "WORKOUT", Catalog.WORKOUT_REASONS.get(s.getReason()), s.getReasonNote()));
+            diffs.add(new Difficulty(s.getId(), s.getDate(), "WORKOUT", Catalog.WORKOUT_REASONS.get(s.getReason()), s.getReasonNote()));
         }
         for (MealLog m : meals.findByUserIdAndReasonIsNotNullOrderByDateDesc(userId)) {
-            diffs.add(new Difficulty(m.getDate(), "MEAL", Catalog.MEAL_REASONS.get(m.getReason()), Catalog.SLOTS.get(m.getSlot())));
+            diffs.add(new Difficulty(m.getId(), m.getDate(), "MEAL", Catalog.MEAL_REASONS.get(m.getReason()), Catalog.SLOTS.get(m.getSlot())));
         }
         diffs.sort(Comparator.comparing(Difficulty::date).reversed());
         Map<String, Integer> count = new HashMap<>();
