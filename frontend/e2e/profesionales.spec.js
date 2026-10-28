@@ -71,8 +71,9 @@ test('Premium: reservar 2 consultas, agregar al calendario y cancelar', async ({
 
   // cancelar una devuelve el cupo
   await page.goto('/profesionales');
-  page.once('dialog', d => d.accept());
   await page.locator('.pro').filter({ hasText: 'Carolina Méndez' }).getByRole('button', { name: 'Cancelar' }).click();
+  await expect(page.getByRole('dialog')).toContainText('¿Cancelar la consulta con Lic. Carolina Méndez?');
+  await page.getByRole('dialog').getByRole('button', { name: 'Sí, cancelar' }).click();
   await expect(page.locator('.toast')).toHaveText('Consulta cancelada');
   await expect(page.getByText('Te queda 1 consulta este mes')).toBeVisible();
   await expect(page.locator('.pro').filter({ hasText: 'Confirmada' })).toHaveCount(1);

@@ -89,7 +89,9 @@ export function Cerca() {
     .sort((a, b) => a.m - b.m), [all, cat, f, ql]);
   const shown = more ? list : list.slice(0, 12);
   const far = all.length > 0 && Math.min(...all.map(p => p.m)) > 5000;
-  const pick = id => { setSel(id); setTimeout(() => document.getElementById('pl-' + id)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 50); };
+  const rows = useRef({}); // al tocar un pin, la lista se mueve hasta ese lugar
+  const pick = id => setSel(id);
+  useEffect(() => { if (sel) rows.current[sel]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }, [sel, more]);
   useEffect(() => { if (sel && data && !shown.some(p => p.id === sel)) setMore(true); }, [sel, data]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return <Screen>
@@ -112,7 +114,7 @@ export function Cerca() {
       </div>
       {error && <ErrorBox error={error} onRetry={reload} />}
       {!data && !error && <p className="center muted">Cargando…</p>}
-      <div className="mt12">{shown.map(p => <div key={p.id} id={'pl-' + p.id} className={`place ${sel === p.id ? 'sel' : ''}`}>
+      <div className="mt12">{shown.map(p => <div key={p.id} ref={el => { rows.current[p.id] = el; }} className={`place ${sel === p.id ? 'sel' : ''}`}>
         <button className="em" style={{ background: PCOL[p.category] + '22' }} onClick={() => pick(p.id)} aria-label={'Ver ' + p.name + ' en el mapa'}>{PEMO[p.category]}</button>
         <div className="grow"><b style={{ color: 'var(--navy)' }}>{p.name}</b>
           <div className="tiny muted" style={{ fontWeight: 700 }}>{p.categoryName} · a {distTxt(p.m)} · {walkMin(p.m)} min caminando</div>

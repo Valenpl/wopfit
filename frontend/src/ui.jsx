@@ -132,6 +132,15 @@ export function Sheet({ onClose, children, white }) {
   </>;
 }
 
+/** Pregunta de confirmación propia (en vez de window.confirm), controlada por estado. */
+export function Confirm({ title, yes, busy, onYes, onClose }) {
+  return <Sheet onClose={onClose} white>
+    <h2 style={{ marginTop: 12 }}>{title}</h2>
+    <Btn busy={busy} className="mt12" onClick={onYes}>{yes}</Btn>
+    <button className="btn ghost mt8" onClick={onClose}>Volver</button>
+  </Sheet>;
+}
+
 const COLORS = ['#1E7FCB', '#6DBB3A', '#E9824F', '#8E6BD1', '#1EA7E0', '#D9577A'];
 /** Círculo con las iniciales (sin "Lic." ni "Prof.") y un color fijo por nombre. */
 export function Avatar({ n, size = 40 }) {

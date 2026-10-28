@@ -92,8 +92,11 @@ test('publicar con foto y borrar', async ({ page }) => {
 
   // borrar
   await mine.getByRole('button', { name: /Comentarios/ }).click();
-  page.once('dialog', d => d.accept());
   await page.getByRole('button', { name: 'Borrar' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Volver' }).click(); // arrepentirse no borra nada
+  await expect(page.getByRole('dialog')).toHaveCount(0);
+  await page.getByRole('button', { name: 'Borrar' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Sí, borrar' }).click();
   await expect(page.locator('.toast')).toHaveText('Publicación borrada');
   await expect(page).toHaveURL('/comunidad');
   await expect(page.locator('article.post').filter({ hasText: 'Hoy caminé 30 min por el parque' })).toHaveCount(0);
