@@ -10,6 +10,8 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.RequiredArgsConstructor;
+
 import com.wopfit.entity.Offer;
 import com.wopfit.entity.Place;
 import com.wopfit.entity.dto.Branch;
@@ -20,6 +22,7 @@ import com.wopfit.exceptions.PremiumRequiredException;
 import com.wopfit.repository.OfferRepository;
 import com.wopfit.repository.PlaceRepository;
 
+@RequiredArgsConstructor
 @Service
 public class PlaceServiceImpl implements PlaceService {
     private final PlaceRepository places;
@@ -27,14 +30,6 @@ public class PlaceServiceImpl implements PlaceService {
     private final PremiumService premium;
     private final MealService meals;
     private final TimeService time;
-
-    public PlaceServiceImpl(PlaceRepository places, OfferRepository offers, PremiumService premium, MealService meals, TimeService time) {
-        this.places = places;
-        this.offers = offers;
-        this.premium = premium;
-        this.meals = meals;
-        this.time = time;
-    }
 
     private static boolean always(Place p) {
         return "00:00".equals(p.getOpens()) && "24:00".equals(p.getCloses());

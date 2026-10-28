@@ -7,6 +7,8 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.RequiredArgsConstructor;
+
 import com.wopfit.entity.Goal;
 import com.wopfit.entity.dto.GoalRequest;
 import com.wopfit.entity.dto.GoalResponse;
@@ -14,17 +16,12 @@ import com.wopfit.exceptions.GoalNotFoundException;
 import com.wopfit.exceptions.InvalidDataException;
 import com.wopfit.repository.GoalRepository;
 
+@RequiredArgsConstructor
 @Service
 public class GoalServiceImpl implements GoalService {
     private final GoalRepository goals;
     private final ProfileService profile;
     private final TimeService time;
-
-    public GoalServiceImpl(GoalRepository goals, ProfileService profile, TimeService time) {
-        this.goals = goals;
-        this.profile = profile;
-        this.time = time;
-    }
 
     @Override
     public GoalResponse dto(Goal g) {

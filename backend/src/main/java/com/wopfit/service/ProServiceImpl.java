@@ -11,6 +11,8 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.RequiredArgsConstructor;
+
 import com.wopfit.entity.Consultation;
 import com.wopfit.entity.Professional;
 import com.wopfit.entity.dto.BookResponse;
@@ -31,6 +33,7 @@ import com.wopfit.repository.ConsultationRepository;
 import com.wopfit.repository.ProfessionalRepository;
 import com.wopfit.repository.UserRepository;
 
+@RequiredArgsConstructor
 @Service
 public class ProServiceImpl implements ProService {
     private static final int DAYS = 4;
@@ -40,14 +43,6 @@ public class ProServiceImpl implements ProService {
     private final UserRepository users;
     private final PremiumService premium;
     private final TimeService time;
-
-    public ProServiceImpl(ProfessionalRepository pros, ConsultationRepository consults, UserRepository users, PremiumService premium, TimeService time) {
-        this.pros = pros;
-        this.consults = consults;
-        this.users = users;
-        this.premium = premium;
-        this.time = time;
-    }
 
     /** Los próximos 4 días con atención (de lunes a sábado), desde mañana. */
     List<LocalDate> days() {

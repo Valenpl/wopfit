@@ -13,22 +13,21 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.RequiredArgsConstructor;
+
+import com.wopfit.entity.dto.DeleteResponse;
 import com.wopfit.entity.dto.GoalRequest;
 import com.wopfit.entity.dto.GoalResponse;
-import com.wopfit.entity.dto.DeleteResponse;
 import com.wopfit.service.GoalService;
 
 import jakarta.validation.Valid;
 
 /** Metas chicas que suman a un objetivo. */
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/goals")
 public class GoalController {
     private final GoalService goals;
-
-    public GoalController(GoalService goals) {
-        this.goals = goals;
-    }
 
     @GetMapping
     public ResponseEntity<List<GoalResponse>> goals(@AuthenticationPrincipal(expression = "id") Long uid) {

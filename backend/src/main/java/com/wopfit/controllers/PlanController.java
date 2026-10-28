@@ -7,19 +7,18 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.RequiredArgsConstructor;
+
 import com.wopfit.entity.dto.PlanResponse;
 import com.wopfit.entity.dto.PlanUpdateResponse;
 import com.wopfit.service.PlanService;
 
 /** Crear, actualizar y ver el plan. */
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/plan")
 public class PlanController {
     private final PlanService plans;
-
-    public PlanController(PlanService plans) {
-        this.plans = plans;
-    }
 
     @PostMapping
     public ResponseEntity<PlanUpdateResponse> createPlan(@AuthenticationPrincipal(expression = "id") Long uid) {

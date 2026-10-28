@@ -12,6 +12,8 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.RequiredArgsConstructor;
+
 import com.wopfit.entity.Plan;
 import com.wopfit.entity.Preferences;
 import com.wopfit.entity.SessionStatus;
@@ -32,6 +34,7 @@ import com.wopfit.exceptions.WorkoutNotFoundException;
 import com.wopfit.repository.PlanRepository;
 import com.wopfit.repository.WorkoutSessionRepository;
 
+@RequiredArgsConstructor
 @Service
 public class PlanServiceImpl implements PlanService {
     private static final String[] DAY_NAMES = {"Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"};
@@ -41,15 +44,6 @@ public class PlanServiceImpl implements PlanService {
     private final ProfileService profile;
     private final WorkoutCatalog workouts;
     private final TimeService time;
-
-    public PlanServiceImpl(PlanRepository plans, WorkoutSessionRepository sessions, ProfileService profile,
-                       WorkoutCatalog workouts, TimeService time) {
-        this.plans = plans;
-        this.sessions = sessions;
-        this.profile = profile;
-        this.workouts = workouts;
-        this.time = time;
-    }
 
     @Override
     public Plan plan(Long userId) {

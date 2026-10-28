@@ -3,16 +3,23 @@ package com.wopfit.entity;
 import jakarta.persistence.*;
 import java.time.LocalDate;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 /** Un ingrediente que ya compraste en la lista del súper de una semana (week = lunes). */
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
-@Table(name = "shopping_checks", uniqueConstraints = @UniqueConstraint(columnNames = {"user_id", "week_start", "item"}))
+@Table(name = "shopping_checks", uniqueConstraints = @UniqueConstraint(name = "uk_shopping_check_item", columnNames = {"user_id", "week_start", "item"}))
 public class ShoppingCheck {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id")
+    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_shopping_check_user"))
     private User user;
 
     @Column(name = "week_start", nullable = false)
@@ -20,16 +27,4 @@ public class ShoppingCheck {
 
     @Column(nullable = false, length = 80)
     private String item;
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
-
-    public LocalDate getWeek() { return week; }
-    public void setWeek(LocalDate week) { this.week = week; }
-
-    public String getItem() { return item; }
-    public void setItem(String item) { this.item = item; }
 }

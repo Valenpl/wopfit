@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.RequiredArgsConstructor;
+
 import com.wopfit.entity.dto.MealAcceptRequest;
 import com.wopfit.entity.dto.MealDayResponse;
 import com.wopfit.entity.dto.MealProposalResponse;
@@ -21,14 +23,11 @@ import com.wopfit.service.MealService;
 import jakarta.validation.Valid;
 
 /** Comidas del día: registrar, alternativa, saltear y cambiar. */
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/meals")
 public class MealController {
     private final MealService meals;
-
-    public MealController(MealService meals) {
-        this.meals = meals;
-    }
 
     @GetMapping("/{date}")
     public ResponseEntity<MealDayResponse> mealDay(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {

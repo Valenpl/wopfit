@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.RequiredArgsConstructor;
+
 import com.wopfit.entity.dto.AboutRequest;
 import com.wopfit.entity.dto.MeResponse;
 import com.wopfit.entity.dto.MessageResponse;
@@ -19,16 +21,12 @@ import com.wopfit.service.ProfileService;
 import jakarta.validation.Valid;
 
 /** Datos del usuario, preferencias y contraseña. */
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/me")
 public class ProfileController {
     private final ProfileService profile;
     private final AuthenticationService auth;
-
-    public ProfileController(ProfileService profile, AuthenticationService auth) {
-        this.profile = profile;
-        this.auth = auth;
-    }
 
     @GetMapping
     public ResponseEntity<MeResponse> me(@AuthenticationPrincipal(expression = "id") Long uid) {

@@ -4,25 +4,32 @@ import jakarta.persistence.*;
 import java.util.HashSet;
 import java.util.Set;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 /** Lo que la persona cuenta en el onboarding: objetivos, tiempo, presupuesto, gustos, salud y equipamiento. Los días van de 0 (lunes) a 6 (domingo). */
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
-@Table(name = "preferences")
+@Table(name = "preferences", uniqueConstraints = @UniqueConstraint(name = "uk_preferences_user", columnNames = "user_id"))
 public class Preferences {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "user_id", unique = true)
+    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_preferences_user"))
     private User user;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "preference_goals", joinColumns = @JoinColumn(name = "owner_id"))
+    @CollectionTable(name = "preference_goals", joinColumns = @JoinColumn(name = "owner_id", foreignKey = @ForeignKey(name = "fk_preference_goal_preferences")))
     @Column(name = "goal")
     private Set<String> goals = new HashSet<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "preference_days", joinColumns = @JoinColumn(name = "owner_id"))
+    @CollectionTable(name = "preference_days", joinColumns = @JoinColumn(name = "owner_id", foreignKey = @ForeignKey(name = "fk_preference_day_preferences")))
     @Column(name = "day_of_week")
     private Set<Integer> days = new HashSet<>();
 
@@ -33,12 +40,12 @@ public class Preferences {
     private String budget;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "preference_activities", joinColumns = @JoinColumn(name = "owner_id"))
+    @CollectionTable(name = "preference_activities", joinColumns = @JoinColumn(name = "owner_id", foreignKey = @ForeignKey(name = "fk_preference_activity_preferences")))
     @Column(name = "activity")
     private Set<String> activities = new HashSet<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "preference_avoid", joinColumns = @JoinColumn(name = "owner_id"))
+    @CollectionTable(name = "preference_avoid", joinColumns = @JoinColumn(name = "owner_id", foreignKey = @ForeignKey(name = "fk_preference_avoid_preferences")))
     @Column(name = "food")
     private Set<String> avoid = new HashSet<>();
 
@@ -46,7 +53,7 @@ public class Preferences {
     private String otherAvoid;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "preference_health", joinColumns = @JoinColumn(name = "owner_id"))
+    @CollectionTable(name = "preference_health", joinColumns = @JoinColumn(name = "owner_id", foreignKey = @ForeignKey(name = "fk_preference_health_preferences")))
     @Column(name = "condition_code")
     private Set<String> health = new HashSet<>();
 
@@ -54,51 +61,12 @@ public class Preferences {
     private String level;
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "preference_equipment", joinColumns = @JoinColumn(name = "owner_id"))
+    @CollectionTable(name = "preference_equipment", joinColumns = @JoinColumn(name = "owner_id", foreignKey = @ForeignKey(name = "fk_preference_equipment_preferences")))
     @Column(name = "item")
     private Set<String> equipment = new HashSet<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
-    @CollectionTable(name = "preference_pending", joinColumns = @JoinColumn(name = "owner_id"))
+    @CollectionTable(name = "preference_pending", joinColumns = @JoinColumn(name = "owner_id", foreignKey = @ForeignKey(name = "fk_preference_pending_preferences")))
     @Column(name = "label")
     private Set<String> pendingChanges = new HashSet<>();
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
-
-    public Set<String> getGoals() { return goals; }
-    public void setGoals(Set<String> goals) { this.goals = goals; }
-
-    public Set<Integer> getDays() { return days; }
-    public void setDays(Set<Integer> days) { this.days = days; }
-
-    public int getMinutes() { return minutes; }
-    public void setMinutes(int minutes) { this.minutes = minutes; }
-
-    public String getBudget() { return budget; }
-    public void setBudget(String budget) { this.budget = budget; }
-
-    public Set<String> getActivities() { return activities; }
-    public void setActivities(Set<String> activities) { this.activities = activities; }
-
-    public Set<String> getAvoid() { return avoid; }
-    public void setAvoid(Set<String> avoid) { this.avoid = avoid; }
-
-    public String getOtherAvoid() { return otherAvoid; }
-    public void setOtherAvoid(String otherAvoid) { this.otherAvoid = otherAvoid; }
-
-    public Set<String> getHealth() { return health; }
-    public void setHealth(Set<String> health) { this.health = health; }
-
-    public String getLevel() { return level; }
-    public void setLevel(String level) { this.level = level; }
-
-    public Set<String> getEquipment() { return equipment; }
-    public void setEquipment(Set<String> equipment) { this.equipment = equipment; }
-
-    public Set<String> getPendingChanges() { return pendingChanges; }
-    public void setPendingChanges(Set<String> pendingChanges) { this.pendingChanges = pendingChanges; }
 }

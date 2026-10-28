@@ -2,19 +2,26 @@ package com.wopfit.entity;
 
 import jakarta.persistence.*;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 /**
  * Cómo aparece alguien en la comunidad. Las personas de ejemplo no tienen usuario (no se puede entrar con ellas);
  * cada usuario real tiene el suyo, que se crea solo y copia su nombre y objetivos.
  */
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
-@Table(name = "community_profiles")
+@Table(name = "community_profiles", uniqueConstraints = @UniqueConstraint(name = "uk_community_profile_user", columnNames = "user_id"))
 public class CommunityProfile {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", unique = true)
+    @JoinColumn(name = "user_id", foreignKey = @ForeignKey(name = "fk_community_profile_user"))
     private User user;
 
     /** Nombre y la inicial del apellido ("Martina R."). */
@@ -28,22 +35,4 @@ public class CommunityProfile {
     private int daysPerWeek;
 
     private boolean demo;
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public User getUser() { return user; }
-    public void setUser(User user) { this.user = user; }
-
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-
-    public String getGoals() { return goals; }
-    public void setGoals(String goals) { this.goals = goals; }
-
-    public int getDaysPerWeek() { return daysPerWeek; }
-    public void setDaysPerWeek(int daysPerWeek) { this.daysPerWeek = daysPerWeek; }
-
-    public boolean isDemo() { return demo; }
-    public void setDemo(boolean demo) { this.demo = demo; }
 }

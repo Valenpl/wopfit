@@ -5,23 +5,20 @@ import java.time.LocalDate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.RequiredArgsConstructor;
+
 import com.wopfit.entity.HabitLog;
 import com.wopfit.entity.dto.HabitsRequest;
 import com.wopfit.entity.dto.HabitsResponse;
 import com.wopfit.exceptions.InvalidDataException;
 import com.wopfit.repository.HabitLogRepository;
 
+@RequiredArgsConstructor
 @Service
 public class HabitServiceImpl implements HabitService {
     private final HabitLogRepository habits;
     private final ProfileService profile;
     private final TimeService time;
-
-    public HabitServiceImpl(HabitLogRepository habits, ProfileService profile, TimeService time) {
-        this.habits = habits;
-        this.profile = profile;
-        this.time = time;
-    }
 
     public static HabitsResponse dto(HabitLog h, LocalDate d) {
         return h == null ? new HabitsResponse(d, false, false, false) : new HabitsResponse(h.getDate(), h.isWater(), h.isWalk(), h.isSleep());

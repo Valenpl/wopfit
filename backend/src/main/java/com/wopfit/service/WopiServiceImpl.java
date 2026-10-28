@@ -12,6 +12,8 @@ import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.RequiredArgsConstructor;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wopfit.entity.Plan;
@@ -30,6 +32,7 @@ import com.wopfit.exceptions.LimitReachedException;
 import com.wopfit.repository.WopiMessageRepository;
 import com.wopfit.service.MealCatalog.Meal;
 
+@RequiredArgsConstructor
 @Service
 public class WopiServiceImpl implements WopiService {
     private static final String[] SLOT_NAMES = {"desayuno", "almuerzo", "cena"};
@@ -45,20 +48,6 @@ public class WopiServiceImpl implements WopiService {
     private final WorkoutCatalog workouts;
     private final TimeService time;
     private final ObjectMapper json;
-
-    public WopiServiceImpl(WopiMessageRepository messages, PremiumService premium, ProfileService profile, PlanService plans, MealService meals,
-                       PlaceService places, MealCatalog mealCatalog, WorkoutCatalog workouts, TimeService time, ObjectMapper json) {
-        this.messages = messages;
-        this.premium = premium;
-        this.profile = profile;
-        this.plans = plans;
-        this.meals = meals;
-        this.places = places;
-        this.mealCatalog = mealCatalog;
-        this.workouts = workouts;
-        this.time = time;
-        this.json = json;
-    }
 
     /** Una respuesta: texto (con **negrita**), tarjetas, botones, si admite "otras opciones" y de qué venía hablando. */
     record Reply(String text, List<WopiCard> cards, List<WopiAction> actions, boolean more, String context) {

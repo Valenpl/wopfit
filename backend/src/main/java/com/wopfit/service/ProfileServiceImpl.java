@@ -12,6 +12,8 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.RequiredArgsConstructor;
+
 import com.wopfit.entity.Plan;
 import com.wopfit.entity.Preferences;
 import com.wopfit.entity.User;
@@ -26,19 +28,13 @@ import com.wopfit.repository.PlanRepository;
 import com.wopfit.repository.PreferencesRepository;
 import com.wopfit.repository.UserRepository;
 
+@RequiredArgsConstructor
 @Service
 public class ProfileServiceImpl implements ProfileService {
     private final UserRepository users;
     private final PreferencesRepository prefsRepo;
     private final PlanRepository plans;
     private final PremiumService premium;
-
-    public ProfileServiceImpl(UserRepository users, PreferencesRepository prefsRepo, PlanRepository plans, PremiumService premium) {
-        this.users = users;
-        this.prefsRepo = prefsRepo;
-        this.plans = plans;
-        this.premium = premium;
-    }
 
     @Override
     public User user(Long id) {

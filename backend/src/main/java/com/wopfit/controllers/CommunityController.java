@@ -17,13 +17,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.wopfit.entity.dto.FollowResponse;
+import lombok.RequiredArgsConstructor;
+
 import com.wopfit.entity.Photo;
 import com.wopfit.entity.dto.CommentRequest;
 import com.wopfit.entity.dto.CommentResponse;
 import com.wopfit.entity.dto.CommunityResponse;
-import com.wopfit.entity.dto.MarkResponse;
 import com.wopfit.entity.dto.DeleteResponse;
+import com.wopfit.entity.dto.FollowResponse;
+import com.wopfit.entity.dto.MarkResponse;
 import com.wopfit.entity.dto.PostDetailResponse;
 import com.wopfit.entity.dto.PostRequest;
 import com.wopfit.entity.dto.PostResponse;
@@ -33,14 +35,11 @@ import com.wopfit.service.CommunityService;
 import jakarta.validation.Valid;
 
 /** Comunidad: feed, publicaciones con foto, comentarios, me gusta, guardados y seguir personas. */
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1")
 public class CommunityController {
     private final CommunityService community;
-
-    public CommunityController(CommunityService community) {
-        this.community = community;
-    }
 
     /** `f`: para (por defecto), recetas, act o preg. */
     @GetMapping("/community")

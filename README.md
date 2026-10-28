@@ -79,7 +79,7 @@ Copiá `.env.example` como `.env` en la raíz y completá `WOPFIT_JWT_SECRET` (m
 ```bash
 docker compose up -d          # MySQL en localhost:3306 (base wopfit, usuario wopfit, contraseña DB_PASSWORD)
 ```
-Las tablas se crean solas al arrancar el backend (`ddl-auto=update`).
+En desarrollo, las tablas se crean solas al arrancar el backend (`ddl-auto=update`). Para la entrega se usa `backend/db/schema.sql` (ver "Esquema de la base").
 
 ### 2. Backend (puerto 8080)
 ```bash
@@ -117,6 +117,21 @@ npx playwright install chromium   # una sola vez
 npm run test:e2e                  # sin doble fetch: falla si una pantalla repite un pedido
 ```
 El test de Playwright usa el front en modo desarrollo (con StrictMode) y el backend con H2; si ya están corriendo, los reutiliza. Con `PW_CHANNEL=chrome` usa el Chrome instalado en lugar de bajar Chromium.
+
+### Esquema de la base (entrega)
+`backend/db/schema.sql` tiene todas las tablas, con las claves foráneas (`fk_goal_user`, …) y los únicos (`uk_user_email`, …) con nombre. Lo genera Hibernate a partir de las entidades, así que no se edita a mano.
+
+Para la entrega se crea la base con ese archivo y el backend corre con el perfil `prod`, que usa `ddl-auto=validate` (solo revisa que la base coincida con las entidades) y no muestra el código de verificación:
+```bash
+mysql -u wopfit -p wopfit < backend/db/schema.sql
+cd backend && mvn spring-boot:run -Dspring-boot.run.profiles=mysql,prod
+```
+Si cambia una entidad, se vuelve a generar contra una base vacía (`wopfit_gen`) y se copia a `backend/db/schema.sql`, dejando el encabezado:
+```bash
+cd backend
+mvn spring-boot:run -Dspring-boot.run.arguments="--server.port=0 --spring.datasource.url=jdbc:mysql://localhost:3306/wopfit_gen?createDatabaseIfNotExist=true --spring.datasource.username=root --spring.datasource.password= --spring.jpa.hibernate.ddl-auto=none --spring.jpa.properties.jakarta.persistence.schema-generation.scripts.action=create --spring.jpa.properties.jakarta.persistence.schema-generation.scripts.create-target=schema-gen.sql --spring.jpa.properties.hibernate.hbm2ddl.delimiter=; --spring.jpa.properties.hibernate.format_sql=true"
+```
+El backend se corta después de escribir `schema-gen.sql` (no hay tablas para los datos de demo): es lo esperado.
 
 ## Datos de demostración
 
