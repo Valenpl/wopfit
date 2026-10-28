@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { fetchToday, fetchWeek } from '../../redux/slices/workoutSlice';
 import { fetchProgress } from '../../redux/slices/progressSlice';
@@ -21,6 +22,7 @@ export default function TodayTab() {
   const nav = useNavigate();
   const { me } = useAuth();
   const [report, setReport] = useState(null);
+  const checks = useSelector(st => st.ui.workoutChecks);
   const td = useFetch(fetchToday, undefined, st => st.workouts.today);
   const week = useFetch(fetchWeek, undefined, st => getEntry(st.workouts.weeks, ''));
   const progress = useFetch(fetchProgress, undefined, st => st.progress.summary);
@@ -45,7 +47,7 @@ export default function TodayTab() {
       <div className="small muted">¡Hecho! {s.feel != null ? `Te sentiste: ${FEELS[s.feel][1].toLowerCase()} ${FEELS[s.feel][0]}` : ''}</div></div></div>
       <div className="mt12"><More onClick={() => nav(`/entreno/${s.id}`)}>Ver rutina</More></div></div>;
   } else {
-    const n = s.content.blocks.length, bd = blocksDone(s), pct = Math.round(bd / n * 100);
+    const n = s.content.blocks.length, bd = blocksDone(s, checks), pct = Math.round(bd / n * 100);
     card = <div className="card"><div className="row between"><span className="kicker">{isAlt(s) ? 'Alternativa · ' : ''}Hoy</span><span className="tag blue"><Icon n="clock" style={{ width: 13, height: 13 }} /> {s.minutes} min</span></div>
       <h3 style={{ fontSize: 20, marginTop: 6 }}>{s.title}</h3>
       <div className="chips mt8">{s.content.chips.map(c => <span key={c} className="tag blue">{c}</span>)}</div>

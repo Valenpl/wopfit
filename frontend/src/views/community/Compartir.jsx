@@ -6,7 +6,6 @@ import useRequest from '../../hooks/useRequest';
 import useToast from '../../hooks/useToast';
 import { GOALS, goal } from '../../utils/constants';
 import { shrink } from '../../utils/images';
-import { saveSession } from '../../utils/storage';
 import Btn from '../../components/shared/Btn.jsx';
 import Field from '../../components/shared/Field.jsx';
 import Icon from '../../components/shared/Icon.jsx';
@@ -27,7 +26,7 @@ export default function Compartir() {
   // Cambiar la key vuelve a crear el input de archivo vacío, así se puede elegir la misma foto otra vez.
   const [fileKey, setFileKey] = useState(0);
   const publish = useRequest(createPost, {
-    onSuccess: () => { saveSession('wopfit-cf', 'para'); nav('/comunidad', { replace: true }); }
+    onSuccess: () => nav('/comunidad', { replace: true }) // la comunidad vuelve a "Para vos" (ver uiSlice)
   });
   const can = (title.trim() || body.trim()) && !publish.busy;
   const myGoal = goal(me.preferences.goals.find(g => GOALS.some(x => x.k === g)) || 'mover');

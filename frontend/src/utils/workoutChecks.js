@@ -1,16 +1,13 @@
-import { loadLocal, saveLocal } from './storage';
-
-// Ejercicios tildados de una rutina: se guardan solo en este dispositivo (no van al backend).
-const key = (id, alt) => `wopfit-wk-${id}${alt ? '-' + alt : ''}`;
-const parse = v => { try { return JSON.parse(v || '[]'); } catch { return []; } };
+// Ejercicios tildados de una rutina: quedan en el store (ui.workoutChecks), no van al backend.
+const NONE = [];
 
 export const isAlt = s => !!(s && s.alternative && s.movedFrom);
-export const getChecks = (id, alt) => parse(loadLocal(key(id, alt)));
-export const setChecks = (id, alt, v) => saveLocal(key(id, alt), JSON.stringify(v));
+export const checksKey = (id, alt) => `${id}${alt ? '-' + alt : ''}`;
+export const selectChecks = (id, alt) => s => s.ui.workoutChecks[checksKey(id, alt)] || NONE;
 
-/** Cuántos bloques de la sesión tienen todos sus ejercicios tildados. */
-export function blocksDone(s) {
+/** Cuántos bloques de la sesión tienen todos sus ejercicios tildados. `all` es ui.workoutChecks. */
+export function blocksDone(s, all) {
   if (!s || !s.content) return 0;
-  const w = getChecks(s.id, isAlt(s) ? s.alternative : null);
+  const w = all[checksKey(s.id, isAlt(s) ? s.alternative : null)] || NONE;
   return s.content.blocks.filter((b, bi) => b.items.every((_, ii) => w.includes(bi + '-' + ii))).length;
 }

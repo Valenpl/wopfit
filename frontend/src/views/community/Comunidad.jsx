@@ -1,11 +1,10 @@
-import { useState } from 'react';
 import { useDispatch } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { fetchFeed, followPerson, markPost } from '../../redux/slices/communitySlice';
 import { getEntry } from '../../redux/helpers';
 import useFetch from '../../hooks/useFetch';
+import useTab from '../../hooks/useTab';
 import { goal } from '../../utils/constants';
-import { loadSession, saveSession } from '../../utils/storage';
 import PostCard from '../../components/community/PostCard.jsx';
 import Avatar from '../../components/pros/Avatar.jsx';
 import ErrorBox from '../../components/shared/ErrorBox.jsx';
@@ -14,13 +13,13 @@ import ScrollArea from '../../components/shared/ScrollArea.jsx';
 import Sect from '../../components/shared/Sect.jsx';
 
 const FILTERS = [['para', 'Para vos'], ['recetas', 'Recetas'], ['act', 'Activid.'], ['preg', 'Dudas']];
+const KEYS = FILTERS.map(([k]) => k);
 
 export default function Comunidad() {
   const nav = useNavigate();
   const dispatch = useDispatch();
-  const [f, setF] = useState(() => loadSession('wopfit-cf', 'para'));
+  const [f, pick] = useTab('comunidad', KEYS, 'para');
   const { data, error, retry } = useFetch(fetchFeed, f, s => getEntry(s.community.feeds, f));
-  const pick = k => { setF(k); saveSession('wopfit-cf', k); };
   return <div className="screen"><ScrollArea style={{ paddingBottom: 90 }}>
     <h1 style={{ marginTop: 4 }}>Comunidad</h1><p className="sub">Gente como vos, con tus mismos objetivos.</p>
     {error && !data && <ErrorBox error={error} onRetry={retry} />}
