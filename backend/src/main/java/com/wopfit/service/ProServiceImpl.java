@@ -63,20 +63,34 @@ public class ProServiceImpl implements ProService {
         return Math.floorMod(Objects.hash(proId, date.toString(), t), 10) < 3;
     }
 
-    private List<SlotDay> agenda(Professional p) {
-        List<LocalDate> days = days();
-        Set<String> taken = new HashSet<>();
-        consults.findByProfessionalIdAndDateBetween(p.getId(), days.get(0), days.get(days.size() - 1))
-                .forEach(c -> taken.add(c.getDate() + " " + c.getTime()));
-        return days.stream().map(d -> new SlotDay(d, TIMES.stream()
-                .map(t -> new Slot(t, !taken.contains(d + " " + t) && !demoBusy(p.getId(), d, t))).toList())).toList();
+    private static String key(Long proId, LocalDate d, String t) {
+        return proId + " " + d + " " + t;
     }
 
-    private ProResponse dto(Professional p) {
+    /** Turnos ya reservados en los próximos días ("profesional fecha hora"), de uno o de todos los profesionales. */
+    private Set<String> taken(List<LocalDate> days, Long proId) {
+        LocalDate from = days.get(0), to = days.get(days.size() - 1);
+        List<Consultation> list = proId == null ? consults.findByDateBetween(from, to) : consults.findByProfessionalIdAndDateBetween(proId, from, to);
+        Set<String> out = new HashSet<>();
+        list.forEach(c -> out.add(key(c.getProfessional().getId(), c.getDate(), c.getTime())));
+        return out;
+    }
+
+    private static List<SlotDay> agenda(Professional p, List<LocalDate> days, Set<String> taken) {
+        return days.stream().map(d -> new SlotDay(d, TIMES.stream()
+                .map(t -> new Slot(t, !taken.contains(key(p.getId(), d, t)) && !demoBusy(p.getId(), d, t))).toList())).toList();
+    }
+
+    private List<SlotDay> agenda(Professional p) {
+        List<LocalDate> days = days();
+        return agenda(p, days, taken(days, p.getId()));
+    }
+
+    private static ProResponse dto(Professional p, List<SlotDay> agenda) {
         LocalDate nd = null;
         String nt = null;
         outer:
-        for (SlotDay d : agenda(p)) {
+        for (SlotDay d : agenda) {
             for (Slot s : d.slots()) {
                 if (s.free()) { nd = d.date(); nt = s.time(); break outer; }
             }
@@ -97,15 +111,20 @@ public class ProServiceImpl implements ProService {
     @Override
     public ProsResponse list(Long userId) {
         List<ConsultResponse> mine = consults.findByUserIdAndDateGreaterThanEqualOrderByDateAscTimeAsc(userId, time.today()).stream().map(ProServiceImpl::dto).toList();
-        List<ProResponse> all = pros.findAll().stream().sorted(Comparator.comparing(Professional::getId)).map(this::dto).toList();
-        return new ProsResponse(premium.isPremium(userId), premium.consultsLeft(userId), PremiumService.CONSULTS_PER_MONTH, mine, all);
+        List<LocalDate> days = days();
+        Set<String> taken = taken(days, null); // una consulta para todos los profesionales
+        List<ProResponse> all = pros.findAll().stream().sorted(Comparator.comparing(Professional::getId)).map(p -> dto(p, agenda(p, days, taken))).toList();
+        boolean pr = premium.isPremium(userId);
+        return new ProsResponse(pr, premium.consultsLeft(userId, pr), PremiumService.CONSULTS_PER_MONTH, mine, all);
     }
 
     @Transactional(readOnly = true)
     @Override
     public ProDetailResponse detail(Long userId, Long proId) {
         Professional p = pro(proId);
-        return new ProDetailResponse(dto(p), agenda(p), MODES, premium.isPremium(userId), premium.consultsLeft(userId));
+        List<SlotDay> agenda = agenda(p);
+        boolean pr = premium.isPremium(userId);
+        return new ProDetailResponse(dto(p, agenda), agenda, MODES, pr, premium.consultsLeft(userId, pr));
     }
 
     @Transactional
@@ -113,7 +132,7 @@ public class ProServiceImpl implements ProService {
     public BookResponse book(Long userId, Long proId, LocalDate date, String t, String mode) {
         Professional p = pro(proId);
         if (!premium.isPremium(userId)) throw new PremiumRequiredException("Las consultas con profesionales están incluidas en Premium");
-        if (premium.consultsLeft(userId) <= 0) throw new LimitReachedException("Ya usaste tus 2 consultas de este mes");
+        if (premium.consultsLeft(userId, true) <= 0) throw new LimitReachedException("Ya usaste tus 2 consultas de este mes");
         if (!MODES.contains(mode)) throw new InvalidDataException("Elegí videollamada o chat");
         SlotDay day = agenda(p).stream().filter(d -> d.date().equals(date)).findFirst()
                 .orElseThrow(() -> new InvalidDataException("Elegí uno de los próximos días con turnos"));
@@ -128,7 +147,7 @@ public class ProServiceImpl implements ProService {
         c.setMode(mode);
         c.setBookedOn(time.today());
         consults.save(c);
-        return new BookResponse(dto(c), premium.consultsLeft(userId));
+        return new BookResponse(dto(c), premium.consultsLeft(userId, true));
     }
 
     /** Cancelar una consulta que todavía no pasó: libera el turno y devuelve el cupo del mes. */

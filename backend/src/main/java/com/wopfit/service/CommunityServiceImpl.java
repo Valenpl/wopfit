@@ -5,9 +5,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 import java.util.regex.Matcher;
@@ -94,11 +96,13 @@ public class CommunityServiceImpl implements CommunityService {
             n.setUser(u);
             return n;
         });
-        c.setName(displayName(u.getName()));
-        if (p != null) {
-            c.setGoals(String.join(",", Catalog.GOALS.keySet().stream().filter(p.getGoals()::contains).toList()));
-            c.setDaysPerWeek(p.getDays().size());
-        }
+        String name = displayName(u.getName());
+        String goals = p == null ? c.getGoals() : String.join(",", Catalog.GOALS.keySet().stream().filter(p.getGoals()::contains).toList());
+        int days = p == null ? c.getDaysPerWeek() : p.getDays().size();
+        if (c.getId() != null && name.equals(c.getName()) && Objects.equals(goals, c.getGoals()) && days == c.getDaysPerWeek()) return c;
+        c.setName(name);
+        c.setGoals(goals);
+        c.setDaysPerWeek(days);
         return profiles.save(c);
     }
 
@@ -107,15 +111,46 @@ public class CommunityServiceImpl implements CommunityService {
         return g.isEmpty() ? "mover" : g.get(0);
     }
 
-    private PostResponse dto(Post p, CommunityProfile me) {
-        Long meId = me.getId();
-        int likes = p.getBaseLikes() + (int) marks.countByPostIdAndKind(p.getId(), "like");
-        boolean liked = marks.findByPostIdAndProfileIdAndKind(p.getId(), meId, "like").isPresent();
-        boolean saved = marks.findByPostIdAndProfileIdAndKind(p.getId(), meId, "save").isPresent();
+    /** Me gusta, guardados y comentarios ya contados, para armar muchas publicaciones sin consultar por cada una. */
+    private record Stats(Set<Long> liked, Set<Long> saved, Map<Long, Long> likes, Map<Long, Long> comments) {}
+
+    private static Map<Long, Long> counts(List<Object[]> rows) {
+        Map<Long, Long> m = new HashMap<>();
+        rows.forEach(r -> m.put((Long) r[0], (Long) r[1]));
+        return m;
+    }
+
+    private static Set<Long> postIds(List<PostMark> list) {
+        Set<Long> s = new HashSet<>();
+        list.forEach(m -> s.add(m.getPost().getId()));
+        return s;
+    }
+
+    /** Para el feed: 4 consultas en total, sin importar cuántas publicaciones haya. */
+    private Stats stats(CommunityProfile me) {
+        return new Stats(postIds(marks.findByProfileIdAndKind(me.getId(), "like")), postIds(marks.findByProfileIdAndKind(me.getId(), "save")),
+                counts(marks.countLikesByPost()), counts(comments.countByPost()));
+    }
+
+    /** Para una sola publicación. */
+    private Stats stats(CommunityProfile me, Long postId) {
+        Set<Long> one = Set.of(postId);
+        return new Stats(marks.findByPostIdAndProfileIdAndKind(postId, me.getId(), "like").isPresent() ? one : Set.of(),
+                marks.findByPostIdAndProfileIdAndKind(postId, me.getId(), "save").isPresent() ? one : Set.of(),
+                Map.of(postId, marks.countByPostIdAndKind(postId, "like")), Map.of(postId, comments.countByPostId(postId)));
+    }
+
+    private PostResponse dto(Post p, CommunityProfile me, Stats s) {
         CommunityProfile a = p.getAuthor();
-        return new PostResponse(p.getId(), a.getId(), a.getName(), a.getId().equals(meId), p.getGoal(), Catalog.GOALS.get(p.getGoal()), p.getType(),
+        Long id = p.getId();
+        return new PostResponse(id, a.getId(), a.getName(), a.getId().equals(me.getId()), p.getGoal(), Catalog.GOALS.get(p.getGoal()), p.getType(),
                 p.getTitle(), p.getBody(), p.getEmoji(), p.getBg(), list(p.getTags()), p.getPhotoId() == null ? null : "/api/photos/" + p.getPhotoId(),
-                likes, liked, saved, (int) comments.countByPostId(p.getId()), p.getCreatedAt());
+                p.getBaseLikes() + s.likes().getOrDefault(id, 0L).intValue(), s.liked().contains(id), s.saved().contains(id),
+                s.comments().getOrDefault(id, 0L).intValue(), p.getCreatedAt());
+    }
+
+    private PostResponse dto(Post p, CommunityProfile me) {
+        return dto(p, me, stats(me, p.getId()));
     }
 
     private Post post(Long id) {
@@ -155,7 +190,8 @@ public class CommunityServiceImpl implements CommunityService {
             shown = first;
         }
         String g = myGoal(me);
-        return new CommunityResponse(me.getId(), g, Catalog.GOALS.get(g), people, shown.stream().map(p -> dto(p, me)).toList());
+        Stats s = stats(me);
+        return new CommunityResponse(me.getId(), g, Catalog.GOALS.get(g), people, shown.stream().map(p -> dto(p, me, s)).toList());
     }
 
     @Transactional

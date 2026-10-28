@@ -44,6 +44,6 @@ export default function Pros() {
         <div className="tiny" style={{ color: 'var(--green-d)', fontWeight: 700 }}>{nextTxt(p)}</div></div><Icon n="chev" className="chev" /></button>)}
     <p className="tiny muted center mt16">Profesionales de ejemplo para la demo.</p>
     {asking && <ConfirmSheet title={`¿Cancelar la consulta con ${asking.proName}?`} text={`${shortDate(asking.date)} · ${asking.time} · ${asking.mode}`}
-      confirm="Sí, cancelar" cancel="No, mantenerla" busy={cancel.busy} onConfirm={() => cancel.run(asking.id)} onClose={() => setAsking(null)} />}
+      confirm="Sí, cancelar" cancel="Volver" busy={cancel.busy} onConfirm={() => cancel.run(asking.id)} onClose={() => setAsking(null)} />}
   </Screen>;
 }

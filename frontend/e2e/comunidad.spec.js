@@ -1,32 +1,19 @@
 import { readFileSync } from 'node:fs';
 import { expect, test } from '@playwright/test';
+import { loginAs, newUser, shot } from './helpers.js';
 
 // Comunidad: personas como vos, filtros, me gusta, comentarios, publicar con foto y borrar.
-const API = 'http://localhost:8080/api';
 const PNG = readFileSync(new URL('../public/icon-192.png', import.meta.url)); // una imagen real de 192×192
 let token;
 
 test.beforeAll(async ({ request }) => {
-  const email = `e2e-comu-${Date.now()}@wopfit.test`;
-  const call = async (method, path, data) => {
-    const res = await request.fetch(API + path, { method, data, headers: token ? { Authorization: 'Bearer ' + token } : {} });
-    expect(res.ok(), `${method} ${path} → ${res.status()}`).toBeTruthy();
-    return res.json();
-  };
-  const { devCode } = await call('POST', '/auth/register', { email, password: 'clave1234' });
-  ({ token } = await call('POST', '/auth/verify', { email, code: devCode }));
-  await call('PUT', '/me/about', { name: 'Lucía Fernández', birthDate: '1995-03-10', heightCm: 165, weightKg: 60 });
-  await call('PUT', '/me/preferences', {
-    goals: ['comer', 'mover'], days: [0, 2, 4], minutes: 30, budget: 'bajo', activities: [], avoid: [], otherAvoid: '', health: [], level: 'principiante', equipment: ['nada']
-  });
-  await call('POST', '/plan');
+  ({ token } = await newUser(request, { name: 'Lucía Fernández', goals: ['comer', 'mover'] }));
 });
 
 test.beforeEach(async ({ page }) => {
-  await page.addInitScript(t => { localStorage.setItem('wopfit-token', t); sessionStorage.removeItem('wopfit-cf'); }, token);
+  await loginAs(page, token);
+  await page.addInitScript(() => sessionStorage.removeItem('wopfit-cf'));
 });
-
-const shot = (page, name) => page.screenshot({ path: `test-results/${name}.png`, timeout: 10000 }).catch(() => {});
 
 test('feed, seguir, filtros, me gusta y comentar', async ({ page }) => {
   await page.goto('/comunidad');
@@ -108,6 +95,9 @@ test('publicar con foto y borrar', async ({ page }) => {
 
   // borrar
   await mine.getByRole('button', { name: /Comentarios/ }).click();
+  await page.getByRole('button', { name: 'Borrar', exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Volver' }).click(); // arrepentirse no borra nada
+  await expect(page.getByRole('dialog')).toHaveCount(0);
   await page.getByRole('button', { name: 'Borrar', exact: true }).click();
   await page.getByRole('dialog').getByRole('button', { name: 'Sí, borrar' }).click();
   await expect(page.locator('.toast')).toHaveText('Publicación borrada');

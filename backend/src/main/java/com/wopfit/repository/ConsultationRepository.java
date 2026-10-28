@@ -11,4 +11,5 @@ public interface ConsultationRepository extends JpaRepository<Consultation, Long
     long countByUserIdAndBookedOnBetween(Long userId, LocalDate from, LocalDate to);
     List<Consultation> findByUserIdAndDateGreaterThanEqualOrderByDateAscTimeAsc(Long userId, LocalDate from);
     List<Consultation> findByProfessionalIdAndDateBetween(Long professionalId, LocalDate from, LocalDate to);
+    List<Consultation> findByDateBetween(LocalDate from, LocalDate to);
 }

@@ -14,7 +14,12 @@ const meIcon = L.divIcon({ className: 'lpin-wrap', iconSize: [18, 18], iconAncho
  * Leaflet no es de React: dibuja el mapa adentro de un div que le pasamos con un ref. Es la única excepción a
  * "no tocar el DOM", y queda encerrada en este componente: React solo le pasa datos (here, places, sel).
  */
-export default function LeafletMap({ here, places = [], sel, onSelect, children }) {
+const NONE = [];
+
+export default function LeafletMap({ here, places = NONE, sel, onSelect, children }) {
+  // Los pines se vuelven a dibujar solo si cambian los lugares o el elegido; el callback más nuevo se lee del ref.
+  const pickRef = useRef(onSelect);
+  pickRef.current = onSelect;
   const box = useRef(null);
   const map = useRef(null);
   const layer = useRef(null);
@@ -39,8 +44,8 @@ export default function LeafletMap({ here, places = [], sel, onSelect, children 
     if (!layer.current) return;
     layer.current.clearLayers();
     places.forEach(p => L.marker([p.lat, p.lng], { icon: pinIcon(p.category, p.id === sel), title: p.name, zIndexOffset: p.id === sel ? 1000 : 0 })
-      .on('click', () => onSelect && onSelect(p.id)).addTo(layer.current));
-  }, [places, sel, onSelect]);
+      .on('click', () => pickRef.current && pickRef.current(p.id)).addTo(layer.current));
+  }, [places, sel]);
   useEffect(() => {
     const p = places.find(x => x.id === sel);
     if (p && map.current) map.current.panTo([p.lat, p.lng]);

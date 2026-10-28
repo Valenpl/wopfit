@@ -47,7 +47,7 @@ export default function Publicacion() {
   </ScrollArea>
   <form className="composer" onSubmit={send}><input id="cm" ref={input} value={cm} onChange={e => setCm(e.target.value)} maxLength={300} placeholder="Escribí un comentario…" aria-label="Comentario" />
     <button type="submit" aria-label="Enviar" disabled={comment.busy || !cm.trim()}><Icon n="send" /></button></form>
-    {asking && <ConfirmSheet title="¿Borrar tu publicación?" text="No se puede deshacer." confirm="Sí, borrar" cancel="No" busy={remove.busy}
+    {asking && <ConfirmSheet title="¿Borrar tu publicación?" text="No se puede deshacer." confirm="Sí, borrar" cancel="Volver" busy={remove.busy}
       onConfirm={() => remove.run(post.id)} onClose={() => setAsking(false)} />}
   </div>;
 }

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { fetchPlaces } from '../../redux/slices/placeSlice';
 import useAuth from '../../hooks/useAuth';
@@ -34,11 +34,12 @@ export default function Cerca() {
   const rows = useRef({});
   const pick = useCallback(id => setSel(id), []);
 
-  const all = (pr && data ? data : []).map(p => ({ ...p, m: meters(here, p) }));
+  // Con useMemo la lista no cambia en cada tecla que no la afecta, y el mapa no redibuja los pines.
+  const all = useMemo(() => (pr && data ? data : []).map(p => ({ ...p, m: meters(here, p) })), [pr, data, here]);
   const ql = q.trim().toLowerCase();
-  const list = all.filter(p => (cat === 'todos' || p.category === cat) && (!f.open || p.openNow) && (!f.disc || p.discount)
+  const list = useMemo(() => all.filter(p => (cat === 'todos' || p.category === cat) && (!f.open || p.openNow) && (!f.disc || p.discount)
     && (!ql || (p.name + ' ' + p.categoryName + ' ' + p.address + ' ' + p.barrio).toLowerCase().includes(ql)))
-    .sort((a, b) => a.m - b.m);
+    .sort((a, b) => a.m - b.m), [all, cat, f, ql]);
   // Si el lugar elegido no está entre los primeros, se muestra la lista completa.
   const showAll = more || (sel && !list.slice(0, FIRST).some(p => p.id === sel));
   const shown = showAll ? list : list.slice(0, FIRST);

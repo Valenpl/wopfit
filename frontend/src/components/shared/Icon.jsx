@@ -22,7 +22,7 @@ const P = {
   steth: 'M6 3v6a4 4 0 0 0 8 0V3M10 13v3a5 5 0 0 0 10 0v-2', pin: 'M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z',
   tag: 'M3 12V4h8l10 10-8 8zM7.5 8.5v.01', phone: 'M8 3h8v18H8zM11 18h2', grid: 'M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z',
   search: C(11, 11, 7) + 'M20 20l-4-4', copy: 'M8 8h12v12H8zM4 16V4h12', nav: 'M3 11l18-8-8 18-2-8z', bell: 'M6 16V11a6 6 0 0 1 12 0v5l2 2H4zM10 21h4',
-  send: 'M4 12l16-8-6 16-3-7z', bookmark: 'M6 3h12v18l-6-4-6 4z', img: 'M3 5h18v14H3zM3 16l5-5 4 4 3-3 6 6'
+  send: 'M4 12l16-8-6 16-3-7z', bookmark: 'M6 3h12v18l-6-4-6 4z', share: 'M12 3v12M7 8l5-5 5 5M5 13v8h14v-8', down: 'M12 4v14M6 12l6 6 6-6', img: 'M3 5h18v14H3zM3 16l5-5 4 4 3-3 6 6'
 };
 export default function Icon({ n, className = '', style }) {
   return <svg className={className} style={style} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={P[n]} /></svg>;

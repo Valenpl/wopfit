@@ -3,6 +3,7 @@ package com.wopfit.service;
 import java.text.Normalizer;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
 import java.util.regex.Matcher;
@@ -74,23 +75,25 @@ public class WopiServiceImpl implements WopiService {
     @Override
     public WopiResponse chat(Long userId) {
         List<WopiMessage> last = new ArrayList<>(messages.findTop40ByUserIdOrderByIdDesc(userId));
-        java.util.Collections.reverse(last);
-        return new WopiResponse(premium.isPremium(userId), premium.wopiLeft(userId), premium.wopiLimit(userId), last.stream().map(this::dto).toList());
+        Collections.reverse(last);
+        boolean pr = premium.isPremium(userId);
+        return new WopiResponse(pr, premium.wopiLeft(userId, pr), premium.wopiLimit(pr), last.stream().map(this::dto).toList());
     }
 
     @Transactional
     @Override
     public WopiAskResponse ask(Long userId, String question) {
         String q = question.trim();
-        if (premium.wopiLeft(userId) <= 0) {
-            throw new LimitReachedException(premium.isPremium(userId) ? "Usaste tus 20 consultas de este mes. Se renuevan el 1° del mes que viene."
+        boolean pr = premium.isPremium(userId);
+        if (premium.wopiLeft(userId, pr) <= 0) {
+            throw new LimitReachedException(pr ? "Usaste tus 20 consultas de este mes. Se renuevan el 1° del mes que viene."
                     : "Usaste tus 3 consultas gratis de este mes. Con Premium tenés 20.");
         }
         String prev = messages.findFirstByUserIdAndRoleOrderByIdDesc(userId, "wopi").map(WopiMessage::getContext).orElse(null);
         WopiMessage asked = save(userId, "user", q, null, null);
         Reply r = answer(userId, q, prev);
         WopiMessage reply = save(userId, "wopi", r.text(), new Extra(r.cards(), r.actions(), r.more()), r.context());
-        return new WopiAskResponse(premium.wopiLeft(userId), dto(asked), dto(reply));
+        return new WopiAskResponse(premium.wopiLeft(userId, pr), dto(asked), dto(reply));
     }
 
     private WopiMessage save(Long userId, String role, String text, Extra extra, String context) {

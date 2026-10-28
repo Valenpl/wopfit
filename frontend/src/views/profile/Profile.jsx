@@ -5,12 +5,11 @@ import useAuth from '../../hooks/useAuth';
 import { ACTS, AVOID, BUDGET, EQUIP, HEALTH, PRICES, goal } from '../../utils/constants';
 import { daysText } from '../../utils/dates';
 import { isPremium } from '../../utils/format';
+import { isStandalone } from '../../pwa';
 import Icon from '../../components/shared/Icon.jsx';
 import ScrollArea from '../../components/shared/ScrollArea.jsx';
 import Sect from '../../components/shared/Sect.jsx';
 
-/** Si la app ya está instalada en el celu, no se ofrece instalarla. */
-const isStandalone = () => { try { return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch { return false; } };
 
 export default function Profile() {
   const nav = useNavigate();

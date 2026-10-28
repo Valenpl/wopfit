@@ -2,6 +2,7 @@ package com.wopfit.service;
 
 import java.time.Instant;
 import java.time.LocalDate;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -125,7 +126,7 @@ public class ProgressServiceImpl implements ProgressService {
         long done = all.stream().filter(ProgressServiceImpl::counts).count();
         int train = planned == 0 ? 0 : (int) Math.min(100, Math.round(100.0 * done / planned));
         List<HabitLog> hab = habits.findByUserIdAndDateBetweenOrderByDateAsc(userId, from, today);
-        long days = Math.max(1, java.time.temporal.ChronoUnit.DAYS.between(from, today) + 1);
+        long days = Math.max(1, ChronoUnit.DAYS.between(from, today) + 1);
         int sleep = (int) Math.round(100.0 * hab.stream().filter(HabitLog::isSleep).count() / days);
         int walk = (int) Math.round(100.0 * hab.stream().filter(HabitLog::isWalk).count() / days);
         int water = (int) Math.round(100.0 * hab.stream().filter(HabitLog::isWater).count() / days);

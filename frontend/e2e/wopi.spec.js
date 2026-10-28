@@ -1,39 +1,19 @@
 import { expect, test } from '@playwright/test';
+import { loginAs, newUser, shot } from './helpers.js';
 
 // Preguntale a Wopi: 3 consultas gratis y 20 con Premium por mes; los botones de las respuestas llevan a la app.
-const API = 'http://localhost:8080/api';
 const users = {};
-
-async function newUser(request, name, premium) {
-  let token;
-  const email = `e2e-${name}-${Date.now()}@wopfit.test`;
-  const call = async (method, path, data) => {
-    const res = await request.fetch(API + path, { method, data, headers: token ? { Authorization: 'Bearer ' + token } : {} });
-    expect(res.ok(), `${method} ${path} → ${res.status()}`).toBeTruthy();
-    return res.json();
-  };
-  const { devCode } = await call('POST', '/auth/register', { email, password: 'clave1234' });
-  ({ token } = await call('POST', '/auth/verify', { email, code: devCode }));
-  await call('PUT', '/me/about', { name, birthDate: '1995-03-10', heightCm: 170, weightKg: 68 });
-  await call('PUT', '/me/preferences', { // entrena todos los días: siempre hay rutina hoy
-    goals: ['mover', 'comer'], days: [0, 1, 2, 3, 4, 5, 6], minutes: 30, budget: 'medio', activities: [], avoid: ['lacteos'], otherAvoid: '', health: [], level: 'principiante', equipment: ['nada']
-  });
-  await call('POST', '/plan');
-  if (premium) await call('POST', '/subscription', { period: 'anual' });
-  return token;
-}
+const EVERY_DAY = { days: [0, 1, 2, 3, 4, 5, 6], goals: ['mover', 'comer'], budget: 'medio', avoid: ['lacteos'] }; // siempre hay rutina hoy
 
 test.beforeAll(async ({ request }) => {
-  users.free = await newUser(request, 'Wopi', false);
-  users.prem = await newUser(request, 'WopiPrem', true);
+  users.free = (await newUser(request, { name: 'Wopi', ...EVERY_DAY })).token;
+  users.prem = (await newUser(request, { name: 'WopiPrem', ...EVERY_DAY, premium: 'anual' })).token;
 });
 
-const as = (page, who) => page.addInitScript(t => localStorage.setItem('wopfit-token', t), users[who]);
-const shot = (page, name) => page.screenshot({ path: `test-results/${name}.png`, timeout: 10000 }).catch(() => {});
 const replies = page => page.locator('.chat .bub.w');
 
 test('Gratuito: 3 consultas, respuestas con acciones y después invita a Premium', async ({ page }) => {
-  await as(page, 'free');
+  await loginAs(page, users.free);
   await page.goto('/wopi');
   await expect(page.getByText('Gratis · 3 de 3 este mes')).toBeVisible();
   await expect(replies(page).first()).toContainText('¡Hola, Wopi!');
@@ -82,7 +62,7 @@ test('Gratuito: 3 consultas, respuestas con acciones y después invita a Premium
 });
 
 test('Premium: 20 por mes y los botones llevan a profesionales y a la lista del súper', async ({ page }) => {
-  await as(page, 'prem');
+  await loginAs(page, users.prem);
   await page.goto('/wopi');
   await expect(page.getByText('★ Premium · 20 de 20 este mes')).toBeVisible();
 

@@ -33,7 +33,7 @@ import Wopi from '../views/wopi/Wopi.jsx';
 import Comunidad from '../views/community/Comunidad.jsx';
 import Publicacion from '../views/community/Publicacion.jsx';
 import Compartir from '../views/community/Compartir.jsx';
-import Soon from '../views/install/Soon.jsx';
+import Install from '../views/install/Install.jsx';
 
 /** A dónde va cada etapa de la cuenta (authSlice.selectStage). */
 export const HOME_OF = { out: '/', about: '/sobre-vos', prefs: '/preferencias/1', ready: '/plan-listo', app: '/inicio' };
@@ -79,7 +79,7 @@ export default function AppRoutes({ stage }) {
     <Route path="/profesionales/confirmada" element={app(<ProConf />)} />
     <Route path="/profesionales/:id" element={app(<Pro />)} />
     <Route path="/actualizando" element={app(<Updating />)} />
-    <Route path="/instalar" element={app(<Soon />)} />
+    <Route path="/instalar" element={app(<Install />)} />
     <Route path="*" element={<Navigate to={HOME_OF[stage]} replace />} />
   </Routes>;
 }

@@ -13,7 +13,6 @@ import java.util.Map;
 import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.wopfit.service.CommunityService;
 import com.wopfit.service.CommunityServiceImpl;
 
 /** Comunidad: feed "para vos", me gusta, guardados, comentarios, seguir, publicar con foto y borrar. */
