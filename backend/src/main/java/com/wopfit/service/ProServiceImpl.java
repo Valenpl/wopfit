@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.wopfit.entity.Consultation;
 import com.wopfit.entity.Professional;
 import com.wopfit.entity.dto.BookResponse;
+import com.wopfit.entity.dto.CancelResponse;
 import com.wopfit.entity.dto.ConsultResponse;
 import com.wopfit.entity.dto.ProDetailResponse;
 import com.wopfit.entity.dto.ProResponse;
@@ -133,10 +134,11 @@ public class ProServiceImpl implements ProService {
     /** Cancelar una consulta que todavía no pasó: libera el turno y devuelve el cupo del mes. */
     @Transactional
     @Override
-    public void cancel(Long userId, Long consultId) {
+    public CancelResponse cancel(Long userId, Long consultId) {
         Consultation c = consults.findById(consultId).filter(x -> x.getUser().getId().equals(userId))
                 .orElseThrow(() -> new ConsultationNotFoundException());
         if (c.getDate().isBefore(time.today())) throw new InvalidDataException("Esa consulta ya pasó");
         consults.delete(c);
+        return new CancelResponse(consultId, "Consulta cancelada", premium.consultsLeft(userId));
     }
 }

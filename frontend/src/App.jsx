@@ -1,135 +1,39 @@
-import { useEffect, useState } from 'react';
-import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
-import { Icon, isPremium } from './lib.jsx';
-import { Loading, useApp } from './ui.jsx';
-import { Login, Signup, Verify, Welcome } from './pages/Auth.jsx';
-import { About, Prefs, Ready, Updating } from './pages/Setup.jsx';
-import Home from './pages/Home.jsx';
-import { Done, Entreno, Proposal, Workout } from './pages/Train.jsx';
-import { Comida, Meal, MealProposal } from './pages/Food.jsx';
-import { Adjust, Goals, History, NewGoal, Progress } from './pages/Progress.jsx';
-import Profile, { Cuenta } from './pages/Profile.jsx';
-import Soon from './pages/Soon.jsx';
-import { Planes, YaPremium } from './pages/Premium.jsx';
-import { Cerca, Ofertas } from './pages/Places.jsx';
-import { Pro, ProConf, Pros } from './pages/Pros.jsx';
-import Wopi from './pages/Wopi.jsx';
-import { Compartir, Comunidad, Publicacion } from './pages/Community.jsx';
-
-const TABS = [['/inicio', 'Inicio', 'home'], ['/entreno', 'Entreno', 'dumb'], ['/comida', 'Comida', 'fork'], ['/comunidad', 'Comunidad', 'users'], ['/perfil', 'Perfil', 'user']];
-
-/** En qué etapa está la cuenta: sin sesión, completando datos, o usando la app. */
-function stage(me) {
-  if (!me) return 'out';
-  if (!me.name) return 'about';
-  if (!me.preferences) return 'prefs';
-  if (!me.plan) return 'ready';
-  return 'app';
-}
-
-/** Con el teclado abierto en el celu, la app ocupa solo lo visible y esconde la barra de abajo. */
-function useKeyboard() {
-  const [kb, setKb] = useState(false);
-  useEffect(() => {
-    const vv = window.visualViewport;
-    if (!vv) return undefined;
-    const app = document.getElementById('app');
-    const fit = () => {
-      if (!app) return;
-      const open = vv.height < window.innerHeight - 120;
-      setKb(open);
-      app.style.height = vv.height + 'px';
-      app.style.transform = `translateY(${vv.offsetTop}px)`;
-      if (open) {
-        const el = document.activeElement;
-        if (el && el.scrollIntoView && /INPUT|TEXTAREA/.test(el.tagName)) setTimeout(() => el.scrollIntoView({ block: 'center' }), 50);
-      }
-    };
-    vv.addEventListener('resize', fit);
-    vv.addEventListener('scroll', fit);
-    fit();
-    return () => { vv.removeEventListener('resize', fit); vv.removeEventListener('scroll', fit); };
-  }, []);
-  return kb;
-}
-
-function TabBar({ path, sub }) {
-  const nav = useNavigate();
-  const { me, setView } = useApp();
-  return <nav className={`tabbar ${sub ? 'sub' : ''}`} aria-label="Secciones">
-    <div className="sbrand"><img src="/logo.webp" alt="" /><b>Wop<i>Fit</i></b></div>
-    {TABS.map(([to, t, i]) => {
-      const on = path === to || path.startsWith(to + '/');
-      return <button key={to} className={on ? 'on' : ''} aria-current={on ? 'page' : undefined} onClick={() => nav(to)}><Icon n={i} /><span>{t}</span></button>;
-    })}
-    <div className="sfoot">
-      <button className="swopi" onClick={() => nav('/wopi')}><span className="wopiav" style={{ width: 34, height: 34 }}><img src="/wopi.webp" alt="" /></span><span>Preguntale a Wopi</span></button>
-      {isPremium(me) ? <div className="sprem">★ Premium</div> : <button className="sprem up" onClick={() => nav('/planes')}><Icon n="star" /><span>Pasate a Premium</span></button>}
-      <button className="sview" onClick={() => setView('celu')}><Icon n="phone" /><span>Ver versión celu</span></button>
-    </div>
-  </nav>;
-}
+import { useEffect } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { fetchMe, selectReady, selectStage } from './redux/slices/authSlice';
+import { selectDesk, setView } from './redux/slices/uiSlice';
+import useKeyboard from './hooks/useKeyboard';
+import useWideScreen from './hooks/useWideScreen';
+import { isPremium } from './utils/format';
+import AppRoutes from './routes/AppRoutes.jsx';
+import TabBar, { TABS } from './components/layout/TabBar.jsx';
+import Loading from './components/shared/Loading.jsx';
+import Toaster from './components/shared/Toaster.jsx';
 
 export default function App() {
-  const { me, ready, toastMsg } = useApp();
-  const loc = useLocation();
+  const dispatch = useDispatch();
+  const nav = useNavigate();
+  const { pathname } = useLocation();
+  const me = useSelector(s => s.auth.me);
+  const ready = useSelector(selectReady);
+  const stage = useSelector(selectStage);
+  const desk = useSelector(selectDesk);
   const kb = useKeyboard();
-  useEffect(() => { document.querySelector('.scroll')?.scrollTo(0, 0); }, [loc.pathname]);
+  useWideScreen();
+  // Con token guardado, se pide el usuario una vez (fetchMe tiene `condition`: sin token o ya cargado no sale).
+  useEffect(() => { dispatch(fetchMe()); }, [dispatch]);
 
-  const st = stage(me);
-  const showTabs = st === 'app' && loc.pathname !== '/plan-listo' && loc.pathname !== '/actualizando';
-  const isTab = TABS.some(([to]) => loc.pathname === to);
-  const home = { out: '/', about: '/sobre-vos', prefs: '/preferencias/1', ready: '/plan-listo', app: '/inicio' }[st];
-  const only = (allowed, el) => (allowed.includes(st) ? el : <Navigate to={home} replace />);
+  const showTabs = stage === 'app' && pathname !== '/plan-listo' && pathname !== '/actualizando';
+  const isTab = TABS.some(([to]) => pathname === to);
+  // La vista compu y el teclado abierto se marcan con clases en #app; el tamaño visible con style.
+  const cls = [desk && 'desk', kb.open && 'kb'].filter(Boolean).join(' ');
 
-  let content;
-  if (!ready) content = <Loading />;
-  else content = <Routes>
-    <Route path="/" element={only(['out'], <Welcome />)} />
-    <Route path="/registro" element={only(['out'], <Signup />)} />
-    <Route path="/verificar" element={only(['out'], <Verify />)} />
-    <Route path="/ingresar" element={only(['out'], <Login />)} />
-    <Route path="/sobre-vos" element={only(['about'], <About />)} />
-    <Route path="/preferencias/:step" element={only(['prefs'], <Prefs />)} />
-    <Route path="/plan-listo" element={only(['ready', 'app'], <Ready />)} />
-    <Route path="/inicio" element={only(['app'], <Home />)} />
-    <Route path="/entreno" element={only(['app'], <Entreno />)} />
-    <Route path="/entreno/:id" element={only(['app'], <Workout />)} />
-    <Route path="/entreno/:id/hecho" element={only(['app'], <Done />)} />
-    <Route path="/entreno/:id/propuesta" element={only(['app'], <Proposal />)} />
-    <Route path="/comida" element={only(['app'], <Comida />)} />
-    <Route path="/comida/:date/:slot" element={only(['app'], <Meal />)} />
-    <Route path="/comida/:date/:slot/propuesta" element={only(['app'], <MealProposal />)} />
-    <Route path="/progreso" element={only(['app'], <Progress />)} />
-    <Route path="/ajuste" element={only(['app'], <Adjust />)} />
-    <Route path="/metas" element={only(['app'], <Goals />)} />
-    <Route path="/metas/nueva" element={only(['app'], <NewGoal />)} />
-    <Route path="/historial" element={only(['app'], <History />)} />
-    <Route path="/perfil" element={only(['app'], <Profile />)} />
-    <Route path="/perfil/datos" element={only(['app'], <About edit />)} />
-    <Route path="/perfil/cuenta" element={only(['app'], <Cuenta />)} />
-    <Route path="/planes" element={only(['app'], <Planes />)} />
-    <Route path="/ofertas" element={only(['app'], <Ofertas />)} />
-    <Route path="/cerca" element={only(['app'], <Cerca />)} />
-    <Route path="/wopi" element={only(['app'], <Wopi />)} />
-    <Route path="/comunidad" element={only(['app'], <Comunidad />)} />
-    <Route path="/comunidad/compartir" element={only(['app'], <Compartir />)} />
-    <Route path="/comunidad/:id" element={only(['app'], <Publicacion />)} />
-    <Route path="/profesionales" element={only(['app'], <Pros />)} />
-    <Route path="/profesionales/confirmada" element={only(['app'], <ProConf />)} />
-    <Route path="/profesionales/:id" element={only(['app'], <Pro />)} />
-    <Route path="/premium" element={only(['app'], <YaPremium />)} />
-    <Route path="/perfil/preferencias/:step" element={only(['app'], <Prefs edit />)} />
-    <Route path="/actualizando" element={only(['app'], <Updating />)} />
-    <Route path="/instalar" element={only(['app'], <Soon />)} />
-    <Route path="*" element={<Navigate to={home} replace />} />
-  </Routes>;
-
-  return <div id="app" className={kb ? 'kb' : ''}>
+  return <div id="app" className={cls} style={kb.style}>
     <div className="phone">
-      <div className="stage">{content}</div>
-      {showTabs && <TabBar path={loc.pathname} sub={!isTab} />}
-      {toastMsg && <div className="toast" key={toastMsg.id} role="status">{toastMsg.msg}</div>}
+      <div className="stage">{ready ? <AppRoutes stage={stage} /> : <Loading />}</div>
+      {showTabs && <TabBar path={pathname} sub={!isTab} premium={isPremium(me)} onGo={to => nav(to)} onCelu={() => dispatch(setView('celu'))} />}
+      <Toaster />
     </div>
   </div>;
 }

@@ -51,9 +51,12 @@ test('feed, seguir, filtros, me gusta y comentar', async ({ page }) => {
   await recetas;
   await expect(page.locator('article.post').filter({ hasText: 'Hice la rutina exprés' })).toHaveCount(0);
   for (const t of await page.locator('article.post .tiny.muted').allInnerTexts()) expect(t).toContain('Receta');
-  const para = page.waitForResponse(r => r.url().includes('/api/community?f=para'));
+  // volver a "Para vos" usa el feed que ya está en el store: no se pide de nuevo
+  const again = [];
+  page.on('request', r => { if (r.url().includes('/api/community?f=para')) again.push(r.url()); });
   await page.locator('.seg').getByRole('button', { name: 'Para vos' }).click();
-  await para;
+  await expect(page.locator('article.post').filter({ hasText: 'Bowl de lentejas' })).toBeVisible();
+  expect(again).toHaveLength(0);
 
   // me gusta
   const bowl = page.locator('article.post').filter({ hasText: 'Bowl de lentejas' });
@@ -105,8 +108,8 @@ test('publicar con foto y borrar', async ({ page }) => {
 
   // borrar
   await mine.getByRole('button', { name: /Comentarios/ }).click();
-  page.once('dialog', d => d.accept());
-  await page.getByRole('button', { name: 'Borrar' }).click();
+  await page.getByRole('button', { name: 'Borrar', exact: true }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Sí, borrar' }).click();
   await expect(page.locator('.toast')).toHaveText('Publicación borrada');
   await expect(page).toHaveURL('/comunidad');
   await expect(page.locator('article.post').filter({ hasText: 'Hoy caminé 30 min por el parque' })).toHaveCount(0);

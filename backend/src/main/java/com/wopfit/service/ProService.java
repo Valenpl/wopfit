@@ -4,6 +4,7 @@ import java.time.LocalDate;
 import java.util.List;
 
 import com.wopfit.entity.dto.BookResponse;
+import com.wopfit.entity.dto.CancelResponse;
 import com.wopfit.entity.dto.ProDetailResponse;
 import com.wopfit.entity.dto.ProsResponse;
 
@@ -18,5 +19,5 @@ public interface ProService {
     ProsResponse list(Long userId);
     ProDetailResponse detail(Long userId, Long proId);
     BookResponse book(Long userId, Long proId, LocalDate date, String t, String mode);
-    void cancel(Long userId, Long consultId);
+    CancelResponse cancel(Long userId, Long consultId);
 }

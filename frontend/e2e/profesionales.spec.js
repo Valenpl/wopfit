@@ -71,7 +71,7 @@ test('Premium: reservar 2 consultas, agregar al calendario y cancelar', async ({
   await expect(page.getByText('Te queda 1 consulta este mes.')).toBeVisible();
   await expect(page.getByText('Chat', { exact: true })).toBeVisible();
   const download = page.waitForEvent('download');
-  await page.getByRole('button', { name: /Agregar al calendario/ }).click();
+  await page.getByRole('link', { name: /Agregar al calendario/ }).click();
   const file = await download;
   expect(file.suggestedFilename()).toBe('consulta-wopfit.ics');
   await shot(page, 'consulta-confirmada');
@@ -93,8 +93,8 @@ test('Premium: reservar 2 consultas, agregar al calendario y cancelar', async ({
 
   // cancelar una devuelve el cupo
   await page.goto('/profesionales');
-  page.once('dialog', d => d.accept());
   await page.locator('.pro').filter({ hasText: 'Carolina Méndez' }).getByRole('button', { name: 'Cancelar' }).click();
+  await page.getByRole('dialog').getByRole('button', { name: 'Sí, cancelar' }).click();
   await expect(page.locator('.toast')).toHaveText('Consulta cancelada');
   await expect(page.getByText('Te queda 1 consulta este mes')).toBeVisible();
   await expect(page.locator('.pro').filter({ hasText: 'Confirmada' })).toHaveCount(1);

@@ -46,14 +46,14 @@ test('pestañas de la v6 y accesos rápidos', async ({ page }) => {
 
 test('versión celu y compu', async ({ page }) => {
   await page.goto('/perfil');
-  await expect(page.locator('html')).toHaveClass(/desk/);
+  await expect(page.locator('#app')).toHaveClass(/desk/);
   await tabs(page).getByRole('button', { name: 'Ver versión celu' }).click();
-  await expect(page.locator('html')).not.toHaveClass(/desk/);
+  await expect(page.locator('#app')).not.toHaveClass(/desk/);
   await page.screenshot({ path: 'test-results/perfil-celu.png', fullPage: true });
   await page.reload();
-  await expect(page.locator('html')).not.toHaveClass(/desk/); // se recuerda
+  await expect(page.locator('#app')).not.toHaveClass(/desk/); // se recuerda
   await page.getByRole('button', { name: /Ver versión compu/ }).click();
-  await expect(page.locator('html')).toHaveClass(/desk/);
+  await expect(page.locator('#app')).toHaveClass(/desk/);
 });
 
 test('perfil tiene las secciones de la v6', async ({ page }) => {

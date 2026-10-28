@@ -51,16 +51,16 @@ Las reglas completas están en [REGLAS.md](REGLAS.md). Leelas antes de abrir un 
 
 **Frontend**
 - React arma las pantallas y Redux guarda los datos compartidos. Lo de un solo componente queda en `useState`.
-- Carpetas: `redux/` (store y slices), `api/`, `views/`, `components/`, `hooks/` y `utils/`.
+- Carpetas: `redux/` (store y slices), `api/`, `routes/`, `views/`, `components/`, `hooks/` y `utils/`.
 - **No se toca el DOM**: nada de `document.*`, `querySelector`, `classList` ni `window.confirm`. Todo cambia por estado.
 - Los pedidos al backend se hacen solo en thunks (`createAsyncThunk`) con la instancia de axios.
 - **Sin doble fetch**: cada thunk de lectura usa `condition` con `loaded`/`loading`. Después de un POST, PUT o DELETE no se vuelve a pedir la lista: el store se actualiza con la respuesta.
-- No se usa `.unwrap()` en componentes. El resultado se lee del estado del slice.
+- No se usa `.unwrap()` en componentes. El resultado se lee del store.
 - Formularios controlados con `e.preventDefault()`. `StrictMode` se queda.
 
 **Git:** rama por tarea y pull request. Nada directo a `main` y ninguna credencial en el repo.
 
-> Estado actual: el código todavía no sigue todas estas reglas (por ejemplo, el front todavía no usa Redux). Se migra de a un paso por pull request.
+- Las pantallas leen con `useFetch` y mandan cambios con `useRequest` (ver [REGLAS.md §3.7 y §3.8](REGLAS.md#37-sin-doble-fetch)).
 
 ## Cómo correrlo
 
@@ -175,7 +175,7 @@ El resto requiere `Authorization: Bearer <token>`:
 | GET | `places` | Lugares cercanos (solo Premium; si no, 403): coordenadas, si está abierto ahora y si tiene descuento |
 | GET | `offers` | Cupones de aliados con sus sucursales y si sirven para tu lista del súper; `alerts` = Premium |
 | GET | `pros`, `pros/{id}` | Profesionales, cupo del mes y tus próximas consultas · perfil con la agenda de los próximos 4 días |
-| POST · DELETE | `pros/{id}/book`, `consultations/{id}` | Reservar (`{ date, time, mode }`, solo Premium, 2 por mes) · cancelar una que no pasó |
+| POST · DELETE | `pros/{id}/book`, `consultations/{id}` | Reservar (`{ date, time, mode }`, solo Premium, 2 por mes; devuelve la consulta y el cupo) · cancelar una que no pasó (devuelve `{ id, message, left }`) |
 | GET · POST | `wopi` | Conversación con Wopi y consultas que quedan · preguntar (`{ text }`, 3 por mes gratis, 20 con Premium) |
 | GET | `community?f=para\|recetas\|act\|preg` | Personas como vos y publicaciones |
 | PUT | `community/people/{id}/follow` | Seguir o dejar de seguir (`{ on }`) |
