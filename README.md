@@ -121,7 +121,7 @@ El test de Playwright usa el front en modo desarrollo (con StrictMode) y el back
 ### Esquema de la base (entrega)
 `backend/db/schema.sql` tiene todas las tablas, con las claves foráneas (`fk_goal_user`, …) y los únicos (`uk_user_email`, …) con nombre. Lo genera Hibernate a partir de las entidades, así que no se edita a mano.
 
-Para la entrega se crea la base con ese archivo y el backend corre con el perfil `prod`, que usa `ddl-auto=validate` (solo revisa que la base coincida con las entidades) y no muestra el código de verificación:
+Para la entrega se crea la base con ese archivo y el backend corre con el perfil `prod`, que usa `ddl-auto=validate` (solo revisa que la base coincida con las entidades) y por defecto no muestra el código de verificación:
 ```bash
 mysql -u wopfit -p wopfit < backend/db/schema.sql
 cd backend && mvn spring-boot:run -Dspring-boot.run.profiles=mysql,prod
@@ -132,6 +132,25 @@ cd backend
 mvn spring-boot:run -Dspring-boot.run.arguments="--server.port=0 --spring.datasource.url=jdbc:mysql://localhost:3306/wopfit_gen?createDatabaseIfNotExist=true --spring.datasource.username=root --spring.datasource.password= --spring.jpa.hibernate.ddl-auto=none --spring.jpa.properties.jakarta.persistence.schema-generation.scripts.action=create --spring.jpa.properties.jakarta.persistence.schema-generation.scripts.create-target=schema-gen.sql --spring.jpa.properties.hibernate.hbm2ddl.delimiter=; --spring.jpa.properties.hibernate.format_sql=true"
 ```
 El backend se corta después de escribir `schema-gen.sql` (no hay tablas para los datos de demo): es lo esperado.
+
+## Publicar
+
+Hace falta una cuenta en cada servicio; nada de esto se hace desde el repo.
+
+### Backend (cualquier lugar que corra Docker)
+`backend/Dockerfile` compila el backend y lo corre con los perfiles `mysql,prod`. Para levantar todo junto con la base en una máquina con Docker:
+```bash
+docker compose --profile app up -d --build
+```
+- La primera vez, MySQL crea las tablas con `backend/db/schema.sql`.
+- Variables que hacen falta (en el `.env` o en el panel del hosting): `DB_PASSWORD`, `WOPFIT_JWT_SECRET` y `WOPFIT_CORS_ORIGINS`, con el dominio del front, por ejemplo `https://wopfit.vercel.app`.
+- **Mientras no haya mail real**, la demo publicada necesita `WOPFIT_DEV_CODES=true` para mostrar el código de verificación en pantalla. Si no, nadie puede terminar de registrarse.
+- Si el hosting trae su propio MySQL (Railway, Render, etc.), alcanza con la imagen del `Dockerfile` y `DB_URL` apuntando a esa base. Las tablas se crean una vez con `schema.sql`.
+
+### Front (Vercel)
+- Proyecto con **Root Directory** `frontend`. El build es `npm run build` y la salida, `dist`.
+- Variable `VITE_API_URL` con la URL del backend terminada en `/api/v1`, por ejemplo `https://api.wopfit.com/api/v1`.
+- `frontend/vercel.json` manda todas las rutas a `index.html`, así recargar en `/inicio` no da 404. Los archivos que existen, como `sw.js` o los íconos, se sirven igual.
 
 ## Datos de demostración
 
@@ -155,7 +174,7 @@ Se pueden poner en el `.env` de la raíz (ver `.env.example`) o como variables d
 | `DB_PASSWORD` | sin default, va en `.env` | Contraseña MySQL |
 | `WOPFIT_JWT_SECRET` | sin default, va en `.env` | Clave para firmar los JWT (mínimo 32 caracteres) |
 | `WOPFIT_CORS_ORIGINS` | `http://localhost:5173` | Dominios del front, separados por coma |
-| `WOPFIT_DEV_CODES` | `true` | Mostrar el código de verificación (poné `false` en producción) |
+| `WOPFIT_DEV_CODES` | `true` (`false` con el perfil `prod`) | Mostrar el código de verificación en pantalla. Hace falta `true` en la demo publicada mientras no haya mail real |
 | `VITE_API_URL` (front) | `/api/v1` | URL de la API, si el front se publica en otro dominio |
 
 ## Qué hace (historias de usuario)
