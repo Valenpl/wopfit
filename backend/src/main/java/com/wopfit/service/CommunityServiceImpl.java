@@ -15,6 +15,9 @@ import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -29,8 +32,9 @@ import com.wopfit.entity.PostMark;
 import com.wopfit.entity.Preferences;
 import com.wopfit.entity.User;
 import com.wopfit.entity.dto.CommentResponse;
-import com.wopfit.entity.dto.CommunityResponse;
 import com.wopfit.entity.dto.MarkResponse;
+import com.wopfit.entity.dto.PageResponse;
+import com.wopfit.entity.dto.PeopleResponse;
 import com.wopfit.entity.dto.PersonResponse;
 import com.wopfit.entity.dto.PostDetailResponse;
 import com.wopfit.entity.dto.PostRequest;
@@ -148,13 +152,18 @@ public class CommunityServiceImpl implements CommunityService {
         return posts.findById(id).orElseThrow(() -> new PostNotFoundException());
     }
 
-    @Transactional
-    @Override
-    public CommunityResponse community(Long userId, String filter) {
-        CommunityProfile me = me(userId);
-        Set<String> mine = new HashSet<>(list(me.getGoals()));
+    private Set<Long> following(CommunityProfile me) {
         Set<Long> following = new HashSet<>();
         follows.findByFollowerId(me.getId()).forEach(f -> following.add(f.getFollowed().getId()));
+        return following;
+    }
+
+    @Transactional
+    @Override
+    public PeopleResponse people(Long userId) {
+        CommunityProfile me = me(userId);
+        Set<String> mine = new HashSet<>(list(me.getGoals()));
+        Set<Long> following = following(me);
 
         // Personas como vos: las 5 que más objetivos comparten con vos.
         List<PersonResponse> people = profiles.findAll().stream().filter(c -> !c.getId().equals(me.getId()))
@@ -164,25 +173,35 @@ public class CommunityServiceImpl implements CommunityService {
                 .map(c -> new PersonResponse(c.p().getId(), c.p().getName(), c.goals(), c.shared().isEmpty() ? null : c.shared().get(0),
                         c.p().getDaysPerWeek(), following.contains(c.p().getId())))
                 .toList();
+        String g = myGoal(me);
+        return new PeopleResponse(me.getId(), g, Catalog.GOALS.get(g), people);
+    }
 
-        List<Post> all = posts.findAllByOrderByCreatedAtDesc();
-        List<Post> shown;
+    @Transactional
+    @Override
+    public PageResponse<PostResponse> feed(Long userId, String filter, Pageable pageable) {
+        CommunityProfile me = me(userId);
+        Page<Post> page;
         String type = FILTERS.get(filter);
         if (type != null) {
-            shown = all.stream().filter(p -> p.getType().equals(type)).toList();
+            page = posts.findByTypeOrderByCreatedAtDesc(type, pageable);
         } else {
             // "Para vos": lo tuyo, lo de quienes seguís y lo de tus objetivos primero; después el resto.
+            // Ese orden no sale de una consulta, así que se arma completo y se corta la página.
+            Set<String> mine = new HashSet<>(list(me.getGoals()));
+            Set<Long> following = following(me);
             List<Post> first = new ArrayList<>(), rest = new ArrayList<>();
-            for (Post p : all) {
+            for (Post p : posts.findAllByOrderByCreatedAtDesc()) {
                 boolean near = p.getAuthor().getId().equals(me.getId()) || following.contains(p.getAuthor().getId()) || mine.contains(p.getGoal());
                 (near ? first : rest).add(p);
             }
             first.addAll(rest);
-            shown = first;
+            int from = (int) Math.min(pageable.getOffset(), first.size());
+            int to = Math.min(from + pageable.getPageSize(), first.size());
+            page = new PageImpl<>(first.subList(from, to), pageable, first.size());
         }
-        String g = myGoal(me);
         Stats s = stats(me);
-        return new CommunityResponse(me.getId(), g, Catalog.GOALS.get(g), people, shown.stream().map(p -> dto(p, me, s)).toList());
+        return PageResponse.of(page.map(p -> dto(p, me, s)));
     }
 
     @Transactional

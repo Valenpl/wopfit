@@ -23,7 +23,7 @@ import jakarta.validation.Valid;
 /** Datos del usuario, preferencias y contraseña. */
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/me")
+@RequestMapping("/api/v1/users/me")
 public class ProfileController {
     private final ProfileService profile;
     private final AuthenticationService auth;
@@ -33,7 +33,7 @@ public class ProfileController {
         return ResponseEntity.ok(profile.me(uid));
     }
 
-    @PutMapping("/about")
+    @PutMapping
     public ResponseEntity<MeResponse> about(@AuthenticationPrincipal(expression = "id") Long uid, @Valid @RequestBody AboutRequest r) {
         return ResponseEntity.ok(profile.updateAbout(uid, r));
     }

@@ -22,7 +22,7 @@ import jakarta.validation.Valid;
 /** Progreso, historial y ajustes sugeridos del plan. */
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1")
+@RequestMapping("/api/v1/users/me")
 public class ProgressController {
     private final ProgressService progress;
 
@@ -36,17 +36,17 @@ public class ProgressController {
         return ResponseEntity.ok(progress.history(uid));
     }
 
-    @PostMapping("/adjust/lighten")
+    @PostMapping("/plan/lighten")
     public ResponseEntity<PlanResponse> lighten(@AuthenticationPrincipal(expression = "id") Long uid) {
         return ResponseEntity.ok(progress.lighten(uid));
     }
 
-    @PostMapping("/adjust/grow")
+    @PostMapping("/plan/grow")
     public ResponseEntity<PlanResponse> grow(@AuthenticationPrincipal(expression = "id") Long uid) {
         return ResponseEntity.ok(progress.grow(uid));
     }
 
-    @PostMapping("/adjust/dismiss")
+    @PostMapping("/plan/dismiss")
     public ResponseEntity<MessageResponse> dismiss(@AuthenticationPrincipal(expression = "id") Long uid, @Valid @RequestBody DismissRequest r) {
         progress.dismiss(uid, r.type());
         return ResponseEntity.ok(new MessageResponse("Listo"));

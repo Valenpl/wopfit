@@ -29,17 +29,17 @@ import jakarta.validation.Valid;
 public class ProController {
     private final ProService pros;
 
-    @GetMapping("/pros")
+    @GetMapping("/professionals")
     public ResponseEntity<ProsResponse> list(@AuthenticationPrincipal(expression = "id") Long uid) {
         return ResponseEntity.ok(pros.list(uid));
     }
 
-    @GetMapping("/pros/{id}")
+    @GetMapping("/professionals/{id}")
     public ResponseEntity<ProDetailResponse> detail(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable Long id) {
         return ResponseEntity.ok(pros.detail(uid, id));
     }
 
-    @PostMapping("/pros/{id}/book")
+    @PostMapping("/professionals/{id}/consultations")
     public ResponseEntity<BookResponse> book(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable Long id, @Valid @RequestBody BookRequest r) {
         return ResponseEntity.status(HttpStatus.CREATED).body(pros.book(uid, id, r.date(), r.time(), r.mode()));
     }
