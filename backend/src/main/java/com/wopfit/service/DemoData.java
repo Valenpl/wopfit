@@ -19,18 +19,18 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.wopfit.domain.CommunityProfile;
-import com.wopfit.domain.Offer;
-import com.wopfit.domain.Place;
-import com.wopfit.domain.Post;
-import com.wopfit.domain.PostComment;
-import com.wopfit.domain.Professional;
-import com.wopfit.repo.CommunityProfileRepository;
-import com.wopfit.repo.OfferRepository;
-import com.wopfit.repo.PlaceRepository;
-import com.wopfit.repo.PostCommentRepository;
-import com.wopfit.repo.PostRepository;
-import com.wopfit.repo.ProfessionalRepository;
+import com.wopfit.entity.CommunityProfile;
+import com.wopfit.entity.Offer;
+import com.wopfit.entity.Place;
+import com.wopfit.entity.Post;
+import com.wopfit.entity.PostComment;
+import com.wopfit.entity.Professional;
+import com.wopfit.repository.CommunityProfileRepository;
+import com.wopfit.repository.OfferRepository;
+import com.wopfit.repository.PlaceRepository;
+import com.wopfit.repository.PostCommentRepository;
+import com.wopfit.repository.PostRepository;
+import com.wopfit.repository.ProfessionalRepository;
 
 /** Carga los lugares, cupones, profesionales y la comunidad de demostración (resources/demo/*.tsv) la primera vez que arranca, si las tablas están vacías. */
 @Component
