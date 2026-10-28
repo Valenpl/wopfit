@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.wopfit.entity.dto.BookRequest;
 import com.wopfit.entity.dto.BookResponse;
-import com.wopfit.entity.dto.MessageResponse;
+import com.wopfit.entity.dto.CancelResponse;
 import com.wopfit.entity.dto.ProDetailResponse;
 import com.wopfit.entity.dto.ProsResponse;
 import com.wopfit.service.ProService;
@@ -46,8 +46,7 @@ public class ProController {
     }
 
     @DeleteMapping("/consultations/{id}")
-    public ResponseEntity<MessageResponse> cancel(@AuthenticationPrincipal Long uid, @PathVariable Long id) {
-        pros.cancel(uid, id);
-        return ResponseEntity.ok(new MessageResponse("Consulta cancelada"));
+    public ResponseEntity<CancelResponse> cancel(@AuthenticationPrincipal Long uid, @PathVariable Long id) {
+        return ResponseEntity.ok(pros.cancel(uid, id));
     }
 }

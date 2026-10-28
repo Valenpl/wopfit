@@ -138,17 +138,20 @@ Como el e-commerce, pero con `redux/` adentro de `src/`:
 ```
 frontend/src/
 ├── main.jsx              createRoot + StrictMode + Provider + BrowserRouter
-├── App.jsx               solo <Routes>
+├── App.jsx               layout (#app, barra de pestañas, toast) y carga del usuario
+├── routes/
+│   └── AppRoutes.jsx     todas las <Route>, con el control de etapa (sin sesión, registro, app)
 ├── api/
-│   └── axios.js          instancia de axios (baseURL y token)
+│   └── axios.js          instancia de axios (baseURL, token e interceptor de 401)
 ├── redux/
 │   ├── store.js          configureStore + combineReducers
-│   └── slices/           authSlice, planSlice, mealSlice, goalSlice, uiSlice, ...
-├── views/                una carpeta por ruta (home/, plan/, food/, profile/, auth/, ...)
-├── components/           por tema (layout/, plan/, food/, shared/, ...)
-├── hooks/                useAuth, useToast, ... (leen y despachan; no hacen pedidos)
-├── utils/                funciones puras (formatos, fechas)
-└── styles/ o el .css al lado de su componente
+│   ├── helpers.js        apiThunk, entradas { data, loaded, loading, error }, matchers
+│   └── slices/           authSlice, uiSlice, requestSlice y uno por recurso (workouts, meals, goals, ...)
+├── views/                una carpeta por sección (auth/, setup/, home/, train/, food/, progress/, ...)
+├── components/           por tema (layout/, shared/, train/, food/, places/, pros/, community/, home/)
+├── hooks/                useFetch, useRequest, useAuth, useToast, ... (leen y despachan; no hacen pedidos)
+├── utils/                funciones puras (fechas, formatos, constantes, storage)
+└── styles/               styles.css y extra.css
 ```
 
 ### 3.2 Componentes
@@ -172,7 +175,14 @@ Sí va:
 - Mostrar u ocultar con renderizado condicional (`{open && <Modal/>}`).
 - La única llamada al DOM es `document.getElementById('root')` en `main.jsx`.
 
-Si alguna vez hace falta foco o scroll, se usa un `ref` de React y se comenta por qué.
+Si alguna vez hace falta foco o scroll, se usa un `ref` de React y se comenta por qué. Hoy pasa en tres lugares:
+- `ScrollArea` vuelve el scroll arriba al cambiar de ruta (y Wopi lo baja al último mensaje con el mismo ref).
+- En *Cerca tuyo*, el lugar que se toca en el mapa se lleva a la vista con el ref de su fila.
+- En una publicación, el botón de comentarios pone el foco en el campo de texto.
+
+La única excepción es el mapa: Leaflet no es de React y dibuja adentro de un `div` que le pasamos con un ref. Queda encerrado en `components/places/LeafletMap.jsx` y React solo le pasa datos.
+
+La vista compu y el teclado abierto se marcan con clases en `#app` (`desk`, `kb`) que pone `App.jsx` según el estado, no con `document.documentElement.classList`.
 
 ### 3.4 Formularios controlados
 
@@ -183,14 +193,16 @@ Si alguna vez hace falta foco o scroll, se usa un `ref` de React y se comenta po
 ### 3.5 Redux
 
 - Un solo store. Un slice por recurso del back (`plan`, `meals`, `goals`, `habits`, ...), más `auth` y `ui`.
-- Estado de cada slice:
+- Cada dato del backend se guarda como una **entrada** (`redux/helpers.js`):
   ```js
-  { items: [], loaded: false, loading: false, error: null }
+  { data: null, loaded: false, loading: false, error: null }
   ```
+  Un dato único va directo en el slice (`goals.list`, `progress.summary`) y lo que depende de un parámetro va en un mapa por clave (`meals.days['2026-10-28']`, `workouts.sessions['12']`).
 - Lo **síncrono** va en `reducers` (`logout`, `addToast`). Lo **asíncrono** va en `createAsyncThunk` + `extraReducers` con `builder.addCase(pending | fulfilled | rejected)` (clase 11).
 - Reducers puros: no llaman al back, no usan `Date.now()` ni `Math.random()`, no tocan el DOM.
 - Los componentes usan solo `useSelector` y `useDispatch`. No hay Context para estado global.
-- Solo `auth` se guarda entre recargas (`redux-persist` con `whitelist: ['auth']`).
+- Entre recargas solo se guardan el token y la vista elegida (celu o compu). Lo hace `store.js` con `store.subscribe`, que escribe en `localStorage` solo cuando cambian. No usamos `redux-persist` porque es una sola clave y así los reducers nunca tocan el storage.
+- Todos los slices vuelven a su estado inicial con `auth/logout`.
 
 ### 3.6 Llamadas al backend
 
@@ -218,10 +230,16 @@ Cada dato se le pide al backend **una sola vez**.
    });
    ```
    Así no se repite con `StrictMode`, al volver a una pantalla, ni cuando dos componentes piden lo mismo.
+   En el código esto lo arma `apiThunk(tipo, pedido, { cached })` y las pantallas lo usan con `useFetch`:
+   ```js
+   const { data, error, retry } = useFetch(fetchGoals, undefined, s => s.goals.list);
+   ```
 3. **No se hace GET después de un POST/PUT/DELETE** (clase 11). El store se actualiza con la respuesta:
    - crear: `state.items.push(action.payload)`
    - editar: `findIndex` y reemplazar
    - borrar: `filter`
+
+   Hay datos que **calcula el backend** a partir de todo lo demás: el progreso, el historial, la semana de entrenamientos. Si marcás un hábito, el progreso cambia, pero la respuesta del PUT trae el hábito y no el progreso. En esos casos el slice marca la entrada como desactualizada (`loaded = false`, sin borrar `data`) y `useFetch` la vuelve a pedir **una sola vez, cuando se muestra**. No es un GET pegado al POST: si nadie mira esa pantalla, no sale ningún pedido. Los slices se enteran de los cambios de otros por el tipo de acción (`changeOf('workouts')`), sin importarse entre sí.
 4. `useEffect` lleva su array de dependencias y su limpieza (`return () => ...`) cuando corresponde.
 5. `StrictMode` **se queda**, porque es lo que deja ver si algo se pide dos veces.
 
@@ -229,19 +247,15 @@ Cada dato se le pide al backend **una sola vez**.
 
 En el e-commerce encadenábamos `dispatch(x).unwrap().then(...)` en los componentes y en `useAuth` para limpiar formularios, navegar o mostrar errores. Eso no se repite.
 
-El resultado se lee del **estado del slice**:
+El resultado se lee del **store**. `requestSlice` guarda cómo terminó el último pedido de cada thunk (`loading`, `succeeded` o `failed`, con su resultado o su error) y el hook `useRequest` lo lee:
 
 ```jsx
-const { saving, error, lastSavedId } = useSelector(s => s.goals);
+const save = useRequest(createGoal, { onSuccess: () => navigate('/metas') });
 
-const onSubmit = e => { e.preventDefault(); dispatch(createGoal(form)); };
-
-useEffect(() => {
-  if (lastSavedId) { setForm(VACIO); navigate('/metas'); }
-}, [lastSavedId]);
-
-{error && <p className="error">{error}</p>}
+<Btn busy={save.busy} onClick={() => save.run(form)}>Guardar meta</Btn>
 ```
+
+`onSuccess` y `onError` corren cuando el estado del pedido cambia en el store, no encadenados a la promesa del `dispatch`.
 
 - Los toasts los dispara el propio slice desde el thunk (`dispatch(addToast(...))`) o un componente que lee `error` del store.
 - Si una acción necesita varias llamadas seguidas (crear un plan y después sus sesiones), se hace **un solo thunk** que las encadena, no una cadena de promesas en el componente.

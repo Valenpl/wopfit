@@ -90,7 +90,7 @@ class ProsTest extends ApiTest {
         // cancelar devuelve el cupo; no se puede cancelar la de otro
         long cid = booked.at("/consult/id").asLong();
         call(delete("/api/consultations/" + cid), other, null, 404);
-        call(delete("/api/consultations/" + cid), prem, null, 200);
+        assertThat(call(delete("/api/consultations/" + cid), prem, null, 200).get("left").asInt()).isEqualTo(1);
         call(delete("/api/consultations/" + cid), prem, null, 404);
         assertThat(call(get("/api/pros"), prem, null, 200).get("left").asInt()).isEqualTo(1);
 
