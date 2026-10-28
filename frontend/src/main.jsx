@@ -3,6 +3,7 @@ import ReactDOM from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App.jsx';
 import { AppProvider } from './ui.jsx';
+import './pwa.js';
 import './styles.css';
 import './extra.css';
 

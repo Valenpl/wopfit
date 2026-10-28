@@ -9,7 +9,7 @@ import { Done, Entreno, Proposal, Workout } from './pages/Train.jsx';
 import { Comida, Meal, MealProposal } from './pages/Food.jsx';
 import { Adjust, Goals, History, NewGoal, Progress } from './pages/Progress.jsx';
 import Profile, { Cuenta } from './pages/Profile.jsx';
-import Soon from './pages/Soon.jsx';
+import Install from './pages/Install.jsx';
 import { Planes, YaPremium } from './pages/Premium.jsx';
 import { Cerca, Ofertas } from './pages/Places.jsx';
 import { Pro, ProConf, Pros } from './pages/Pros.jsx';
@@ -121,7 +121,7 @@ export default function App() {
     <Route path="/premium" element={only(['app'], <YaPremium />)} />
     <Route path="/perfil/preferencias/:step" element={only(['app'], <Prefs edit />)} />
     <Route path="/actualizando" element={only(['app'], <Updating />)} />
-    <Route path="/instalar" element={only(['app'], <Soon />)} />
+    <Route path="/instalar" element={only(['app'], <Install />)} />
     <Route path="*" element={<Navigate to={home} replace />} />
   </Routes>;
 

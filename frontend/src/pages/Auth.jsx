@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
 import { Icon } from '../lib.jsx';
-import { Btn, Field, PwField, Screen, TopBar, useApp } from '../ui.jsx';
+import { Btn, Field, PwField, TopBar, useApp } from '../ui.jsx';
 
 const emailOk = e => /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(e || '');
 

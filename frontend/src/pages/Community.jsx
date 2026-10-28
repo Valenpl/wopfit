@@ -1,15 +1,14 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api, apiUrl } from '../api.js';
 import { GOALS, Icon, cap, goal } from '../lib.jsx';
-import { Btn, ErrorBox, Field, Loading, Note, Screen, Sect, TopBar, useAction, useApp, useLoad } from '../ui.jsx';
-import { Avatar } from './Pros.jsx';
+import { Avatar, Btn, Confirm, ErrorBox, Field, Loading, Note, Screen, Sect, TopBar, useAction, useApp, useLoad } from '../ui.jsx';
 
 const FILTERS = [['para', 'Para vos'], ['recetas', 'Recetas'], ['act', 'Activid.'], ['preg', 'Dudas']];
 const TYPES = [['receta', 'Receta', '🥗'], ['actividad', 'Actividad', '🏃'], ['pregunta', 'Pregunta', '💬']];
 
 /** "recién", "hace 5 min", "hace 2 h", "ayer", "hace 3 días". */
-export function ago(iso) {
+function ago(iso) {
   const m = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
   if (m < 1) return 'recién';
   if (m < 60) return `hace ${m} min`;
@@ -89,6 +88,8 @@ export function Publicacion() {
   const { toast } = useApp();
   const { data, error, reload, set } = useLoad(sig => api.get(`/posts/${id}`, sig), [id]);
   const [cm, setCm] = useState('');
+  const [asking, setAsking] = useState(false);
+  const cmInput = useRef(null); // el botón de comentarios lleva el foco a la caja para escribir
   const [busy, run] = useAction();
   if (error) return <Screen><TopBar fallback="/comunidad" /><ErrorBox error={error} onRetry={reload} /></Screen>;
   if (!data) return <Loading />;
@@ -103,21 +104,19 @@ export function Publicacion() {
       set(d => ({ post: { ...d.post, comments: d.post.comments + 1 }, comments: [...d.comments, c] }));
     });
   };
-  const remove = () => {
-    if (!window.confirm('¿Borrar tu publicación?')) return;
-    run(async () => { await api.del(`/posts/${id}`); toast('Publicación borrada'); nav('/comunidad', { replace: true }); });
-  };
+  const remove = () => run(async () => { await api.del(`/posts/${id}`); toast('Publicación borrada'); nav('/comunidad', { replace: true }); });
   return <div className="screen"><div className="scroll">
-    <TopBar fallback="/comunidad" right={post.mine ? <button className="textbtn" onClick={remove} disabled={busy}>Borrar</button> : null} />
+    <TopBar fallback="/comunidad" right={post.mine ? <button className="textbtn" onClick={() => setAsking(true)} disabled={busy}>Borrar</button> : null} />
     <div className="mt12" />
-    <PostCard p={post} onChange={p => set(d => ({ ...d, post: p }))} onComments={() => document.getElementById('cm')?.focus()} />
+    <PostCard p={post} onChange={p => set(d => ({ ...d, post: p }))} onComments={() => cmInput.current?.focus()} />
     <Sect title="Comentarios" right={<span className="tag blue">{comments.length}</span>} />
     <div className="card">{comments.length ? comments.map(c => <div key={c.id} className="cmt"><Avatar n={c.author} size={32} />
       <div><b style={{ color: 'var(--navy)', fontSize: 13 }}>{c.author}</b> <span className="tiny muted">{ago(c.createdAt)}</span><div className="small">{c.text}</div></div></div>)
       : <div className="small muted">Sé la primera persona en comentar.</div>}</div>
   </div>
-  <form className="composer" onSubmit={send}><input id="cm" value={cm} onChange={e => setCm(e.target.value)} maxLength={300} placeholder="Escribí un comentario…" aria-label="Comentario" />
-    <button type="submit" aria-label="Enviar" disabled={busy || !cm.trim()}><Icon n="send" /></button></form></div>;
+  <form className="composer" onSubmit={send}><input ref={cmInput} value={cm} onChange={e => setCm(e.target.value)} maxLength={300} placeholder="Escribí un comentario…" aria-label="Comentario" />
+    <button type="submit" aria-label="Enviar" disabled={busy || !cm.trim()}><Icon n="send" /></button></form>
+    {asking && <Confirm title="¿Borrar tu publicación?" yes="Sí, borrar" busy={busy} onYes={remove} onClose={() => setAsking(false)} />}</div>;
 }
 
 /** Achica la foto en el celu (lado mayor 1080 px, JPEG) antes de subirla. */

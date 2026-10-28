@@ -1,16 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { api } from '../api.js';
-import { DAYF, DAYS, Icon, add, cap, dayNum, dow, isPremium, monthName, shortDate, today } from '../lib.jsx';
-import { Btn, ErrorBox, Loading, Note, Screen, Sect, TopBar, useAction, useApp, useLoad } from '../ui.jsx';
-
-const COLORS = ['#1E7FCB', '#6DBB3A', '#E9824F', '#8E6BD1', '#1EA7E0', '#D9577A'];
-/** Círculo con las iniciales (sin "Lic." ni "Prof.") y un color fijo por nombre. */
-export function Avatar({ n, size = 40 }) {
-  const bg = COLORS[[...n].reduce((a, c) => a + c.charCodeAt(0), 0) % COLORS.length];
-  const ini = n.replace(/^(Lic\.|Prof\.)\s*/, '').split(' ').map(x => x[0]).join('').slice(0, 2);
-  return <span className="av" style={{ background: bg, width: size, height: size, fontSize: Math.round(size * 0.38) }}>{ini}</span>;
-}
+import { DAYF, DAYS, Icon, add, cap, dayNum, dow, monthName, shortDate, today } from '../lib.jsx';
+import { Avatar, Btn, Confirm, ErrorBox, Loading, Note, Screen, Sect, TopBar, useAction, useApp, useLoad } from '../ui.jsx';
 
 const rating = r => String(r).replace('.', ',');
 const leftTxt = n => (n === 1 ? 'queda 1 consulta' : `quedan ${n} consultas`);
@@ -23,13 +15,11 @@ export function Pros() {
   const [params] = useSearchParams();
   const [kind, setKind] = useState(params.get('tipo') === 'entre' ? 'entre' : 'nutri');
   const { data, error, reload } = useLoad(sig => api.get('/pros', sig), []);
+  const [asking, setAsking] = useState(null);
   const [busy, run] = useAction();
   if (error) return <Screen><TopBar /><ErrorBox error={error} onRetry={reload} /></Screen>;
   if (!data) return <Loading />;
-  const cancel = c => {
-    if (!window.confirm(`¿Cancelar la consulta con ${c.proName}?`)) return;
-    run(async () => { await api.del(`/consultations/${c.id}`); await refresh(); toast('Consulta cancelada'); reload(); });
-  };
+  const cancel = c => run(async () => { await api.del(`/consultations/${c.id}`); setAsking(null); await refresh(); toast('Consulta cancelada'); reload(); });
   return <Screen>
     <TopBar right={data.premium ? <span className="tag gold">★ Premium</span> : null} />
     <h1>Ayuda profesional</h1><p className="sub">Nutricionistas y entrenadores matriculados.</p>
@@ -40,7 +30,7 @@ export function Pros() {
     {data.mine.length > 0 && <><Sect title="Mis consultas" />
       {data.mine.map(c => <div key={c.id} className="pro"><Avatar n={c.proName} size={44} />
         <div className="grow"><b style={{ color: 'var(--navy)' }}>{c.proName}</b><div className="tiny muted" style={{ fontWeight: 700 }}>{shortDate(c.date)} · {c.time} · {c.mode}</div>
-          <button className="link small" disabled={busy} onClick={() => cancel(c)}>Cancelar</button></div><span className="tag">Confirmada</span></div>)}</>}
+          <button className="link small" disabled={busy} onClick={() => setAsking(c)}>Cancelar</button></div><span className="tag">Confirmada</span></div>)}</>}
     <div className="seg" style={{ marginTop: 18 }}>
       <button className={kind === 'nutri' ? 'on' : ''} onClick={() => setKind('nutri')}>Nutricionistas</button>
       <button className={kind === 'entre' ? 'on' : ''} onClick={() => setKind('entre')}>Entrenadores</button></div>
@@ -49,6 +39,7 @@ export function Pros() {
         <div className="tiny" style={{ fontWeight: 700, color: 'var(--navy)' }}>⭐ {rating(p.rating)} · {p.license}</div>
         <div className="tiny" style={{ color: 'var(--green-d)', fontWeight: 700 }}>{nextTxt(p)}</div></div><Icon n="chev" className="chev" /></button>)}
     <p className="tiny muted center mt16">Profesionales de ejemplo para la demo.</p>
+    {asking && <Confirm title={`¿Cancelar la consulta con ${asking.proName}?`} yes="Sí, cancelar" busy={busy} onYes={() => cancel(asking)} onClose={() => setAsking(null)} />}
   </Screen>;
 }
 

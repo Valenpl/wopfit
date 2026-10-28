@@ -15,7 +15,7 @@ export const blocksDone = (s) => {
 };
 
 /** Celda de la tira semanal (L M M J V S D). */
-export function StripCell({ day }) {
+function StripCell({ day }) {
   const s = day.session;
   let c = 'sq', inner = 'Desc';
   if (s) {

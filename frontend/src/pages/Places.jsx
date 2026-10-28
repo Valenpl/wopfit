@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
@@ -26,8 +26,12 @@ const pinIcon = (cat, sel) => L.divIcon({
 });
 const meIcon = L.divIcon({ className: 'lpin-wrap', iconSize: [18, 18], iconAnchor: [9, 9], html: '<span class="lme"></span>' });
 
-/** Mapa de OpenStreetMap con tu ubicación y los lugares (pines por categoría). */
-function LeafletMap({ here, places = [], sel, onSelect, children }) {
+const NONE = [];
+
+/** Mapa de OpenStreetMap con tu ubicación y los lugares. Los pines se vuelven a dibujar solo si cambian los lugares o el elegido. */
+function LeafletMap({ here, places = NONE, sel, onSelect, children }) {
+  const pickRef = useRef(onSelect);
+  pickRef.current = onSelect;
   const box = useRef(null);
   const map = useRef(null);
   const layer = useRef(null);
@@ -52,8 +56,8 @@ function LeafletMap({ here, places = [], sel, onSelect, children }) {
     if (!layer.current) return;
     layer.current.clearLayers();
     places.forEach(p => L.marker([p.lat, p.lng], { icon: pinIcon(p.category, p.id === sel), title: p.name, zIndexOffset: p.id === sel ? 1000 : 0 })
-      .on('click', () => onSelect && onSelect(p.id)).addTo(layer.current));
-  }, [places, sel, onSelect]);
+      .on('click', () => pickRef.current && pickRef.current(p.id)).addTo(layer.current));
+  }, [places, sel]);
   useEffect(() => {
     const p = places.find(x => x.id === sel);
     if (p && map.current) map.current.panTo([p.lat, p.lng]);
@@ -78,14 +82,16 @@ export function Cerca() {
   const [more, setMore] = useState(false);
   const { data, error, reload } = useLoad(sig => (pr ? api.get('/places', sig) : Promise.resolve([])), [pr]);
 
-  const all = (data || []).map(p => ({ ...p, m: meters(here, p) }));
+  const all = useMemo(() => (data || []).map(p => ({ ...p, m: meters(here, p) })), [data, here]);
   const ql = q.trim().toLowerCase();
-  const list = all.filter(p => (cat === 'todos' || p.category === cat) && (!f.open || p.openNow) && (!f.disc || p.discount)
+  const list = useMemo(() => all.filter(p => (cat === 'todos' || p.category === cat) && (!f.open || p.openNow) && (!f.disc || p.discount)
     && (!ql || (p.name + ' ' + p.categoryName + ' ' + p.address + ' ' + p.barrio).toLowerCase().includes(ql)))
-    .sort((a, b) => a.m - b.m);
+    .sort((a, b) => a.m - b.m), [all, cat, f, ql]);
   const shown = more ? list : list.slice(0, 12);
   const far = all.length > 0 && Math.min(...all.map(p => p.m)) > 5000;
-  const pick = id => { setSel(id); setTimeout(() => document.getElementById('pl-' + id)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 50); };
+  const rows = useRef({}); // al tocar un pin, la lista se mueve hasta ese lugar
+  const pick = id => setSel(id);
+  useEffect(() => { if (sel) rows.current[sel]?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); }, [sel, more]);
   useEffect(() => { if (sel && data && !shown.some(p => p.id === sel)) setMore(true); }, [sel, data]); // eslint-disable-line react-hooks/exhaustive-deps
 
   return <Screen>
@@ -93,7 +99,7 @@ export function Cerca() {
     <h1>Cerca tuyo</h1><p className="sub">Supermercados, dietéticas, gimnasios y parques.</p>
     <div className="search"><Icon n="search" /><input value={q} onChange={e => setQ(e.target.value)} placeholder="Buscá supermercados, gimnasios…" aria-label="Buscar lugares" disabled={!pr} /></div>
     <div className="chiprow mt12">{PCATS.map(([k, t, e]) => <button key={k} className={`chip ${cat === k ? 'on' : ''}`} onClick={() => setCat(k)}>{e} {t}</button>)}</div>
-    <LeafletMap here={here} places={pr ? list : []} sel={sel} onSelect={pick}>
+    <LeafletMap here={here} places={pr ? list : NONE} sel={sel} onSelect={pick}>
       {!pr && <div className="gate"><div><div className="bigicon" style={{ width: 60, height: 60, margin: '0 auto', background: '#FFF1C9', color: '#8A6300' }}><Icon n="lock" /></div>
         <h3 className="mt12">El buscador de lugares cercanos es parte de Premium</h3>
         <button className="btn sm" style={{ margin: '12px auto 0' }} onClick={() => nav('/planes')}>Mejorar plan</button></div></div>}
@@ -108,7 +114,7 @@ export function Cerca() {
       </div>
       {error && <ErrorBox error={error} onRetry={reload} />}
       {!data && !error && <p className="center muted">Cargando…</p>}
-      <div className="mt12">{shown.map(p => <div key={p.id} id={'pl-' + p.id} className={`place ${sel === p.id ? 'sel' : ''}`}>
+      <div className="mt12">{shown.map(p => <div key={p.id} ref={el => { rows.current[p.id] = el; }} className={`place ${sel === p.id ? 'sel' : ''}`}>
         <button className="em" style={{ background: PCOL[p.category] + '22' }} onClick={() => pick(p.id)} aria-label={'Ver ' + p.name + ' en el mapa'}>{PEMO[p.category]}</button>
         <div className="grow"><b style={{ color: 'var(--navy)' }}>{p.name}</b>
           <div className="tiny muted" style={{ fontWeight: 700 }}>{p.categoryName} · a {distTxt(p.m)} · {walkMin(p.m)} min caminando</div>

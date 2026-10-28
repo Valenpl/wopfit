@@ -1,0 +1,17 @@
+{
+  "name": "WopFit",
+  "short_name": "WopFit",
+  "description": "Hábitos que se adaptan a tu vida real.",
+  "lang": "es-AR",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#DCEFF8",
+  "theme_color": "#B9E1FA",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

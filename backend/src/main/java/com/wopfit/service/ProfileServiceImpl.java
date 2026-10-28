@@ -1,5 +1,7 @@
 package com.wopfit.service;
 
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -62,7 +64,7 @@ public class ProfileServiceImpl implements ProfileService {
     @Override
     public MeResponse updateAbout(Long userId, AboutRequest r) {
         User u = user(userId);
-        int age = java.time.Period.between(r.birthDate(), java.time.LocalDate.now()).getYears();
+        int age = Period.between(r.birthDate(), LocalDate.now()).getYears();
         if (age < 13 || age > 110) throw new InvalidDataException("Revisá la fecha: la app es para mayores de 13 años.");
         u.setName(r.name().trim());
         u.setBirthDate(r.birthDate());
