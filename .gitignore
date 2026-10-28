@@ -5,3 +5,4 @@ frontend/dist/
 .env
 frontend/test-results/
 frontend/playwright-report/
+backend/schema-gen.sql
