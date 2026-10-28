@@ -4,7 +4,7 @@ import { addEntryCases, apiThunk, changeOf, fulfilledOf, getEntry, markAllStale 
 
 // Comidas por día y lista del súper (por la fecha que se pidió: el backend arma la semana de esa fecha).
 export const fetchMealDay = apiThunk('meals/fetchDay', date => http.get(`/meals/${date}`), { cached: (s, date) => getEntry(s.meals.days, date) });
-export const fetchShopping = apiThunk('meals/fetchShopping', date => http.get(`/shopping/${date}`), { cached: (s, date) => getEntry(s.meals.shopping, date) });
+export const fetchShopping = apiThunk('meals/fetchShopping', date => http.get(`/shopping-lists/${date}`), { cached: (s, date) => getEntry(s.meals.shopping, date) });
 
 export const eatMeal = apiThunk('meals/eaten', ({ date, slot }) => http.post(`/meals/${date}/${slot}/eaten`), { toast: '¡Bien ahí! 🍽️' });
 export const swapMeal = apiThunk('meals/swap', ({ date, slot }) => http.post(`/meals/${date}/${slot}/swap`), { toast: 'Te dejamos otra opción' });
@@ -14,7 +14,7 @@ export const acceptMeal = apiThunk('meals/accept', ({ date, slot, name }) => htt
   { toast: (_, arg) => arg.message || 'Listo, cambiamos tu comida' });
 /** Devuelve la propuesta; no cambia nada todavía. */
 export const reportMeal = apiThunk('meals/report', ({ date, slot, reason }) => http.post(`/meals/${date}/${slot}/report`, { reason }));
-export const checkShoppingItem = apiThunk('meals/check', ({ date, name, checked }) => http.put(`/shopping/${date}`, { name, checked }));
+export const checkShoppingItem = apiThunk('meals/check', ({ date, name, checked }) => http.put(`/shopping-lists/${date}`, { name, checked }));
 
 const initialState = { days: {}, shopping: {} };
 

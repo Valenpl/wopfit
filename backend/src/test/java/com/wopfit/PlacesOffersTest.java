@@ -33,7 +33,7 @@ class PlacesOffersTest extends ApiTest {
         JsonNode denied = call(get("/api/v1/places"), t, null, 403);
         assertThat(denied.get("error").asText()).contains("Premium");
 
-        call(post("/api/v1/subscription"), t, "{\"period\":\"mensual\"}", 200);
+        call(post("/api/v1/users/me/subscription"), t, "{\"period\":\"mensual\"}", 200);
         JsonNode places = call(get("/api/v1/places"), t, null, 200);
         assertThat(places.size()).isEqualTo(45);
         Set<String> cats = Set.of("super", "verdu", "diet", "gym", "parque");
@@ -71,7 +71,7 @@ class PlacesOffersTest extends ApiTest {
         JsonNode offers = res.get("offers");
         assertThat(offers.size()).isEqualTo(10);
 
-        JsonNode list = call(get("/api/v1/shopping/2026-10-21"), t, null, 200).get("items");
+        JsonNode list = call(get("/api/v1/shopping-lists/2026-10-21"), t, null, 200).get("items");
         int forList = 0;
         for (JsonNode o : offers) {
             int days = o.get("daysLeft").asInt();
@@ -96,7 +96,7 @@ class PlacesOffersTest extends ApiTest {
         for (JsonNode o : call(get("/api/v1/offers"), t, null, 200).get("offers")) assertThat(o.get("daysLeft").asInt()).isPositive();
 
         setToday(TODAY);
-        call(post("/api/v1/subscription"), t, "{\"period\":\"anual\"}", 200);
+        call(post("/api/v1/users/me/subscription"), t, "{\"period\":\"anual\"}", 200);
         assertThat(call(get("/api/v1/offers"), t, null, 200).get("alerts").asBoolean()).isTrue();
     }
 }

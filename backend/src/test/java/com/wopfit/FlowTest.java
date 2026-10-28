@@ -19,7 +19,7 @@ class FlowTest extends ApiTest {
         setToday(mon);
 
         call(get("/api/v1/health"), null, null, 200);
-        call(get("/api/v1/me"), null, null, 401);
+        call(get("/api/v1/users/me"), null, null, 401);
         call(post("/api/v1/auth/register"), null, "{\"email\":\"mal\",\"password\":\"corta\"}", 400);
 
         JsonNode reg = call(post("/api/v1/auth/register"), null, "{\"email\":\"Lucia@mail.com\",\"password\":\"clave1234\"}", 201);
@@ -31,12 +31,12 @@ class FlowTest extends ApiTest {
         call(post("/api/v1/auth/authenticate"), null, "{\"email\":\"lucia@mail.com\",\"password\":\"otra12345\"}", 401);
         t = call(post("/api/v1/auth/authenticate"), null, "{\"email\":\"lucia@mail.com\",\"password\":\"clave1234\"}", 200).get("token").asText();
 
-        call(put("/api/v1/me/about"), t, "{\"name\":\"Lucía\",\"birthDate\":\"1990-05-02\",\"heightCm\":165,\"weightKg\":70}", 200);
-        call(post("/api/v1/plan"), t, null, 400); // sin preferencias
+        call(put("/api/v1/users/me"), t, "{\"name\":\"Lucía\",\"birthDate\":\"1990-05-02\",\"heightCm\":165,\"weightKg\":70}", 200);
+        call(post("/api/v1/users/me/plan"), t, null, 400); // sin preferencias
         String prefs = "{\"goals\":[\"mover\",\"comer\"],\"days\":[0,2,4],\"minutes\":30,\"budget\":\"bajo\",\"activities\":[\"caminar\"],"
                 + "\"avoid\":[\"tacc\"],\"otherAvoid\":\"\",\"health\":[\"diabetes\"],\"level\":\"principiante\",\"equipment\":[\"nada\"]}";
-        call(put("/api/v1/me/preferences"), t, prefs, 200);
-        JsonNode plan = call(post("/api/v1/plan"), t, null, 200);
+        call(put("/api/v1/users/me/preferences"), t, prefs, 200);
+        JsonNode plan = call(post("/api/v1/users/me/plan"), t, null, 200);
         assertThat(plan.at("/plan/healthNotes").size()).isGreaterThan(0);
 
         JsonNode today = call(get("/api/v1/workouts/today"), t, null, 200);
@@ -75,7 +75,7 @@ class FlowTest extends ApiTest {
         JsonNode chk = call(post("/api/v1/goals/" + goal.get("id").asLong() + "/check"), t, null, 200);
         assertThat(chk.get("done").asBoolean()).isTrue();
 
-        JsonNode prog = call(get("/api/v1/progress"), t, null, 200);
+        JsonNode prog = call(get("/api/v1/users/me/progress"), t, null, 200);
         assertThat(prog.get("sessionsDone").asInt()).isEqualTo(1);
         assertThat(prog.get("habitsToday").asInt()).isEqualTo(2);
         JsonNode mover = prog.get("objectives").get(0);
@@ -93,18 +93,18 @@ class FlowTest extends ApiTest {
                 assertThat(r.get("action").asText()).isEqualTo("MOVED");
             }
         }
-        prog = call(get("/api/v1/progress"), t, null, 200);
+        prog = call(get("/api/v1/users/me/progress"), t, null, 200);
         assertThat(prog.at("/suggestion/type").asText()).isEqualTo("LIGHTEN");
-        JsonNode light = call(post("/api/v1/adjust/lighten"), t, null, 200);
+        JsonNode light = call(post("/api/v1/users/me/plan/lighten"), t, null, 200);
         assertThat(light.get("minutes").asInt()).isEqualTo(20);
-        prog = call(get("/api/v1/progress"), t, null, 200);
+        prog = call(get("/api/v1/users/me/progress"), t, null, 200);
         assertThat(prog.get("suggestion").isNull()).isTrue();
 
         // cambiar preferencias → pendiente → actualizar plan con diff
-        call(put("/api/v1/me/preferences"), t, prefs.replace("[0,2,4]", "[1,3]"), 200);
-        JsonNode me = call(get("/api/v1/me"), t, null, 200);
+        call(put("/api/v1/users/me/preferences"), t, prefs.replace("[0,2,4]", "[1,3]"), 200);
+        JsonNode me = call(get("/api/v1/users/me"), t, null, 200);
         assertThat(me.at("/preferences/pendingChanges").size()).isEqualTo(1);
-        JsonNode upd = call(post("/api/v1/plan"), t, null, 200);
+        JsonNode upd = call(post("/api/v1/users/me/plan"), t, null, 200);
         assertThat(upd.get("changes").size()).isGreaterThan(0);
         JsonNode w2 = call(get("/api/v1/workouts/week"), t, null, 200);
         for (JsonNode d : w2.get("days")) {
@@ -113,7 +113,7 @@ class FlowTest extends ApiTest {
             if (!d.at("/session/status").asText().equals("DONE")) assertThat(dow).isIn(1, 3);
         }
 
-        JsonNode hist = call(get("/api/v1/history"), t, null, 200);
+        JsonNode hist = call(get("/api/v1/users/me/history"), t, null, 200);
         assertThat(hist.get("weeks").size()).isEqualTo(2);
         assertThat(hist.get("difficulties").size()).isGreaterThanOrEqualTo(3);
         assertThat(hist.get("mostCommon").asText()).isNotBlank();

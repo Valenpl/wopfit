@@ -1,9 +1,19 @@
 import { createSlice } from '@reduxjs/toolkit';
 import { http } from '../../api/axios';
-import { addEntryCases, apiThunk, getEntry } from '../helpers';
+import { addEntryCases, addSingleCases, apiThunk, emptyEntry, getEntry } from '../helpers';
 
-// Comunidad: el feed por filtro ('para', 'recetas', 'act', 'preg') y cada publicación con sus comentarios.
-export const fetchFeed = apiThunk('community/fetchFeed', f => http.get(`/community?f=${f}`), { cached: (s, f) => getEntry(s.community.feeds, f) });
+// Comunidad: personas como vos, el feed por filtro ('para', 'recetas', 'act', 'preg') de a páginas y cada publicación con sus comentarios.
+const PAGE = 10;
+/** El feed se guarda como { posts, page, last }: las páginas que llegan se van sumando a `posts`. */
+const toFeed = r => ({ posts: r.content, page: r.page, last: r.last });
+export const fetchPeople = apiThunk('community/fetchPeople', () => http.get('/people'), { cached: s => s.community.people });
+export const fetchFeed = apiThunk('community/fetchFeed', f => http.get(`/posts?filter=${f}&page=0&size=${PAGE}`).then(toFeed),
+  { cached: (s, f) => getEntry(s.community.feeds, f) });
+/** La página siguiente del feed `f`. No sale si ya se está pidiendo o si no hay más. */
+export const fetchMorePosts = apiThunk('community/fetchMore', (f, getState) => {
+  const { page } = getState().community.feeds[f].data;
+  return http.get(`/posts?filter=${f}&page=${page + 1}&size=${PAGE}`).then(toFeed);
+}, { condition: (f, { getState }) => { const e = getEntry(getState().community.feeds, f); return !!e.data && !e.data.last && !e.loadingMore; } });
 export const fetchPost = apiThunk('community/fetchPost', id => http.get(`/posts/${id}`), { cached: (s, id) => getEntry(s.community.posts, String(id)) });
 export const createPost = apiThunk('community/create', body => http.post('/posts', body), { toast: '¡Publicado en la comunidad!' });
 export const deletePost = apiThunk('community/delete', id => http.del(`/posts/${id}`), { toast: 'Publicación borrada' });
@@ -11,9 +21,9 @@ export const commentPost = apiThunk('community/comment', ({ id, text }) => http.
 /** kind: 'like' o 'save'. */
 export const markPost = apiThunk('community/mark', ({ id, kind, on }) => http.put(`/posts/${id}/${kind}`, { on }),
   { toast: (_, a) => (a.kind === 'save' ? (a.on ? 'Guardado' : 'Quitado de guardados') : null) });
-export const followPerson = apiThunk('community/follow', ({ id, on }) => http.put(`/community/people/${id}/follow`, { on }));
+export const followPerson = apiThunk('community/follow', ({ id, on }) => http.put(`/people/${id}/follow`, { on }));
 
-const initialState = { feeds: {}, posts: {} };
+const initialState = { people: emptyEntry, feeds: {}, posts: {} };
 /** En qué feed, además de "Para vos", aparece cada tipo de publicación. */
 const FEED_OF = { receta: 'recetas', actividad: 'act', pregunta: 'preg' };
 
@@ -26,9 +36,9 @@ function eachPost(s, id, fn) {
 const setMark = (p, kind, on, likes) => (kind === 'like'
   ? { ...p, liked: on, likes: likes !== undefined ? likes : p.likes + (on ? 1 : -1) }
   : { ...p, saved: on });
-const setFollow = (s, id, on) => Object.values(s.feeds).forEach(e => {
-  if (e.data) e.data.people = e.data.people.map(x => (x.id === id ? { ...x, following: on } : x));
-});
+const setFollow = (s, id, on) => {
+  if (s.people.data) s.people.data.people = s.people.data.people.map(x => (x.id === id ? { ...x, following: on } : x));
+};
 
 const communitySlice = createSlice({
   name: 'community',
@@ -60,7 +70,19 @@ const communitySlice = createSlice({
         eachPost(s, id, p => ({ ...p, comments: p.comments + 1 }));
         const d = s.posts[String(id)];
         if (d && d.data) d.data.comments.push(a.payload);
+      })
+      .addCase(fetchMorePosts.pending, (s, a) => { s.feeds[a.meta.arg].loadingMore = true; })
+      .addCase(fetchMorePosts.rejected, (s, a) => { s.feeds[a.meta.arg].loadingMore = false; })
+      .addCase(fetchMorePosts.fulfilled, (s, a) => {
+        const e = s.feeds[a.meta.arg];
+        e.loadingMore = false;
+        // Si se publicó o se borró algo, las páginas se corren: no se suma lo que ya está.
+        const seen = new Set(e.data.posts.map(p => p.id));
+        e.data.posts.push(...a.payload.posts.filter(p => !seen.has(p.id)));
+        e.data.page = a.payload.page;
+        e.data.last = a.payload.last;
       });
+    addSingleCases(builder, fetchPeople, 'people');
     addEntryCases(builder, fetchFeed, 'feeds');
     addEntryCases(builder, fetchPost, 'posts', id => String(id));
   }

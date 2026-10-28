@@ -23,7 +23,7 @@ import jakarta.validation.Valid;
 /** Lista del súper de la semana de la fecha. */
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/shopping")
+@RequestMapping("/api/v1/shopping-lists")
 public class ShoppingController {
     private final MealService meals;
 

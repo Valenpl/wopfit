@@ -3,9 +3,9 @@ import { http } from '../../api/axios';
 import { addEntryCases, addSingleCases, apiThunk, emptyEntry, fulfilledOf, getEntry, markAllStale, markStale } from '../helpers';
 
 // Ayuda profesional: listado (con mis consultas y el cupo del mes) y la agenda de cada profesional.
-export const fetchPros = apiThunk('pros/fetch', () => http.get('/pros'), { cached: s => s.pros.list });
-export const fetchPro = apiThunk('pros/fetchOne', id => http.get(`/pros/${id}`), { cached: (s, id) => getEntry(s.pros.details, String(id)) });
-export const bookConsult = apiThunk('pros/book', ({ id, date, time, mode }) => http.post(`/pros/${id}/book`, { date, time, mode }));
+export const fetchPros = apiThunk('pros/fetch', () => http.get('/professionals'), { cached: s => s.pros.list });
+export const fetchPro = apiThunk('pros/fetchOne', id => http.get(`/professionals/${id}`), { cached: (s, id) => getEntry(s.pros.details, String(id)) });
+export const bookConsult = apiThunk('pros/book', ({ id, date, time, mode }) => http.post(`/professionals/${id}/consultations`, { date, time, mode }));
 export const cancelConsult = apiThunk('pros/cancel', id => http.del(`/consultations/${id}`), { toast: r => r.message });
 
 const initialState = { list: emptyEntry, details: {} };

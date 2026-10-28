@@ -2,6 +2,8 @@ package com.wopfit.controllers;
 
 import java.util.concurrent.TimeUnit;
 
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.CacheControl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -22,10 +24,11 @@ import lombok.RequiredArgsConstructor;
 import com.wopfit.entity.Photo;
 import com.wopfit.entity.dto.CommentRequest;
 import com.wopfit.entity.dto.CommentResponse;
-import com.wopfit.entity.dto.CommunityResponse;
 import com.wopfit.entity.dto.DeleteResponse;
 import com.wopfit.entity.dto.FollowResponse;
 import com.wopfit.entity.dto.MarkResponse;
+import com.wopfit.entity.dto.PageResponse;
+import com.wopfit.entity.dto.PeopleResponse;
 import com.wopfit.entity.dto.PostDetailResponse;
 import com.wopfit.entity.dto.PostRequest;
 import com.wopfit.entity.dto.PostResponse;
@@ -34,22 +37,30 @@ import com.wopfit.service.CommunityService;
 
 import jakarta.validation.Valid;
 
-/** Comunidad: feed, publicaciones con foto, comentarios, me gusta, guardados y seguir personas. */
+/** Comunidad: personas como vos, feed paginado, publicaciones con foto, comentarios, me gusta, guardados y seguir personas. */
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1")
 public class CommunityController {
     private final CommunityService community;
 
-    /** `f`: para (por defecto), recetas, act o preg. */
-    @GetMapping("/community")
-    public ResponseEntity<CommunityResponse> feed(@AuthenticationPrincipal(expression = "id") Long uid, @RequestParam(defaultValue = "para") String f) {
-        return ResponseEntity.ok(community.community(uid, f));
+    /** Personas como vos (las 5 que más objetivos comparten). */
+    @GetMapping("/people")
+    public ResponseEntity<PeopleResponse> people(@AuthenticationPrincipal(expression = "id") Long uid) {
+        return ResponseEntity.ok(community.people(uid));
     }
 
-    @PutMapping("/community/people/{id}/follow")
+    @PutMapping("/people/{id}/follow")
     public ResponseEntity<FollowResponse> follow(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable Long id, @Valid @RequestBody ToggleRequest r) {
         return ResponseEntity.ok(new FollowResponse(community.follow(uid, id, r.on())));
+    }
+
+    /** Feed paginado (?page=0&size=10). `filter`: para (por defecto), recetas, act o preg. */
+    @GetMapping("/posts")
+    public ResponseEntity<PageResponse<PostResponse>> feed(@AuthenticationPrincipal(expression = "id") Long uid,
+                                                           @RequestParam(defaultValue = "para") String filter,
+                                                           @PageableDefault(size = 10) Pageable pageable) {
+        return ResponseEntity.ok(community.feed(uid, filter, pageable));
     }
 
     @PostMapping("/posts")

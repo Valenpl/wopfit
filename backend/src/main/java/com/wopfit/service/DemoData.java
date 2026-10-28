@@ -46,6 +46,7 @@ public class DemoData implements ApplicationRunner {
     private final PostRepository posts;
     private final PostCommentRepository comments;
     private final TimeService time;
+    private final CommunityProfileService communityProfiles;
 
     private static List<String[]> rows(String file) throws IOException {
         List<String[]> out = new ArrayList<>();
@@ -153,5 +154,7 @@ public class DemoData implements ApplicationRunner {
             log.info("Profesionales de demostración cargados: {}", pros.count());
         }
         if (!people.existsByDemoTrue()) loadCommunity();
+        int created = communityProfiles.createMissing();
+        if (created > 0) log.info("Perfiles de comunidad creados para usuarios que no tenían: {}", created);
     }
 }

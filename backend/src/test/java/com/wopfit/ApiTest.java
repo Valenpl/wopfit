@@ -56,10 +56,10 @@ abstract class ApiTest {
         JsonNode reg = call(post("/api/v1/auth/register"), null, "{\"email\":\"" + email + "\",\"password\":\"clave1234\"}", 201);
         String t = call(post("/api/v1/auth/verify"), null, "{\"email\":\"" + email + "\",\"code\":\"" + reg.get("devCode").asText() + "\"}", 200)
                 .get("token").asText();
-        call(put("/api/v1/me/about"), t, "{\"name\":\"Sofi\",\"birthDate\":\"1992-08-14\",\"heightCm\":160,\"weightKg\":58}", 200);
-        call(put("/api/v1/me/preferences"), t, "{\"goals\":[\"comer\"],\"days\":[0,2,4],\"minutes\":30,\"budget\":\"medio\",\"activities\":[],"
+        call(put("/api/v1/users/me"), t, "{\"name\":\"Sofi\",\"birthDate\":\"1992-08-14\",\"heightCm\":160,\"weightKg\":58}", 200);
+        call(put("/api/v1/users/me/preferences"), t, "{\"goals\":[\"comer\"],\"days\":[0,2,4],\"minutes\":30,\"budget\":\"medio\",\"activities\":[],"
                 + "\"avoid\":[\"tacc\"],\"otherAvoid\":\"\",\"health\":[],\"level\":\"principiante\",\"equipment\":[\"nada\"]}", 200);
-        call(post("/api/v1/plan"), t, null, 200);
+        call(post("/api/v1/users/me/plan"), t, null, 200);
         return t;
     }
 }

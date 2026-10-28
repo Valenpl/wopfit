@@ -16,7 +16,7 @@ import com.wopfit.service.PlanService;
 /** Crear, actualizar y ver el plan. */
 @RequiredArgsConstructor
 @RestController
-@RequestMapping("/api/v1/plan")
+@RequestMapping("/api/v1/users/me/plan")
 public class PlanController {
     private final PlanService plans;
 

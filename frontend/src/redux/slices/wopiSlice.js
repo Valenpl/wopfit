@@ -3,9 +3,9 @@ import { http } from '../../api/axios';
 import { addSingleCases, apiThunk, emptyEntry, fulfilledOf, markStale, wait } from '../helpers';
 
 // Chat con Wopi. La pregunta aparece al instante y la respuesta tarda al menos 600 ms ("Wopi está escribiendo").
-export const fetchChat = apiThunk('wopi/fetch', () => http.get('/wopi'), { cached: s => s.wopi.chat });
+export const fetchChat = apiThunk('wopi/fetch', () => http.get('/wopi/messages'), { cached: s => s.wopi.chat });
 export const askWopi = apiThunk('wopi/ask', async text => {
-  const [r] = await Promise.all([http.post('/wopi', { text }), wait(600)]);
+  const [r] = await Promise.all([http.post('/wopi/messages', { text }), wait(600)]);
   return r;
 }, { condition: (_, { getState }) => !getState().wopi.typing });
 

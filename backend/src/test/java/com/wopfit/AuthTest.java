@@ -25,20 +25,20 @@ class AuthTest extends ApiTest {
         assertThat(claims.get("role").asText()).isEqualTo("USER");
         assertThat(claims.get("userId").asLong()).isEqualTo(auth.at("/me/id").asLong());
 
-        call(get("/api/v1/me"), t, null, 200);
+        call(get("/api/v1/users/me"), t, null, 200);
     }
 
     @Test
     void tokensQueNoSirven() throws Exception {
         call(post("/api/v1/auth/authenticate"), null, "{\"email\":\"nadie@mail.com\",\"password\":\"clave1234\"}", 401);
-        call(get("/api/v1/me"), "no-es-un-token", null, 401);
+        call(get("/api/v1/users/me"), "no-es-un-token", null, 401);
 
         // Firma cambiada: el payload dice otra cosa y la firma ya no coincide.
         String t = newUser("firma@mail.com");
         String[] parts = t.split("\\.");
         String other = Base64.getUrlEncoder().withoutPadding()
                 .encodeToString("{\"sub\":\"otra@mail.com\",\"role\":\"ADMIN\"}".getBytes(StandardCharsets.UTF_8));
-        call(get("/api/v1/me"), parts[0] + "." + other + "." + parts[2], null, 401);
+        call(get("/api/v1/users/me"), parts[0] + "." + other + "." + parts[2], null, 401);
     }
 
     @Test
