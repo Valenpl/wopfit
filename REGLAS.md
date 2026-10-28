@@ -34,7 +34,7 @@ Request → Controller → Service → Repository → MySQL
 
 Las capas se llaman siempre en ese orden. Un controller nunca salta al repository.
 
-> Pendiente de decisión: un backend con 3 capas (como el e-commerce) o microservicios. Si se eligen microservicios, cada servicio repite esta misma estructura adentro.
+> Decidido (28/10/2026): el backend es un solo monolito en 3 capas, como el e-commerce. No vamos a microservicios.
 
 ### 2.2 Carpetas
 
