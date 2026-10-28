@@ -109,7 +109,7 @@ class CommunityTest extends ApiTest {
         for (JsonNode p : feedB.get("people")) seesA |= p.get("id").asLong() == feed.get("me").asLong();
         assertThat(seesA).isTrue();
         call(delete("/api/v1/posts/" + mine.get("id").asLong()), b, null, 403);
-        call(delete("/api/v1/posts/" + mine.get("id").asLong()), a, null, 200);
+        assertThat(call(delete("/api/v1/posts/" + mine.get("id").asLong()), a, null, 200).get("id").asLong()).isEqualTo(mine.get("id").asLong());
         assertThat(mvc.perform(get(url)).andReturn().getResponse().getStatus()).isEqualTo(404);
         call(get("/api/v1/posts/" + mine.get("id").asLong()), a, null, 404);
     }

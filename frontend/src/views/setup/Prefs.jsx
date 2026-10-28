@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { setMe, updatePreferences } from '../../redux/slices/authSlice';
 import { setupPlan } from '../../redux/slices/planSlice';
+import { setPrefsDraft } from '../../redux/slices/uiSlice';
 import useAuth from '../../hooks/useAuth';
 import useBack from '../../hooks/useBack';
 import useRequest from '../../hooks/useRequest';
 import useToast from '../../hooks/useToast';
 import { ACTS, AVOID, BUDGET, EQUIP, GOALS, HEALTH, LEVELS } from '../../utils/constants';
 import { DAYF, DAYL } from '../../utils/dates';
-import { loadSession, saveSession } from '../../utils/storage';
 import Btn from '../../components/shared/Btn.jsx';
 import Icon from '../../components/shared/Icon.jsx';
 import Note from '../../components/shared/Note.jsx';
@@ -17,8 +17,7 @@ import Screen from '../../components/shared/Screen.jsx';
 import Sect from '../../components/shared/Sect.jsx';
 import TopBar from '../../components/shared/TopBar.jsx';
 
-// Preferencias en 3 pasos. En el registro se guarda un borrador por si se recarga la página.
-const DRAFT = 'wopfit-draft';
+// Preferencias en 3 pasos. En el registro, el borrador queda en el store para no perderlo al ir y volver entre pasos.
 const fromMe = p => (p ? { goals: p.goals, days: p.days, minutes: p.minutes, budget: p.budget, activities: p.activities, avoid: p.avoid, otherAvoid: p.otherAvoid || '', health: p.health, level: p.level, equipment: p.equipment }
   : { goals: [], days: [0, 2, 4], minutes: 30, budget: 'medio', activities: [], avoid: [], otherAvoid: '', health: [], level: 'principiante', equipment: ['nada'] });
 
@@ -29,11 +28,12 @@ export default function Prefs({ edit }) {
   const back = useBack('/perfil');
   const toast = useToast();
   const step = Math.min(3, Math.max(1, +useParams().step || 1));
+  const draft = useSelector(s => s.ui.prefsDraft);
   const [d, setD] = useState(() => {
-    if (!edit) { try { const s = loadSession(DRAFT); if (s) return JSON.parse(s); } catch { /* borrador roto */ } }
+    if (!edit && draft) return draft;
     return fromMe(me.preferences);
   });
-  useEffect(() => { if (!edit) saveSession(DRAFT, JSON.stringify(d)); }, [d, edit]);
+  useEffect(() => { if (!edit) dispatch(setPrefsDraft(d)); }, [d, edit, dispatch]);
 
   const save = useRequest(updatePreferences, {
     onSuccess: m => { toast(m.preferences.pendingChanges.length ? 'Guardado. Actualizá tu plan para ver los cambios.' : 'Guardado'); back(); }
@@ -41,7 +41,7 @@ export default function Prefs({ edit }) {
   const setup = useRequest(setupPlan, {
     // Navegar y guardar el usuario juntos: si el usuario con plan llegara antes, esta ruta (solo para 'prefs') redirigiría al inicio.
     onSuccess: r => {
-      saveSession(DRAFT, null);
+      dispatch(setPrefsDraft(null));
       nav('/plan-listo', { replace: true, state: { fresh: true, changes: r.changes } });
       dispatch(setMe(r.me));
     }

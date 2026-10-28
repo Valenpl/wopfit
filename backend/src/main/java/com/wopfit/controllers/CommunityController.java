@@ -23,7 +23,7 @@ import com.wopfit.entity.dto.CommentRequest;
 import com.wopfit.entity.dto.CommentResponse;
 import com.wopfit.entity.dto.CommunityResponse;
 import com.wopfit.entity.dto.MarkResponse;
-import com.wopfit.entity.dto.MessageResponse;
+import com.wopfit.entity.dto.DeleteResponse;
 import com.wopfit.entity.dto.PostDetailResponse;
 import com.wopfit.entity.dto.PostRequest;
 import com.wopfit.entity.dto.PostResponse;
@@ -64,9 +64,9 @@ public class CommunityController {
     }
 
     @DeleteMapping("/posts/{id}")
-    public ResponseEntity<MessageResponse> delete(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable Long id) {
+    public ResponseEntity<DeleteResponse> delete(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable Long id) {
         community.delete(uid, id);
-        return ResponseEntity.ok(new MessageResponse("Publicación borrada"));
+        return ResponseEntity.ok(new DeleteResponse(id, "Publicación borrada"));
     }
 
     @PostMapping("/posts/{id}/comments")

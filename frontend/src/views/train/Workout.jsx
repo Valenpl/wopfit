@@ -1,13 +1,15 @@
 import { useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate, useParams } from 'react-router-dom';
 import { fetchSession, fetchToday } from '../../redux/slices/workoutSlice';
 import { markWalk } from '../../redux/slices/habitSlice';
+import { setWorkoutChecks } from '../../redux/slices/uiSlice';
 import { getEntry } from '../../redux/helpers';
 import useFetch from '../../hooks/useFetch';
 import useRequest from '../../hooks/useRequest';
 import { howto } from '../../utils/constants';
 import { longDay, today } from '../../utils/dates';
-import { getChecks, isAlt, setChecks } from '../../utils/workoutChecks';
+import { checksKey, isAlt, selectChecks } from '../../utils/workoutChecks';
 import ReportSheet from '../../components/train/ReportSheet.jsx';
 import Btn from '../../components/shared/Btn.jsx';
 import ErrorBox from '../../components/shared/ErrorBox.jsx';
@@ -40,14 +42,15 @@ export default function Workout() {
 function Routine({ s, walk, altKey }) {
   const nav = useNavigate();
   const c = s.content, t = today();
-  const [w, setW] = useState(() => getChecks(s.id, altKey));
+  const dispatch = useDispatch();
+  const w = useSelector(selectChecks(s.id, altKey));
   const [open, setOpen] = useState(() => Math.max(0, c.blocks.findIndex((b, bi) => !b.items.every((_, ii) => w.includes(bi + '-' + ii)))));
   const [how, setHow] = useState(null);
   const [report, setReport] = useState(null);
   const walked = useRequest(markWalk, { onSuccess: () => nav('/entreno', { replace: true }) });
 
   const total = c.blocks.reduce((n, b) => n + b.items.length, 0);
-  const tick = k => { const n = w.includes(k) ? w.filter(x => x !== k) : [...w, k]; setW(n); setChecks(s.id, altKey, n); };
+  const tick = k => dispatch(setWorkoutChecks({ key: checksKey(s.id, altKey), checks: w.includes(k) ? w.filter(x => x !== k) : [...w, k] }));
   const future = s.date > t;
   const finish = () => (walk ? walked.run(t) : nav(`/entreno/${s.id}/hecho`));
 

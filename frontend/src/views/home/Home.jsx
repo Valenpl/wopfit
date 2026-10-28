@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useDispatch } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { fetchToday, fetchWeek } from '../../redux/slices/workoutSlice';
 import { fetchMealDay } from '../../redux/slices/mealSlice';
@@ -31,6 +31,7 @@ export default function Home() {
   const toast = useToast();
   const { me } = useAuth();
   const [report, setReport] = useState(null);
+  const checks = useSelector(st => st.ui.workoutChecks);
   const t = today();
   const y = add(t, -1);
   // Los lunes, "ayer" está en la semana anterior.
@@ -58,7 +59,7 @@ export default function Home() {
   if (!s) ent = { t: 'Día de descanso', m: next[0] ? `Próxima: ${DAYF[dow(next[0].date)]} ${dayNum(next[0].date)}` : 'Sumá una caminata si querés', v: 0, lab: '☀️' };
   else if (s.status === 'DONE') ent = { t: s.title, m: '¡Hecho! 💪', v: 100, lab: '3/3' };
   else if (s.status === 'MOVED') ent = { t: `Pasó al ${DAYF[dow(s.movedTo)]} ${dayNum(s.movedTo)}`, m: 'Hoy descansá', v: 0, lab: '—' };
-  else { const n = s.content ? s.content.blocks.length : 3, bd = blocksDone(s); ent = { t: s.title, m: `${s.minutes} min · ${bd} de ${n} bloques`, v: Math.round(bd / n * 100), lab: `${bd}/${n}` }; }
+  else { const n = s.content ? s.content.blocks.length : 3, bd = blocksDone(s, checks); ent = { t: s.title, m: `${s.minutes} min · ${bd} de ${n} bloques`, v: Math.round(bd / n * 100), lab: `${bd}/${n}` }; }
 
   const dayMeals = meals.data.meals;
   const eatenN = dayMeals.filter(m => m.status === 'EATEN' || m.status === 'ALTERNATIVE').length;

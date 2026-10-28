@@ -12,7 +12,6 @@ test.beforeAll(async ({ request }) => {
 
 test.beforeEach(async ({ page }) => {
   await loginAs(page, token);
-  await page.addInitScript(() => sessionStorage.removeItem('wopfit-cf'));
 });
 
 test('feed, seguir, filtros, me gusta y comentar', async ({ page }) => {
