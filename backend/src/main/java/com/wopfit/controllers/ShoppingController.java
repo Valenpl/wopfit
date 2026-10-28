@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.RequiredArgsConstructor;
+
 import com.wopfit.entity.dto.ShoppingCheckRequest;
 import com.wopfit.entity.dto.ShoppingResponse;
 import com.wopfit.service.MealService;
@@ -19,14 +21,11 @@ import com.wopfit.service.MealService;
 import jakarta.validation.Valid;
 
 /** Lista del súper de la semana de la fecha. */
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/shopping")
 public class ShoppingController {
     private final MealService meals;
-
-    public ShoppingController(MealService meals) {
-        this.meals = meals;
-    }
 
     @GetMapping("/{date}")
     public ResponseEntity<ShoppingResponse> shopping(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {

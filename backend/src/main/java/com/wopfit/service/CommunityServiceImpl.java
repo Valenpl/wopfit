@@ -18,6 +18,8 @@ import java.util.regex.Pattern;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.RequiredArgsConstructor;
+
 import com.wopfit.entity.CommunityProfile;
 import com.wopfit.entity.Follow;
 import com.wopfit.entity.Photo;
@@ -46,6 +48,7 @@ import com.wopfit.repository.PostMarkRepository;
 import com.wopfit.repository.PostRepository;
 import com.wopfit.repository.PreferencesRepository;
 
+@RequiredArgsConstructor
 @Service
 public class CommunityServiceImpl implements CommunityService {
     /** Filtros de la pantalla → tipo de publicación. */
@@ -61,18 +64,6 @@ public class CommunityServiceImpl implements CommunityService {
     private final PhotoRepository photos;
     private final PreferencesRepository prefs;
     private final ProfileService profile;
-
-    public CommunityServiceImpl(CommunityProfileRepository profiles, PostRepository posts, PostCommentRepository comments, PostMarkRepository marks,
-                            FollowRepository follows, PhotoRepository photos, PreferencesRepository prefs, ProfileService profile) {
-        this.profiles = profiles;
-        this.posts = posts;
-        this.comments = comments;
-        this.marks = marks;
-        this.follows = follows;
-        this.photos = photos;
-        this.prefs = prefs;
-        this.profile = profile;
-    }
 
     private record Candidate(CommunityProfile p, List<String> goals, List<String> shared) {}
 

@@ -11,6 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.RequiredArgsConstructor;
+
 import com.wopfit.entity.dto.BookRequest;
 import com.wopfit.entity.dto.BookResponse;
 import com.wopfit.entity.dto.CancelResponse;
@@ -21,14 +23,11 @@ import com.wopfit.service.ProService;
 import jakarta.validation.Valid;
 
 /** Ayuda profesional: listado, agenda, reservar y cancelar. Reservar es solo con Premium (2 por mes). */
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1")
 public class ProController {
     private final ProService pros;
-
-    public ProController(ProService pros) {
-        this.pros = pros;
-    }
 
     @GetMapping("/pros")
     public ResponseEntity<ProsResponse> list(@AuthenticationPrincipal(expression = "id") Long uid) {

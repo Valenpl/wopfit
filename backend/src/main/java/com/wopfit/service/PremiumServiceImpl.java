@@ -5,6 +5,8 @@ import java.time.LocalDate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.RequiredArgsConstructor;
+
 import com.wopfit.entity.Subscription;
 import com.wopfit.entity.dto.SubscriptionResponse;
 import com.wopfit.exceptions.InvalidDataException;
@@ -13,6 +15,7 @@ import com.wopfit.repository.SubscriptionRepository;
 import com.wopfit.repository.UserRepository;
 import com.wopfit.repository.WopiMessageRepository;
 
+@RequiredArgsConstructor
 @Service
 public class PremiumServiceImpl implements PremiumService {
     private final SubscriptionRepository subs;
@@ -20,15 +23,6 @@ public class PremiumServiceImpl implements PremiumService {
     private final ConsultationRepository consults;
     private final WopiMessageRepository wopi;
     private final TimeService time;
-
-    public PremiumServiceImpl(SubscriptionRepository subs, UserRepository users, ConsultationRepository consults, WopiMessageRepository wopi,
-                          TimeService time) {
-        this.subs = subs;
-        this.users = users;
-        this.consults = consults;
-        this.wopi = wopi;
-        this.time = time;
-    }
 
     private static int months(String period) {
         if (period == null || !Catalog.PREMIUM_PERIODS.containsKey(period)) throw new InvalidDataException("Elegí mensual, semestral o anual");

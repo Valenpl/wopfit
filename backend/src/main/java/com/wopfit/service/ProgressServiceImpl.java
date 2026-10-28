@@ -12,6 +12,8 @@ import java.util.Map;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.RequiredArgsConstructor;
+
 import com.wopfit.entity.Goal;
 import com.wopfit.entity.HabitLog;
 import com.wopfit.entity.MealLog;
@@ -36,6 +38,7 @@ import com.wopfit.repository.HabitLogRepository;
 import com.wopfit.repository.MealLogRepository;
 import com.wopfit.repository.WorkoutSessionRepository;
 
+@RequiredArgsConstructor
 @Service
 public class ProgressServiceImpl implements ProgressService {
     private final PlanService plans;
@@ -45,17 +48,6 @@ public class ProgressServiceImpl implements ProgressService {
     private final HabitLogRepository habits;
     private final MealLogRepository meals;
     private final TimeService time;
-
-    public ProgressServiceImpl(PlanService plans, ProfileService profile, GoalService goals, WorkoutSessionRepository sessions,
-                           HabitLogRepository habits, MealLogRepository meals, TimeService time) {
-        this.plans = plans;
-        this.profile = profile;
-        this.goals = goals;
-        this.sessions = sessions;
-        this.habits = habits;
-        this.meals = meals;
-        this.time = time;
-    }
 
     private static boolean counts(WorkoutSession s) {
         return s.getStatus() == SessionStatus.DONE || s.isAlternativeDone();

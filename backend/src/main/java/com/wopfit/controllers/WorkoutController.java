@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.RequiredArgsConstructor;
+
 import com.wopfit.entity.dto.AlternativeRequest;
 import com.wopfit.entity.dto.DoneRequest;
 import com.wopfit.entity.dto.MoveResponse;
@@ -26,14 +28,11 @@ import com.wopfit.service.PlanService;
 import jakarta.validation.Valid;
 
 /** Entrenamientos del plan: hoy, semana, "no pude", mover y completar. */
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/workouts")
 public class WorkoutController {
     private final PlanService plans;
-
-    public WorkoutController(PlanService plans) {
-        this.plans = plans;
-    }
 
     @GetMapping("/today")
     public ResponseEntity<TodayResponse> today(@AuthenticationPrincipal(expression = "id") Long uid) {

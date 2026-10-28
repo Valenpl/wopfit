@@ -12,6 +12,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.RequiredArgsConstructor;
+
 import com.wopfit.entity.dto.HabitsRequest;
 import com.wopfit.entity.dto.HabitsResponse;
 import com.wopfit.service.HabitService;
@@ -19,14 +21,11 @@ import com.wopfit.service.HabitService;
 import jakarta.validation.Valid;
 
 /** Hábitos diarios: agua, caminar y dormir. */
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/habits")
 public class HabitController {
     private final HabitService habits;
-
-    public HabitController(HabitService habits) {
-        this.habits = habits;
-    }
 
     @GetMapping("/{date}")
     public ResponseEntity<HabitsResponse> habits(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {

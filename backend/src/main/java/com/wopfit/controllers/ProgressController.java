@@ -1,6 +1,5 @@
 package com.wopfit.controllers;
 
-
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -8,6 +7,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+
+import lombok.RequiredArgsConstructor;
 
 import com.wopfit.entity.dto.DismissRequest;
 import com.wopfit.entity.dto.HistoryResponse;
@@ -19,14 +20,11 @@ import com.wopfit.service.ProgressService;
 import jakarta.validation.Valid;
 
 /** Progreso, historial y ajustes sugeridos del plan. */
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1")
 public class ProgressController {
     private final ProgressService progress;
-
-    public ProgressController(ProgressService progress) {
-        this.progress = progress;
-    }
 
     @GetMapping("/progress")
     public ResponseEntity<ProgressResponse> progress(@AuthenticationPrincipal(expression = "id") Long uid) {

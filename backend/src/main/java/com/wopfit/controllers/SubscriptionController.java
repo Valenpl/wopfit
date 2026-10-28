@@ -8,6 +8,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import lombok.RequiredArgsConstructor;
+
 import com.wopfit.entity.dto.MeResponse;
 import com.wopfit.entity.dto.SubscriptionRequest;
 import com.wopfit.service.PremiumService;
@@ -16,16 +18,12 @@ import com.wopfit.service.ProfileService;
 import jakarta.validation.Valid;
 
 /** Premium de demostración: se activa y se cancela sin cobros. */
+@RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/v1/subscription")
 public class SubscriptionController {
     private final ProfileService profile;
     private final PremiumService premium;
-
-    public SubscriptionController(ProfileService profile, PremiumService premium) {
-        this.profile = profile;
-        this.premium = premium;
-    }
 
     @PostMapping
     public ResponseEntity<MeResponse> subscribe(@AuthenticationPrincipal(expression = "id") Long uid, @Valid @RequestBody SubscriptionRequest r) {

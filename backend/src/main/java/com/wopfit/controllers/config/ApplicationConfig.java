@@ -11,16 +11,15 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import lombok.RequiredArgsConstructor;
+
 import com.wopfit.repository.UserRepository;
 
 /** Cómo Spring Security encuentra al usuario y revisa su contraseña. */
+@RequiredArgsConstructor
 @Configuration
 public class ApplicationConfig {
     private final UserRepository users;
-
-    public ApplicationConfig(UserRepository users) {
-        this.users = users;
-    }
 
     @Bean
     public UserDetailsService userDetailsService() {

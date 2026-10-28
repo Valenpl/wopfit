@@ -19,6 +19,8 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.RequiredArgsConstructor;
+
 import com.wopfit.entity.CommunityProfile;
 import com.wopfit.entity.Offer;
 import com.wopfit.entity.Place;
@@ -33,6 +35,7 @@ import com.wopfit.repository.PostRepository;
 import com.wopfit.repository.ProfessionalRepository;
 
 /** Carga los lugares, cupones, profesionales y la comunidad de demostración (resources/demo/*.tsv) la primera vez que arranca, si las tablas están vacías. */
+@RequiredArgsConstructor
 @Component
 public class DemoData implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(DemoData.class);
@@ -43,17 +46,6 @@ public class DemoData implements ApplicationRunner {
     private final PostRepository posts;
     private final PostCommentRepository comments;
     private final TimeService time;
-
-    public DemoData(PlaceRepository places, OfferRepository offers, ProfessionalRepository pros, CommunityProfileRepository people, PostRepository posts,
-                    PostCommentRepository comments, TimeService time) {
-        this.places = places;
-        this.offers = offers;
-        this.pros = pros;
-        this.people = people;
-        this.posts = posts;
-        this.comments = comments;
-        this.time = time;
-    }
 
     private static List<String[]> rows(String file) throws IOException {
         List<String[]> out = new ArrayList<>();

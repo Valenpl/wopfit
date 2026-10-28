@@ -14,6 +14,8 @@ import java.util.Set;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import lombok.RequiredArgsConstructor;
+
 import com.wopfit.entity.MealLog;
 import com.wopfit.entity.MealStatus;
 import com.wopfit.entity.Offer;
@@ -31,6 +33,7 @@ import com.wopfit.repository.OfferRepository;
 import com.wopfit.repository.ShoppingCheckRepository;
 import com.wopfit.service.MealCatalog.Meal;
 
+@RequiredArgsConstructor
 @Service
 public class MealServiceImpl implements MealService {
     private static final String[] TIMES = {"8:00", "13:00", "20:30"};
@@ -41,15 +44,6 @@ public class MealServiceImpl implements MealService {
     private final MealCatalog catalog;
     private final ProfileService profile;
     private final PlanService plans;
-
-    public MealServiceImpl(MealLogRepository logs, ShoppingCheckRepository checks, OfferRepository offers, MealCatalog catalog, ProfileService profile, PlanService plans) {
-        this.logs = logs;
-        this.checks = checks;
-        this.offers = offers;
-        this.catalog = catalog;
-        this.profile = profile;
-        this.plans = plans;
-    }
 
     private static void checkSlot(int slot) {
         if (slot < 0 || slot > 2) throw new InvalidDataException("Momento del día no válido");
