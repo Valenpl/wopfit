@@ -1,35 +1,13 @@
 import { expect, test } from '@playwright/test';
+import { loginAs, newUser, shot } from './helpers.js';
 
 // Ayuda profesional: con Premium se reservan 2 consultas por mes; sin Premium se ve todo pero no se reserva.
-const API = 'http://localhost:8080/api';
 const users = {};
 
-async function newUser(request, name, premium) {
-  let token;
-  const email = `e2e-${name}-${Date.now()}@wopfit.test`;
-  const call = async (method, path, data) => {
-    const res = await request.fetch(API + path, { method, data, headers: token ? { Authorization: 'Bearer ' + token } : {} });
-    expect(res.ok(), `${method} ${path} → ${res.status()}`).toBeTruthy();
-    return res.json();
-  };
-  const { devCode } = await call('POST', '/auth/register', { email, password: 'clave1234' });
-  ({ token } = await call('POST', '/auth/verify', { email, code: devCode }));
-  await call('PUT', '/me/about', { name, birthDate: '1995-03-10', heightCm: 170, weightKg: 68 });
-  await call('PUT', '/me/preferences', {
-    goals: ['mover'], days: [0, 2, 4], minutes: 30, budget: 'bajo', activities: [], avoid: [], otherAvoid: '', health: [], level: 'principiante', equipment: ['nada']
-  });
-  await call('POST', '/plan');
-  if (premium) await call('POST', '/subscription', { period: 'mensual' });
-  return token;
-}
-
 test.beforeAll(async ({ request }) => {
-  users.free = await newUser(request, 'ProLibre', false);
-  users.prem = await newUser(request, 'ProPrem', true);
+  users.free = (await newUser(request, { name: 'ProLibre' })).token;
+  users.prem = (await newUser(request, { name: 'ProPrem', premium: 'mensual' })).token;
 });
-
-const as = (page, who) => page.addInitScript(t => localStorage.setItem('wopfit-token', t), users[who]);
-const shot = (page, name) => page.screenshot({ path: `test-results/${name}.png`, timeout: 10000 }).catch(() => {});
 
 /** Abre un profesional, elige Chat y el primer horario libre del día elegido, y confirma. */
 async function book(page, name) {
@@ -42,7 +20,7 @@ async function book(page, name) {
 }
 
 test('Gratuito: ve los profesionales pero para reservar tiene que pasarse a Premium', async ({ page }) => {
-  await as(page, 'free');
+  await loginAs(page, users.free);
   await page.goto('/profesionales');
   await expect(page.getByRole('button', { name: /2 consultas por mes incluidas en Premium/ })).toBeVisible();
   await expect(page.locator('button.pro')).toHaveCount(3);
@@ -56,7 +34,7 @@ test('Gratuito: ve los profesionales pero para reservar tiene que pasarse a Prem
 });
 
 test('Premium: reservar 2 consultas, agregar al calendario y cancelar', async ({ page }) => {
-  await as(page, 'prem');
+  await loginAs(page, users.prem);
   await page.goto('/profesionales');
   await expect(page.getByText('Te quedan 2 consultas este mes')).toBeVisible();
 

@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api.js';
+import { isStandalone } from '../pwa.js';
 import { ACTS, AVOID, BUDGET, EQUIP, HEALTH, Icon, PRICES, daysText, goal, isPremium } from '../lib.jsx';
 import { Btn, Field, PwField, Screen, Sect, TopBar, useApp, useBack } from '../ui.jsx';
-
-const isStandalone = () => { try { return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true; } catch { return false; } };
 
 export default function Profile() {
   const nav = useNavigate();

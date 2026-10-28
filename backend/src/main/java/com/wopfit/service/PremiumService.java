@@ -55,7 +55,12 @@ public class PremiumService {
 
     /** Consultas que le quedan este mes (cuentan las reservadas en el mes). Sin Premium, 0. */
     public int consultsLeft(Long userId) {
-        if (!isPremium(userId)) return 0;
+        return consultsLeft(userId, isPremium(userId));
+    }
+
+    /** Igual que consultsLeft(userId), cuando ya se sabe si es Premium (evita volver a buscar la suscripción). */
+    public int consultsLeft(Long userId, boolean premium) {
+        if (!premium) return 0;
         LocalDate first = time.today().withDayOfMonth(1);
         long used = consults.countByUserIdAndBookedOnBetween(userId, first, first.plusMonths(1).minusDays(1));
         return (int) Math.max(0, CONSULTS_PER_MONTH - used);
@@ -65,19 +70,26 @@ public class PremiumService {
         return time.today().toString().substring(0, 7);
     }
 
-    public int wopiLimit(Long userId) {
-        return isPremium(userId) ? WOPI_PREMIUM : WOPI_FREE;
+    public static int wopiLimit(boolean premium) {
+        return premium ? WOPI_PREMIUM : WOPI_FREE;
     }
 
     /** Preguntas a Wopi que le quedan este mes: 3 con el plan Gratuito, 20 con Premium. */
     public int wopiLeft(Long userId) {
-        return (int) Math.max(0, wopiLimit(userId) - wopi.countByUserIdAndMonthAndRole(userId, monthKey(), "user"));
+        return wopiLeft(userId, isPremium(userId));
     }
 
+    public int wopiLeft(Long userId, boolean premium) {
+        long used = wopi.countByUserIdAndMonthAndRole(userId, monthKey(), "user");
+        return (int) Math.max(0, wopiLimit(premium) - used);
+    }
+
+    /** Estado del plan para /me: una sola consulta a la suscripción. */
     public SubscriptionDto status(Long userId) {
         Subscription s = active(userId);
-        if (s == null) return new SubscriptionDto(false, null, null, null, true, 0, wopiLeft(userId));
-        return new SubscriptionDto(true, s.getPeriod(), Catalog.PREMIUM_PERIODS.get(s.getPeriod()), s.getUntil(), true, consultsLeft(userId), wopiLeft(userId));
+        boolean premium = s != null;
+        return new SubscriptionDto(premium, premium ? s.getPeriod() : null, premium ? Catalog.PREMIUM_PERIODS.get(s.getPeriod()) : null,
+                premium ? s.getUntil() : null, true, consultsLeft(userId, premium), wopiLeft(userId, premium));
     }
 
     /** Activa (o cambia de período) desde hoy. */

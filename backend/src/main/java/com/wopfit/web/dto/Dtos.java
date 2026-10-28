@@ -1,5 +1,6 @@
 package com.wopfit.web.dto;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Set;
@@ -129,8 +130,8 @@ public final class Dtos {
     // ---------- comunidad ----------
     public record PersonDto(Long id, String name, List<String> goals, String sharedGoal, int daysPerWeek, boolean following) {}
     public record PostDto(Long id, Long authorId, String author, boolean mine, String goal, String goalName, String type, String title, String body,
-            String emoji, String bg, List<String> tags, String photoUrl, int likes, boolean liked, boolean saved, int comments, java.time.Instant createdAt) {}
-    public record CommentDto(Long id, String author, boolean mine, String text, java.time.Instant createdAt) {}
+            String emoji, String bg, List<String> tags, String photoUrl, int likes, boolean liked, boolean saved, int comments, Instant createdAt) {}
+    public record CommentDto(Long id, String author, boolean mine, String text, Instant createdAt) {}
     /** `myGoal`: el objetivo con el que se publica. */
     public record CommunityDto(Long me, String myGoal, String myGoalName, List<PersonDto> people, List<PostDto> posts) {}
     public record PostDetailDto(PostDto post, List<CommentDto> comments) {}

@@ -2,14 +2,13 @@ import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api, apiUrl } from '../api.js';
 import { GOALS, Icon, cap, goal } from '../lib.jsx';
-import { Btn, ErrorBox, Field, Loading, Note, Screen, Sect, TopBar, useAction, useApp, useLoad } from '../ui.jsx';
-import { Avatar } from './Pros.jsx';
+import { Avatar, Btn, ErrorBox, Field, Loading, Note, Screen, Sect, TopBar, useAction, useApp, useLoad } from '../ui.jsx';
 
 const FILTERS = [['para', 'Para vos'], ['recetas', 'Recetas'], ['act', 'Activid.'], ['preg', 'Dudas']];
 const TYPES = [['receta', 'Receta', '🥗'], ['actividad', 'Actividad', '🏃'], ['pregunta', 'Pregunta', '💬']];
 
 /** "recién", "hace 5 min", "hace 2 h", "ayer", "hace 3 días". */
-export function ago(iso) {
+function ago(iso) {
   const m = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
   if (m < 1) return 'recién';
   if (m < 60) return `hace ${m} min`;

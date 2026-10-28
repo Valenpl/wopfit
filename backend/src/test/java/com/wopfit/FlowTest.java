@@ -5,46 +5,14 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 
-import java.time.Clock;
 import java.time.LocalDate;
-import java.time.ZoneId;
 
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.request.MockHttpServletRequestBuilder;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.wopfit.service.TimeService;
 
 /** Recorre el MVP completo contra la API real (H2 en memoria). */
-@SpringBootTest
-@AutoConfigureMockMvc
-@ActiveProfiles("h2")
-class FlowTest {
-    @Autowired MockMvc mvc;
-    @Autowired ObjectMapper om;
-    @Autowired TimeService time;
-
-    private JsonNode call(MockHttpServletRequestBuilder req, String token, Object body, int expected) throws Exception {
-        if (token != null) req.header("Authorization", "Bearer " + token);
-        if (body != null) req.contentType(MediaType.APPLICATION_JSON).content(body instanceof String s ? s : om.writeValueAsString(body));
-        var res = mvc.perform(req).andReturn().getResponse();
-        res.setCharacterEncoding("UTF-8");
-        String txt = res.getContentAsString();
-        assertThat(res.getStatus()).as(txt).isEqualTo(expected);
-        return txt.isEmpty() ? null : om.readTree(txt);
-    }
-
-    private void setToday(LocalDate d) {
-        time.setClock(Clock.fixed(d.atStartOfDay(TimeService.ZONE).plusHours(12).toInstant(), ZoneId.of("America/Argentina/Buenos_Aires")));
-    }
-
+class FlowTest extends ApiTest {
     @Test
     void fullFlow() throws Exception {
         LocalDate mon = LocalDate.of(2026, 10, 19); // lunes

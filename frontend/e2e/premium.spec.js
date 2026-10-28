@@ -1,28 +1,14 @@
 import { expect, test } from '@playwright/test';
+import { loginAs, newUser, shot } from './helpers.js';
 
 // Premium de demostración: se activa sin pagar y cambia lo que se ve en Inicio, Perfil y la barra lateral.
-const API = 'http://localhost:8080/api';
 let token;
 
 test.beforeAll(async ({ request }) => {
-  const email = `e2e-prem-${Date.now()}@wopfit.test`;
-  const call = async (method, path, data) => {
-    const res = await request.fetch(API + path, { method, data, headers: token ? { Authorization: 'Bearer ' + token } : {} });
-    expect(res.ok(), `${method} ${path} → ${res.status()}`).toBeTruthy();
-    return res.json();
-  };
-  const { devCode } = await call('POST', '/auth/register', { email, password: 'clave1234' });
-  ({ token } = await call('POST', '/auth/verify', { email, code: devCode }));
-  await call('PUT', '/me/about', { name: 'Prem', birthDate: '1995-03-10', heightCm: 170, weightKg: 68 });
-  await call('PUT', '/me/preferences', {
-    goals: ['mover'], days: [0, 2, 4], minutes: 30, budget: 'bajo', activities: [], avoid: [], otherAvoid: '', health: [], level: 'principiante', equipment: ['nada']
-  });
-  await call('POST', '/plan');
+  ({ token } = await newUser(request, { name: 'Prem' }));
 });
 
-test.beforeEach(async ({ page }) => {
-  await page.addInitScript(t => localStorage.setItem('wopfit-token', t), token);
-});
+test.beforeEach(({ page }) => loginAs(page, token));
 
 test('pasar a Premium sin pagar y volver al Gratuito', async ({ page }) => {
   // Gratuito: candados, anuncio y "Pasate a Premium"
@@ -37,13 +23,13 @@ test('pasar a Premium sin pagar y volver al Gratuito', async ({ page }) => {
   await page.getByRole('button', { name: /Ver todos los beneficios/ }).click();
   await expect(page.locator('.plan.rec li')).toHaveCount(8);
   await page.locator('.per').filter({ hasText: 'Semestral' }).click();
-  await page.screenshot({ path: 'test-results/planes.png', fullPage: true });
+  await shot(page, 'planes');
   await page.getByRole('button', { name: /Pasarme a Premium/ }).click();
 
   await expect(page).toHaveURL('/premium');
   await expect(page.getByRole('heading', { name: '¡Ya sos Premium!' })).toBeVisible();
   await expect(page.getByText(/Tu plan Semestral está activo hasta el \d+ de \w+ de \d{4}/)).toBeVisible();
-  await page.screenshot({ path: 'test-results/ya-sos-premium.png', fullPage: true });
+  await shot(page, 'ya-sos-premium');
 
   // Premium: sin candados ni anuncio, ★ en la barra y en el perfil
   await page.locator('.tabbar').getByRole('button', { name: 'Inicio', exact: true }).click();

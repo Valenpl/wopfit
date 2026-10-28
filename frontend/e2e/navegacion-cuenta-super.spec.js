@@ -1,29 +1,14 @@
 import { expect, test } from '@playwright/test';
+import { API, PASS, loginAs, newUser, shot } from './helpers.js';
 
 // Navegación como la v6, pantalla Cuenta y lista del súper, contra el backend real.
-const API = 'http://localhost:8080/api';
-const PASS = 'clave1234';
 let token, email;
 
 test.beforeAll(async ({ request }) => {
-  email = `e2e-nav-${Date.now()}@wopfit.test`;
-  const call = async (method, path, data) => {
-    const res = await request.fetch(API + path, { method, data, headers: token ? { Authorization: 'Bearer ' + token } : {} });
-    expect(res.ok(), `${method} ${path} → ${res.status()}`).toBeTruthy();
-    return res.json();
-  };
-  const { devCode } = await call('POST', '/auth/register', { email, password: PASS });
-  ({ token } = await call('POST', '/auth/verify', { email, code: devCode }));
-  await call('PUT', '/me/about', { name: 'Nav', birthDate: '1995-03-10', heightCm: 170, weightKg: 68 });
-  await call('PUT', '/me/preferences', {
-    goals: ['comer'], days: [0, 2, 4], minutes: 30, budget: 'medio', activities: [], avoid: ['tacc'], otherAvoid: '', health: [], level: 'principiante', equipment: ['nada']
-  });
-  await call('POST', '/plan');
+  ({ token, email } = await newUser(request, { name: 'Nav', goals: ['comer'], budget: 'medio', avoid: ['tacc'] }));
 });
 
-test.beforeEach(async ({ page }) => {
-  await page.addInitScript(t => { localStorage.setItem('wopfit-token', t); }, token);
-});
+test.beforeEach(({ page }) => loginAs(page, token));
 
 const tabs = page => page.locator('.tabbar');
 
@@ -33,8 +18,7 @@ test('pestañas de la v6 y accesos rápidos', async ({ page }) => {
   for (const [label, path, heading] of [['Preguntale a Wopi', '/wopi', 'Preguntale a Wopi'], ['Ofertas', '/ofertas', 'Encontrar ofertas'], ['Cerca tuyo', '/cerca', 'Cerca tuyo'], ['Ayuda profesional', '/profesionales', 'Ayuda profesional']]) {
     await page.locator('.qa').getByRole('button', { name: label }).click();
     await expect(page).toHaveURL(path);
-    if (heading) await expect(page.getByRole('heading', { name: heading })).toBeVisible();
-    else await expect(page.getByText('Estamos armando esta sección')).toBeVisible();
+    await expect(page.getByRole('heading', { name: heading })).toBeVisible();
     await page.getByRole('button', { name: 'Volver' }).click();
     await expect(page).toHaveURL('/inicio');
   }
@@ -49,7 +33,7 @@ test('versión celu y compu', async ({ page }) => {
   await expect(page.locator('html')).toHaveClass(/desk/);
   await tabs(page).getByRole('button', { name: 'Ver versión celu' }).click();
   await expect(page.locator('html')).not.toHaveClass(/desk/);
-  await page.screenshot({ path: 'test-results/perfil-celu.png', fullPage: true });
+  await shot(page, 'perfil-celu');
   await page.reload();
   await expect(page.locator('html')).not.toHaveClass(/desk/); // se recuerda
   await page.getByRole('button', { name: /Ver versión compu/ }).click();
@@ -63,7 +47,7 @@ test('perfil tiene las secciones de la v6', async ({ page }) => {
   for (const t of ['Suscripción', 'Ayuda profesional', 'Cuenta', 'Ofertas y cupones', 'Cerca tuyo', 'Instalar la app en tu celu']) {
     await expect(page.locator('.listrow').filter({ hasText: t }).first()).toBeVisible();
   }
-  await page.screenshot({ path: 'test-results/perfil-compu.png', fullPage: true });
+  await shot(page, 'perfil-compu');
 });
 
 test('lista del súper: tildar se guarda en el backend', async ({ page }) => {
@@ -80,7 +64,7 @@ test('lista del súper: tildar se guarda en el backend', async ({ page }) => {
   expect((await saved).ok()).toBeTruthy();
   await expect(first).toHaveAttribute('aria-pressed', 'true');
   await expect(page.locator('.card .tag.blue').first()).toHaveText(/^1\/\d+$/);
-  await page.screenshot({ path: 'test-results/comida-super.png', fullPage: true });
+  await shot(page, 'comida-super');
   await page.reload(); // la pestaña Súper queda elegida y lo tildado sigue tildado
   await expect(page.locator('.listrow').first()).toHaveAttribute('aria-pressed', 'true');
 });
@@ -110,4 +94,20 @@ test('cuenta: cambiar la contraseña', async ({ page, request }) => {
   expect(old.status()).toBe(401);
   const ok = await request.post(API + '/auth/login', { data: { email, password: 'nueva12345' } });
   expect(ok.ok()).toBeTruthy();
+});
+
+test('instalar la app: manifest, service worker e instrucciones', async ({ page, request }) => {
+  const manifest = await (await request.get('/manifest.webmanifest')).json();
+  expect(manifest.display).toBe('standalone');
+  expect(manifest.icons.map(i => i.sizes)).toEqual(['192x192', '512x512', '512x512']);
+  for (const i of manifest.icons) expect((await request.get(i.src)).ok()).toBeTruthy();
+  expect(await (await request.get('/sw.js')).text()).toContain("url.pathname.startsWith('/api/')"); // la API no se guarda en caché
+
+  await page.goto('/perfil');
+  await page.locator('.listrow').filter({ hasText: 'Instalar la app en tu celu' }).click();
+  await expect(page).toHaveURL('/instalar');
+  await expect(page.getByRole('heading', { name: 'Instalá WopFit' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'iPhone (Safari)' })).toBeVisible();
+  await expect(page.getByRole('heading', { name: 'Android (Chrome)' })).toBeVisible();
+  await expect(page.locator('link[rel="manifest"]')).toHaveAttribute('href', '/manifest.webmanifest');
 });

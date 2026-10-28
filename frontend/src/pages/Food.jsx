@@ -1,12 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useLocation, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { api } from '../api.js';
-import { BUDGET, DAYF, Icon, MEAL_BG, MREASONS, add, cap, dayNum, dow, monday, monthName, today } from '../lib.jsx';
+import { BUDGET, DAYF, Icon, MEAL_BG, MREASONS, add, cap, dayNum, dow, monday, money, monthName, today } from '../lib.jsx';
 import { CouponCard, useHere } from './Places.jsx';
 import { Btn, ErrorBox, Loading, More, Note, Screen, Sect, Sheet, TopBar, useAction, useApp, useLoad } from '../ui.jsx';
 
 const eaten = m => m.status === 'EATEN' || m.status === 'ALTERNATIVE';
-const money = n => '$' + Math.round(n).toLocaleString('es-AR');
 
 function MealRow({ m, date, onEat }) {
   const nav = useNavigate();

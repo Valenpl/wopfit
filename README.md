@@ -9,6 +9,10 @@ Hábitos que se adaptan a tu vida real. Incluye:
 - metas y progreso
 - "no pude", con alternativas
 - ajustes automáticos del plan
+- lista del súper, ofertas y lugares cercanos en un mapa
+- Premium de demostración (sin cobros): Wopi, profesionales y más
+- comunidad con publicaciones y fotos
+- se instala como app en el celu
 
 ```
 wopfit/
@@ -30,10 +34,12 @@ wopfit/
 | JPA / Hibernate | Usar la base desde Java | Cada tabla es una clase; viene integrado con Spring |
 | Spring Security + JWT | Login y permisos | Estándar de Spring; el backend verifica en cada pedido quién sos con un token firmado |
 | BCrypt | Guardar contraseñas | Se guarda un hash que no se puede revertir, nunca la contraseña |
+| Leaflet + OpenStreetMap | El mapa de "Cerca tuyo" | Gratis y abierto, sin claves; la ubicación se usa solo en el celu |
+| Playwright | Tests de punta a punta | Maneja un navegador real contra el front y el backend |
 
 Un solo backend (monolito) en 3 capas, en lugar de microservicios: para un equipo chico y una demo, varios servicios sólo suman servidores, costos y fallas entre ellos.
 
-**Planeado (en desarrollo):** migraciones con Flyway, sesión con token corto + token de renovación en cookie, planes versionados detrás de `PlanGenerationService` (hoy un generador simulado, mañana el modelo propio de Wopfit), Premium de demostración sin cobros, lugares cercanos con Leaflet + OpenStreetMap y promociones de demostración. Lo simulado siempre se muestra como demo.
+**Planeado (en desarrollo):** migraciones con Flyway, sesión con token corto + token de renovación en cookie, planes versionados detrás de `PlanGenerationService` (hoy un generador simulado, mañana el modelo propio de Wopfit), emails reales para el código de verificación y un modelo de IA para Wopi. Lo simulado (Premium sin cobros, comercios, cupones, profesionales y personas de ejemplo) siempre se muestra como demo.
 
 ## Reglas del frontend
 
@@ -97,7 +103,7 @@ El test de Playwright usa el front en modo desarrollo (con StrictMode) y el back
 
 Los lugares, cupones y profesionales salen de `backend/src/main/resources/demo/*.tsv`. Se cargan solos al arrancar si las tablas `places`, `offers` y `professionals` están vacías (y la comunidad, si no hay personas de ejemplo).
 
-- **Lugares:** 9 cadenas ficticias (Súper Del Barrio, Mercado Verde, Gimnasio Impulso, Fit Club 24, etc.) con sucursales en direcciones reales de CABA y Vicente López, más 10 parques reales. Las coordenadas se sacaron de OpenStreetMap (Nominatim).
+- **Lugares:** 8 cadenas ficticias (Súper Del Barrio, Mercado Verde, Gimnasio Impulso, Fit Club 24, etc.) con sucursales en direcciones reales de CABA y Vicente López, más 10 parques reales. Las coordenadas se sacaron de OpenStreetMap (Nominatim).
 - **Comunidad:** `people.tsv`, `posts.tsv` y `comments.tsv`. Las personas de ejemplo son perfiles de la comunidad, no usuarios: no se puede entrar con ellas.
 - **Profesionales:** `professionals.tsv`, con nombres y matrículas ficticios.
 - **Cupones:** 10 de aliados ficticios. Cada uno se renueva solo cada cierta cantidad de días, así la demo nunca queda con cupones vencidos.
@@ -129,6 +135,7 @@ Los lugares, cupones y profesionales salen de `backend/src/main/resources/demo/*
 | Ayuda profesional | 6 nutricionistas y entrenadores de ejemplo con agenda de lunes a sábado (algunos turnos ya vienen ocupados). Con Premium se reservan 2 consultas por mes, por videollamada o chat, y se pueden agregar al calendario (.ics) o cancelar |
 | Preguntale a Wopi | Asistente con respuestas armadas por reglas sobre tus datos: rutina de hoy, ideas de comida que respetan lo que no comés y tu presupuesto, lista del súper, ofertas, motivación y descanso. Si algo duele, deriva a un profesional. Los botones de cada respuesta llevan a la app (sumar una comida a hoy, hacer la versión corta, ver la lista). 3 consultas por mes gratis, 20 con Premium |
 | Comunidad | Personas como vos (por objetivos en común) para seguir, publicaciones de recetas, actividades y preguntas con foto, me gusta, guardados y comentarios. En la comunidad se ve el nombre y la inicial del apellido. Trae 6 personas y 5 publicaciones de ejemplo |
+| App instalable | `manifest.webmanifest` e íconos para agregarla a la pantalla de inicio, y un service worker (solo en la versión publicada) que guarda la app y las imágenes, nunca la API. Pantalla "Instalá WopFit" con el botón del navegador o los pasos para iPhone y Android |
 | Lista del súper | Ingredientes del menú de la semana, de los más usados a los menos, sin las comidas marcadas como "no pude". Lo que tildás queda guardado por semana |
 | "No pude" | El motivo define una versión alternativa: exprés, liviana, suave, sin equipamiento o caminata. La rutina completa pasa al próximo día libre. Las comidas proponen una alternativa según el motivo |
 | Metas | Meta concreta (qué, cuántas veces por semana, cuántas semanas) que suma al objetivo |

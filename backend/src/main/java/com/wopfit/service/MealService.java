@@ -131,14 +131,17 @@ public class MealService {
     /** Lista del súper de la semana de `date`, con lo que ya marcaste como comprado. */
     @Transactional(readOnly = true)
     public ShoppingDto shopping(Long userId, LocalDate date) {
-        Plan plan = plans.plan(userId);
         Preferences p = profile.prefs(userId);
         LocalDate monday = TimeService.monday(date);
-        List<Meal> meals = weekMeals(userId, plan, p, monday);
+        List<Meal> meals = weekMeals(userId, plans.plan(userId), p, monday);
+        return shopping(userId, p, monday, meals, ingredients(meals));
+    }
+
+    private ShoppingDto shopping(Long userId, Preferences p, LocalDate monday, List<Meal> meals, Map<String, Integer> ingredients) {
         Set<String> checked = new HashSet<>();
         checks.findByUserIdAndWeek(userId, monday).forEach(c -> checked.add(c.getItem()));
         List<Offer> all = offers.findAll();
-        List<ShoppingItem> items = ingredients(meals).entrySet().stream()
+        List<ShoppingItem> items = ingredients.entrySet().stream()
                 .map(e -> new ShoppingItem(e.getKey(), e.getValue(), checked.contains(e.getKey()), all.stream().anyMatch(o -> o.covers(e.getKey()))))
                 .toList();
         return new ShoppingDto(monday, meals.stream().mapToInt(Meal::price).sum(), budgetMax(p.getBudget()), items);
@@ -154,9 +157,10 @@ public class MealService {
     public ShoppingDto check(Long userId, LocalDate date, String name, boolean on) {
         LocalDate monday = TimeService.monday(date);
         String item = name.trim().toLowerCase(Locale.ROOT);
-        if (!ingredients(weekMeals(userId, plans.plan(userId), profile.prefs(userId), monday)).containsKey(item)) {
-            throw ApiException.badRequest("Ese ingrediente no está en tu lista de la semana");
-        }
+        Preferences p = profile.prefs(userId);
+        List<Meal> meals = weekMeals(userId, plans.plan(userId), p, monday);
+        Map<String, Integer> ingredients = ingredients(meals);
+        if (!ingredients.containsKey(item)) throw ApiException.badRequest("Ese ingrediente no está en tu lista de la semana");
         var current = checks.findByUserIdAndWeekAndItem(userId, monday, item);
         if (on && current.isEmpty()) {
             ShoppingCheck c = new ShoppingCheck();
@@ -167,7 +171,7 @@ public class MealService {
         } else if (!on) {
             current.ifPresent(checks::delete);
         }
-        return shopping(userId, monday);
+        return shopping(userId, p, monday, meals, ingredients);
     }
 
     private MealLog log(Long userId, LocalDate date, int slot) {
