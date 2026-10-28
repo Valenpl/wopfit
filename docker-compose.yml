@@ -1,4 +1,5 @@
 # Base de datos MySQL para desarrollo:  docker compose up -d
+# La contraseña sale de DB_PASSWORD en el archivo .env (ver .env.example)
 services:
   mysql:
     image: mysql:8.4
@@ -6,8 +7,8 @@ services:
     environment:
       MYSQL_DATABASE: wopfit
       MYSQL_USER: wopfit
-      MYSQL_PASSWORD: wopfit
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en el archivo .env}
+      MYSQL_RANDOM_ROOT_PASSWORD: "yes"
     ports:
       - "3306:3306"
     volumes:

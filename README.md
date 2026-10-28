@@ -72,9 +72,12 @@ Las reglas completas están en [REGLAS.md](REGLAS.md). Leelas antes de abrir un 
 
 Necesitás **Java 17+**, **Maven 3.9+**, **Node 18+** y **Docker** (Docker solo para MySQL).
 
+### 0. Secretos
+Copiá `.env.example` como `.env` en la raíz y completá `WOPFIT_JWT_SECRET` (mínimo 32 caracteres) y `DB_PASSWORD`. El `.env` no se sube a Git; lo leen el backend y Docker. También podés usar variables de entorno.
+
 ### 1. Base de datos
 ```bash
-docker compose up -d          # MySQL en localhost:3306 (base wopfit, usuario wopfit / wopfit)
+docker compose up -d          # MySQL en localhost:3306 (base wopfit, usuario wopfit, contraseña DB_PASSWORD)
 ```
 Las tablas se crean solas al arrancar el backend (`ddl-auto=update`).
 
@@ -128,11 +131,14 @@ Los lugares, cupones y profesionales salen de `backend/src/main/resources/demo/*
 
 ## Configuración (variables de entorno)
 
+Se pueden poner en el `.env` de la raíz (ver `.env.example`) o como variables de entorno.
+
 | Variable | Default | Para qué |
 |---|---|---|
 | `DB_URL` | `jdbc:mysql://localhost:3306/wopfit?...` | Conexión MySQL |
-| `DB_USER` / `DB_PASSWORD` | `wopfit` / `wopfit` | Credenciales MySQL |
-| `WOPFIT_JWT_SECRET` | secreto de desarrollo | **Cambialo en producción** (mínimo 32 caracteres) |
+| `DB_USER` | `wopfit` | Usuario MySQL |
+| `DB_PASSWORD` | sin default, va en `.env` | Contraseña MySQL |
+| `WOPFIT_JWT_SECRET` | sin default, va en `.env` | Clave para firmar los JWT (mínimo 32 caracteres) |
 | `WOPFIT_CORS_ORIGINS` | `http://localhost:5173` | Dominios del front, separados por coma |
 | `WOPFIT_DEV_CODES` | `true` | Mostrar el código de verificación (poné `false` en producción) |
 | `VITE_API_URL` (front) | `/api` | URL de la API, si el front se publica en otro dominio |
