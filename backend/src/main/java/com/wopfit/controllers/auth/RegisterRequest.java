@@ -1,4 +1,4 @@
-package com.wopfit.entity.dto;
+package com.wopfit.controllers.auth;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;

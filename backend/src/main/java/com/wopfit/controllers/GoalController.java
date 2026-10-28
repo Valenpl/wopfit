@@ -31,22 +31,22 @@ public class GoalController {
     }
 
     @GetMapping
-    public ResponseEntity<List<GoalResponse>> goals(@AuthenticationPrincipal Long uid) {
+    public ResponseEntity<List<GoalResponse>> goals(@AuthenticationPrincipal(expression = "id") Long uid) {
         return ResponseEntity.ok(goals.list(uid));
     }
 
     @PostMapping
-    public ResponseEntity<GoalResponse> createGoal(@AuthenticationPrincipal Long uid, @Valid @RequestBody GoalRequest r) {
+    public ResponseEntity<GoalResponse> createGoal(@AuthenticationPrincipal(expression = "id") Long uid, @Valid @RequestBody GoalRequest r) {
         return ResponseEntity.status(HttpStatus.CREATED).body(goals.create(uid, r));
     }
 
     @PostMapping("/{id}/check")
-    public ResponseEntity<GoalResponse> check(@AuthenticationPrincipal Long uid, @PathVariable Long id) {
+    public ResponseEntity<GoalResponse> check(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable Long id) {
         return ResponseEntity.ok(goals.check(uid, id));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<MessageResponse> deleteGoal(@AuthenticationPrincipal Long uid, @PathVariable Long id) {
+    public ResponseEntity<MessageResponse> deleteGoal(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable Long id) {
         goals.delete(uid, id);
         return ResponseEntity.ok(new MessageResponse("Meta eliminada"));
     }

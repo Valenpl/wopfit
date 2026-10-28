@@ -24,8 +24,8 @@ class AccountShoppingTest extends ApiTest {
         assertThat(weak.has("fields")).isTrue();
 
         call(put("/api/v1/me/password"), t, "{\"current\":\"clave1234\",\"password\":\"nueva12345\"}", 200);
-        call(post("/api/v1/auth/login"), null, "{\"email\":\"cuenta@mail.com\",\"password\":\"clave1234\"}", 401);
-        call(post("/api/v1/auth/login"), null, "{\"email\":\"cuenta@mail.com\",\"password\":\"nueva12345\"}", 200);
+        call(post("/api/v1/auth/authenticate"), null, "{\"email\":\"cuenta@mail.com\",\"password\":\"clave1234\"}", 401);
+        call(post("/api/v1/auth/authenticate"), null, "{\"email\":\"cuenta@mail.com\",\"password\":\"nueva12345\"}", 200);
         call(get("/api/v1/me"), t, null, 200); // el token de antes sigue andando
     }
 

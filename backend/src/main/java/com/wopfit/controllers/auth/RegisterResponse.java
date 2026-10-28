@@ -1,3 +1,3 @@
-package com.wopfit.entity.dto;
+package com.wopfit.controllers.auth;
 
 public record RegisterResponse(String message, String devCode) {}

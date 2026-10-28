@@ -29,12 +29,12 @@ public class HabitController {
     }
 
     @GetMapping("/{date}")
-    public ResponseEntity<HabitsResponse> habits(@AuthenticationPrincipal Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+    public ResponseEntity<HabitsResponse> habits(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return ResponseEntity.ok(habits.get(uid, date));
     }
 
     @PutMapping("/{date}")
-    public ResponseEntity<HabitsResponse> setHabits(@AuthenticationPrincipal Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+    public ResponseEntity<HabitsResponse> setHabits(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
                                @Valid @RequestBody HabitsRequest body) {
         return ResponseEntity.ok(habits.set(uid, date, body));
     }

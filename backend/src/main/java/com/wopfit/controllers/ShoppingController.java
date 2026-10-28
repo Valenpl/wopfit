@@ -29,12 +29,12 @@ public class ShoppingController {
     }
 
     @GetMapping("/{date}")
-    public ResponseEntity<ShoppingResponse> shopping(@AuthenticationPrincipal Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+    public ResponseEntity<ShoppingResponse> shopping(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         return ResponseEntity.ok(meals.shopping(uid, date));
     }
 
     @PutMapping("/{date}")
-    public ResponseEntity<ShoppingResponse> check(@AuthenticationPrincipal Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+    public ResponseEntity<ShoppingResponse> check(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
                              @Valid @RequestBody ShoppingCheckRequest r) {
         return ResponseEntity.ok(meals.check(uid, date, r.name(), r.checked()));
     }

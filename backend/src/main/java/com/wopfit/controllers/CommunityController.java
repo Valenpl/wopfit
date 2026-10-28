@@ -44,43 +44,43 @@ public class CommunityController {
 
     /** `f`: para (por defecto), recetas, act o preg. */
     @GetMapping("/community")
-    public ResponseEntity<CommunityResponse> feed(@AuthenticationPrincipal Long uid, @RequestParam(defaultValue = "para") String f) {
+    public ResponseEntity<CommunityResponse> feed(@AuthenticationPrincipal(expression = "id") Long uid, @RequestParam(defaultValue = "para") String f) {
         return ResponseEntity.ok(community.community(uid, f));
     }
 
     @PutMapping("/community/people/{id}/follow")
-    public ResponseEntity<FollowResponse> follow(@AuthenticationPrincipal Long uid, @PathVariable Long id, @Valid @RequestBody ToggleRequest r) {
+    public ResponseEntity<FollowResponse> follow(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable Long id, @Valid @RequestBody ToggleRequest r) {
         return ResponseEntity.ok(new FollowResponse(community.follow(uid, id, r.on())));
     }
 
     @PostMapping("/posts")
-    public ResponseEntity<PostResponse> create(@AuthenticationPrincipal Long uid, @Valid @RequestBody PostRequest r) {
+    public ResponseEntity<PostResponse> create(@AuthenticationPrincipal(expression = "id") Long uid, @Valid @RequestBody PostRequest r) {
         return ResponseEntity.status(HttpStatus.CREATED).body(community.create(uid, r));
     }
 
     @GetMapping("/posts/{id}")
-    public ResponseEntity<PostDetailResponse> detail(@AuthenticationPrincipal Long uid, @PathVariable Long id) {
+    public ResponseEntity<PostDetailResponse> detail(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable Long id) {
         return ResponseEntity.ok(community.detail(uid, id));
     }
 
     @DeleteMapping("/posts/{id}")
-    public ResponseEntity<MessageResponse> delete(@AuthenticationPrincipal Long uid, @PathVariable Long id) {
+    public ResponseEntity<MessageResponse> delete(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable Long id) {
         community.delete(uid, id);
         return ResponseEntity.ok(new MessageResponse("Publicación borrada"));
     }
 
     @PostMapping("/posts/{id}/comments")
-    public ResponseEntity<CommentResponse> comment(@AuthenticationPrincipal Long uid, @PathVariable Long id, @Valid @RequestBody CommentRequest r) {
+    public ResponseEntity<CommentResponse> comment(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable Long id, @Valid @RequestBody CommentRequest r) {
         return ResponseEntity.status(HttpStatus.CREATED).body(community.comment(uid, id, r.text()));
     }
 
     @PutMapping("/posts/{id}/like")
-    public ResponseEntity<MarkResponse> like(@AuthenticationPrincipal Long uid, @PathVariable Long id, @Valid @RequestBody ToggleRequest r) {
+    public ResponseEntity<MarkResponse> like(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable Long id, @Valid @RequestBody ToggleRequest r) {
         return ResponseEntity.ok(community.mark(uid, id, "like", r.on()));
     }
 
     @PutMapping("/posts/{id}/save")
-    public ResponseEntity<MarkResponse> save(@AuthenticationPrincipal Long uid, @PathVariable Long id, @Valid @RequestBody ToggleRequest r) {
+    public ResponseEntity<MarkResponse> save(@AuthenticationPrincipal(expression = "id") Long uid, @PathVariable Long id, @Valid @RequestBody ToggleRequest r) {
         return ResponseEntity.ok(community.mark(uid, id, "save", r.on()));
     }
 
