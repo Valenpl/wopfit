@@ -26,6 +26,7 @@ wopfit/
 | Herramienta | Para qué | Por qué |
 |---|---|---|
 | React + Vite | La interfaz web (celu y compu) | Ya estaba hecha y funcionando; Vite es el estándar actual para React |
+| Redux Toolkit + axios | Estado global y pedidos al backend | Un solo store con un slice por recurso; es lo que vimos en Aplicaciones Interactivas |
 | Vercel | Publicar el frontend | Gratis, con HTTPS y deploy automático desde GitHub |
 | Java + Spring Boot | El backend: reglas de negocio y API | Lo conoce el equipo, es muy usado y trae web, seguridad y base de datos resueltos |
 | API REST (JSON) | Comunicación entre front y back | Simple y conocida: cada acción es una URL + GET, POST, PUT o DELETE |
@@ -41,16 +42,31 @@ Un solo backend (monolito) en 3 capas, en lugar de microservicios: para un equip
 
 **Planeado (en desarrollo):** migraciones con Flyway, sesión con token corto + token de renovación en cookie, planes versionados detrás de `PlanGenerationService` (hoy un generador simulado, mañana el modelo propio de Wopfit), emails reales para el código de verificación y un modelo de IA para Wopi. Lo simulado (Premium sin cobros, comercios, cupones, profesionales y personas de ejemplo) siempre se muestra como demo.
 
-## Reglas del frontend
+## Reglas del código
 
-**Sin doble fetch:** cada vez que una pantalla pide datos al backend, el pedido se hace una sola vez.
+Las reglas completas están en [REGLAS.md](REGLAS.md). Leelas antes de abrir un pull request. Lo principal:
 
-- `React.StrictMode` (en `main.jsx`) ejecuta cada `useEffect` dos veces en desarrollo. Se mantiene a propósito porque deja ver los duplicados, así que cada efecto que pide datos tiene que estar preparado para eso.
-- `useLoad` cancela el pedido anterior con `AbortController` cuando el efecto se limpia.
-- `api.js` comparte el pedido en curso: si dos componentes piden la misma ruta al mismo tiempo, sale un solo `fetch`.
-- La carga inicial de `/me` y la renovación de la sesión usan una única promesa compartida.
-- Si un efecto escribe al montarse, lleva una protección con `useRef` para ejecutarse una sola vez.
-- Un test de Playwright cuenta los pedidos de red y falla si aparece uno repetido.
+**Backend**
+- 3 capas: controller → service → repository. El controller no usa repositories y el service no conoce HTTP.
+- Paquetes: `controllers` (con `auth/` y `config/`), `entity` (con `dto/`), `exceptions`, `repository` y `service`.
+- Cada service es una interfaz `XService` más su `XServiceImpl`, con inyección por constructor.
+- Nunca se devuelve una entidad: entra un `XRequest` validado y sale un `XResponse`, un DTO por archivo.
+- Los errores son excepciones propias que `GlobalExceptionHandler` convierte en `{ "error": "..." }` con el status correcto. No hay `try/catch` en los controllers.
+- El usuario sale del JWT, nunca de un id que manda el front. Los secretos van en variables de entorno.
+- POST y PUT devuelven el objeto completo.
+
+**Frontend**
+- React arma las pantallas y Redux guarda los datos compartidos. Lo de un solo componente queda en `useState`.
+- Carpetas: `redux/` (store y slices), `api/`, `views/`, `components/`, `hooks/` y `utils/`.
+- **No se toca el DOM**: nada de `document.*`, `querySelector`, `classList` ni `window.confirm`. Todo cambia por estado.
+- Los pedidos al backend se hacen solo en thunks (`createAsyncThunk`) con la instancia de axios.
+- **Sin doble fetch**: cada thunk de lectura usa `condition` con `loaded`/`loading`. Después de un POST, PUT o DELETE no se vuelve a pedir la lista: el store se actualiza con la respuesta.
+- No se usa `.unwrap()` en componentes. El resultado se lee del estado del slice.
+- Formularios controlados con `e.preventDefault()`. `StrictMode` se queda.
+
+**Git:** rama por tarea y pull request. Nada directo a `main` y ninguna credencial en el repo.
+
+> Estado actual: el código todavía no sigue todas estas reglas (por ejemplo, el front todavía no usa Redux). Se migra de a un paso por pull request.
 
 ## Cómo correrlo
 

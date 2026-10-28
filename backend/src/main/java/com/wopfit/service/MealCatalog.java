@@ -7,7 +7,7 @@ import java.util.Set;
 
 import org.springframework.stereotype.Component;
 
-import com.wopfit.domain.Preferences;
+import com.wopfit.entity.Preferences;
 
 /** Recetas del plan. flags: l = lácteos, g = gluten, c = carne/pescado. Precio en pesos por porción. */
 @Component
