@@ -49,8 +49,8 @@ public class MealController {
 
     @PostMapping("/{date}/{slot}/accept")
     public ResponseEntity<MealDayResponse> mealAccept(@AuthenticationPrincipal Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-                                 @PathVariable int slot, @RequestBody MealAcceptRequest r) {
-        return ResponseEntity.ok(meals.accept(uid, date, slot, r.name() == null ? "" : r.name()));
+                                 @PathVariable int slot, @Valid @RequestBody MealAcceptRequest r) {
+        return ResponseEntity.ok(meals.accept(uid, date, slot, r.name()));
     }
 
     @PostMapping("/{date}/{slot}/skip")

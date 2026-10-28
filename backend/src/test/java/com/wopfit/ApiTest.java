@@ -21,7 +21,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wopfit.service.TimeService;
 
 /** Base de los tests contra la API (H2 en memoria): llamar, crear un usuario con plan y fijar "hoy" (miércoles 21/10/2026). */
-@SpringBootTest
+// Clave solo para los tests: no firma tokens de ninguna base real.
+@SpringBootTest(properties = "wopfit.jwt.secret=clave-solo-para-los-tests-de-wopfit-123456")
 @AutoConfigureMockMvc
 @ActiveProfiles("h2")
 abstract class ApiTest {

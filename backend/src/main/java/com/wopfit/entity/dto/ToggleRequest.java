@@ -1,3 +1,5 @@
 package com.wopfit.entity.dto;
 
-public record ToggleRequest(boolean on) {}
+import jakarta.validation.constraints.NotNull;
+
+public record ToggleRequest(@NotNull Boolean on) {}

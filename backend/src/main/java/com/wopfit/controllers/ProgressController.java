@@ -16,6 +16,8 @@ import com.wopfit.entity.dto.PlanResponse;
 import com.wopfit.entity.dto.ProgressResponse;
 import com.wopfit.service.ProgressService;
 
+import jakarta.validation.Valid;
+
 /** Progreso, historial y ajustes sugeridos del plan. */
 @RestController
 @RequestMapping("/api/v1")
@@ -47,7 +49,7 @@ public class ProgressController {
     }
 
     @PostMapping("/adjust/dismiss")
-    public ResponseEntity<MessageResponse> dismiss(@AuthenticationPrincipal Long uid, @RequestBody DismissRequest r) {
+    public ResponseEntity<MessageResponse> dismiss(@AuthenticationPrincipal Long uid, @Valid @RequestBody DismissRequest r) {
         progress.dismiss(uid, r.type());
         return ResponseEntity.ok(new MessageResponse("Listo"));
     }

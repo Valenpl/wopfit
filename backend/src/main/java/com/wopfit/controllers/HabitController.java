@@ -16,6 +16,8 @@ import com.wopfit.entity.dto.HabitsRequest;
 import com.wopfit.entity.dto.HabitsResponse;
 import com.wopfit.service.HabitService;
 
+import jakarta.validation.Valid;
+
 /** Hábitos diarios: agua, caminar y dormir. */
 @RestController
 @RequestMapping("/api/v1/habits")
@@ -33,7 +35,7 @@ public class HabitController {
 
     @PutMapping("/{date}")
     public ResponseEntity<HabitsResponse> setHabits(@AuthenticationPrincipal Long uid, @PathVariable @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-                               @RequestBody HabitsRequest body) {
+                               @Valid @RequestBody HabitsRequest body) {
         return ResponseEntity.ok(habits.set(uid, date, body));
     }
 }
