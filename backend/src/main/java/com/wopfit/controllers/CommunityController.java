@@ -49,7 +49,7 @@ public class CommunityController {
     }
 
     @PutMapping("/community/people/{id}/follow")
-    public ResponseEntity<FollowResponse> follow(@AuthenticationPrincipal Long uid, @PathVariable Long id, @RequestBody ToggleRequest r) {
+    public ResponseEntity<FollowResponse> follow(@AuthenticationPrincipal Long uid, @PathVariable Long id, @Valid @RequestBody ToggleRequest r) {
         return ResponseEntity.ok(new FollowResponse(community.follow(uid, id, r.on())));
     }
 
@@ -75,12 +75,12 @@ public class CommunityController {
     }
 
     @PutMapping("/posts/{id}/like")
-    public ResponseEntity<MarkResponse> like(@AuthenticationPrincipal Long uid, @PathVariable Long id, @RequestBody ToggleRequest r) {
+    public ResponseEntity<MarkResponse> like(@AuthenticationPrincipal Long uid, @PathVariable Long id, @Valid @RequestBody ToggleRequest r) {
         return ResponseEntity.ok(community.mark(uid, id, "like", r.on()));
     }
 
     @PutMapping("/posts/{id}/save")
-    public ResponseEntity<MarkResponse> save(@AuthenticationPrincipal Long uid, @PathVariable Long id, @RequestBody ToggleRequest r) {
+    public ResponseEntity<MarkResponse> save(@AuthenticationPrincipal Long uid, @PathVariable Long id, @Valid @RequestBody ToggleRequest r) {
         return ResponseEntity.ok(community.mark(uid, id, "save", r.on()));
     }
 

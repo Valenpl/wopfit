@@ -33,8 +33,8 @@ public class AuthenticationController {
     }
 
     @PostMapping("/resend")
-    public ResponseEntity<RegisterResponse> resend(@RequestBody ResendRequest r) {
-        return ResponseEntity.ok(auth.resend(r.email() == null ? "" : r.email()));
+    public ResponseEntity<RegisterResponse> resend(@Valid @RequestBody ResendRequest r) {
+        return ResponseEntity.ok(auth.resend(r.email()));
     }
 
     @PostMapping("/verify")
