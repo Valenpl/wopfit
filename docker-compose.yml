@@ -1,4 +1,5 @@
 # Base de datos MySQL para desarrollo:  docker compose up -d
+# Todo junto (MySQL + backend con el perfil de entrega):  docker compose --profile app up -d --build
 # La contraseña sale de DB_PASSWORD en el archivo .env (ver .env.example)
 services:
   mysql:
@@ -13,5 +14,26 @@ services:
       - "3306:3306"
     volumes:
       - wopfit-data:/var/lib/mysql
+      # Al crear la base por primera vez, la arma con el esquema de la entrega
+      - ./backend/db/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      retries: 20
+
+  backend:
+    profiles: ["app"]
+    build: ./backend
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      DB_URL: jdbc:mysql://mysql:3306/wopfit?serverTimezone=America/Argentina/Buenos_Aires
+      DB_PASSWORD: ${DB_PASSWORD:?Falta DB_PASSWORD en el archivo .env}
+      WOPFIT_JWT_SECRET: ${WOPFIT_JWT_SECRET:?Falta WOPFIT_JWT_SECRET en el archivo .env}
+      WOPFIT_CORS_ORIGINS: ${WOPFIT_CORS_ORIGINS:-http://localhost:5173}
+      WOPFIT_DEV_CODES: ${WOPFIT_DEV_CODES:-false}
+    ports:
+      - "8080:8080"
 volumes:
   wopfit-data:
