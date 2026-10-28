@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.wopfit.entity.HabitLog;
+import com.wopfit.entity.dto.HabitsRequest;
 import com.wopfit.entity.dto.HabitsResponse;
 import com.wopfit.exceptions.InvalidDataException;
 import com.wopfit.repository.HabitLogRepository;
@@ -34,7 +35,7 @@ public class HabitServiceImpl implements HabitService {
 
     @Transactional
     @Override
-    public HabitsResponse set(Long userId, LocalDate date, HabitsResponse in) {
+    public HabitsResponse set(Long userId, LocalDate date, HabitsRequest in) {
         if (date.isAfter(time.today())) throw new InvalidDataException("No podés registrar días que todavía no pasaron");
         HabitLog h = habits.findByUserIdAndDate(userId, date).orElseGet(() -> {
             HabitLog n = new HabitLog();
