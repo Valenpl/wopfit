@@ -90,9 +90,9 @@ test('cuenta: cambiar la contraseña', async ({ page, request }) => {
   await expect(page.locator('.toast')).toHaveText('Contraseña actualizada');
   await expect(page).toHaveURL('/perfil');
 
-  const old = await request.post(API + '/auth/login', { data: { email, password: PASS } });
+  const old = await request.post(API + '/auth/authenticate', { data: { email, password: PASS } });
   expect(old.status()).toBe(401);
-  const ok = await request.post(API + '/auth/login', { data: { email, password: 'nueva12345' } });
+  const ok = await request.post(API + '/auth/authenticate', { data: { email, password: 'nueva12345' } });
   expect(ok.ok()).toBeTruthy();
 });
 

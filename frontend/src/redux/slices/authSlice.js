@@ -11,7 +11,7 @@ export const fetchMe = apiThunk('auth/fetchMe', () => http.get('/me'), {
 export const register = apiThunk('auth/register', body => http.post('/auth/register', body), { toastError: false });
 export const verify = apiThunk('auth/verify', body => http.post('/auth/verify', body), { toastError: false });
 export const resendCode = apiThunk('auth/resend', email => http.post('/auth/resend', { email }), { toastError: false });
-export const login = apiThunk('auth/login', body => http.post('/auth/login', body), { toastError: false });
+export const login = apiThunk('auth/login', body => http.post('/auth/authenticate', body), { toastError: false });
 export const updateAbout = apiThunk('auth/updateAbout', body => http.put('/me/about', body));
 export const updatePreferences = apiThunk('auth/updatePreferences', body => http.put('/me/preferences', body));
 export const changePassword = apiThunk('auth/changePassword', body => http.put('/me/password', body), { toastError: false, toast: 'Contraseña actualizada' });
