@@ -3,7 +3,14 @@ package com.wopfit.entity;
 import jakarta.persistence.*;
 import java.time.Instant;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 /** Foto de una publicación (ya achicada en el celu). El id es un UUID: se sirve sin sesión pero no se puede adivinar. */
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "photos")
 public class Photo {
@@ -12,7 +19,7 @@ public class Photo {
     private String id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "owner_id")
+    @JoinColumn(name = "owner_id", foreignKey = @ForeignKey(name = "fk_photo_owner"))
     private CommunityProfile owner;
 
     @Column(nullable = false, length = 20)
@@ -24,19 +31,4 @@ public class Photo {
 
     @Column(nullable = false)
     private Instant createdAt;
-
-    public String getId() { return id; }
-    public void setId(String id) { this.id = id; }
-
-    public CommunityProfile getOwner() { return owner; }
-    public void setOwner(CommunityProfile owner) { this.owner = owner; }
-
-    public String getContentType() { return contentType; }
-    public void setContentType(String contentType) { this.contentType = contentType; }
-
-    public byte[] getData() { return data; }
-    public void setData(byte[] data) { this.data = data; }
-
-    public Instant getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }

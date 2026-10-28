@@ -3,6 +3,13 @@ package com.wopfit.entity;
 import jakarta.persistence.*;
 import java.time.Instant;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "post_comments")
 public class PostComment {
@@ -11,11 +18,11 @@ public class PostComment {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "post_id")
+    @JoinColumn(name = "post_id", foreignKey = @ForeignKey(name = "fk_post_comment_post"))
     private Post post;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "author_id")
+    @JoinColumn(name = "author_id", foreignKey = @ForeignKey(name = "fk_post_comment_author"))
     private CommunityProfile author;
 
     @Column(nullable = false, length = 300)
@@ -23,19 +30,4 @@ public class PostComment {
 
     @Column(nullable = false)
     private Instant createdAt;
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public Post getPost() { return post; }
-    public void setPost(Post post) { this.post = post; }
-
-    public CommunityProfile getAuthor() { return author; }
-    public void setAuthor(CommunityProfile author) { this.author = author; }
-
-    public String getText() { return text; }
-    public void setText(String text) { this.text = text; }
-
-    public Instant getCreatedAt() { return createdAt; }
-    public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }
 }

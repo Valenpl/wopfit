@@ -2,7 +2,14 @@ package com.wopfit.entity;
 
 import jakarta.persistence.*;
 
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+
 /** Nutricionista o entrenador de ejemplo para la demo. */
+@Getter
+@Setter
+@NoArgsConstructor
 @Entity
 @Table(name = "professionals")
 public class Professional {
@@ -30,28 +37,4 @@ public class Professional {
 
     @Column(length = 300)
     private String bio;
-
-    public Long getId() { return id; }
-    public void setId(Long id) { this.id = id; }
-
-    public String getKind() { return kind; }
-    public void setKind(String kind) { this.kind = kind; }
-
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
-
-    public String getSpecialty() { return specialty; }
-    public void setSpecialty(String specialty) { this.specialty = specialty; }
-
-    public String getLicense() { return license; }
-    public void setLicense(String license) { this.license = license; }
-
-    public double getRating() { return rating; }
-    public void setRating(double rating) { this.rating = rating; }
-
-    public String getExperience() { return experience; }
-    public void setExperience(String experience) { this.experience = experience; }
-
-    public String getBio() { return bio; }
-    public void setBio(String bio) { this.bio = bio; }
 }
