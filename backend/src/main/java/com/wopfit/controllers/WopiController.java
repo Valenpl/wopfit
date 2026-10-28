@@ -1,5 +1,6 @@
 package com.wopfit.controllers;
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -16,7 +17,7 @@ import jakarta.validation.Valid;
 
 /** Chat con Wopi: 3 preguntas por mes con el plan Gratuito, 20 con Premium. */
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/wopi")
 public class WopiController {
     private final WopiService wopi;
 
@@ -24,9 +25,13 @@ public class WopiController {
         this.wopi = wopi;
     }
 
-    @GetMapping("/wopi")
-    public WopiResponse chat(@AuthenticationPrincipal Long uid) { return wopi.chat(uid); }
+    @GetMapping
+    public ResponseEntity<WopiResponse> chat(@AuthenticationPrincipal Long uid) {
+        return ResponseEntity.ok(wopi.chat(uid));
+    }
 
-    @PostMapping("/wopi")
-    public WopiAskResponse ask(@AuthenticationPrincipal Long uid, @Valid @RequestBody WopiAskRequest r) { return wopi.ask(uid, r.text()); }
+    @PostMapping
+    public ResponseEntity<WopiAskResponse> ask(@AuthenticationPrincipal Long uid, @Valid @RequestBody WopiAskRequest r) {
+        return ResponseEntity.ok(wopi.ask(uid, r.text()));
+    }
 }

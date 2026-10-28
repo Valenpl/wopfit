@@ -1,6 +1,5 @@
 package com.wopfit.controllers;
 
-import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.http.CacheControl;
@@ -16,9 +15,9 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.wopfit.entity.dto.FollowResponse;
 import com.wopfit.entity.Photo;
 import com.wopfit.entity.dto.CommentRequest;
 import com.wopfit.entity.dto.CommentResponse;
@@ -45,40 +44,44 @@ public class CommunityController {
 
     /** `f`: para (por defecto), recetas, act o preg. */
     @GetMapping("/community")
-    public CommunityResponse feed(@AuthenticationPrincipal Long uid, @RequestParam(defaultValue = "para") String f) { return community.community(uid, f); }
+    public ResponseEntity<CommunityResponse> feed(@AuthenticationPrincipal Long uid, @RequestParam(defaultValue = "para") String f) {
+        return ResponseEntity.ok(community.community(uid, f));
+    }
 
     @PutMapping("/community/people/{id}/follow")
-    public Map<String, Boolean> follow(@AuthenticationPrincipal Long uid, @PathVariable Long id, @RequestBody ToggleRequest r) {
-        return Map.of("following", community.follow(uid, id, r.on()));
+    public ResponseEntity<FollowResponse> follow(@AuthenticationPrincipal Long uid, @PathVariable Long id, @RequestBody ToggleRequest r) {
+        return ResponseEntity.ok(new FollowResponse(community.follow(uid, id, r.on())));
     }
 
     @PostMapping("/posts")
-    @ResponseStatus(HttpStatus.CREATED)
-    public PostResponse create(@AuthenticationPrincipal Long uid, @Valid @RequestBody PostRequest r) { return community.create(uid, r); }
+    public ResponseEntity<PostResponse> create(@AuthenticationPrincipal Long uid, @Valid @RequestBody PostRequest r) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(community.create(uid, r));
+    }
 
     @GetMapping("/posts/{id}")
-    public PostDetailResponse detail(@AuthenticationPrincipal Long uid, @PathVariable Long id) { return community.detail(uid, id); }
+    public ResponseEntity<PostDetailResponse> detail(@AuthenticationPrincipal Long uid, @PathVariable Long id) {
+        return ResponseEntity.ok(community.detail(uid, id));
+    }
 
     @DeleteMapping("/posts/{id}")
-    public MessageResponse delete(@AuthenticationPrincipal Long uid, @PathVariable Long id) {
+    public ResponseEntity<MessageResponse> delete(@AuthenticationPrincipal Long uid, @PathVariable Long id) {
         community.delete(uid, id);
-        return new MessageResponse("Publicación borrada");
+        return ResponseEntity.ok(new MessageResponse("Publicación borrada"));
     }
 
     @PostMapping("/posts/{id}/comments")
-    @ResponseStatus(HttpStatus.CREATED)
-    public CommentResponse comment(@AuthenticationPrincipal Long uid, @PathVariable Long id, @Valid @RequestBody CommentRequest r) {
-        return community.comment(uid, id, r.text());
+    public ResponseEntity<CommentResponse> comment(@AuthenticationPrincipal Long uid, @PathVariable Long id, @Valid @RequestBody CommentRequest r) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(community.comment(uid, id, r.text()));
     }
 
     @PutMapping("/posts/{id}/like")
-    public MarkResponse like(@AuthenticationPrincipal Long uid, @PathVariable Long id, @RequestBody ToggleRequest r) {
-        return community.mark(uid, id, "like", r.on());
+    public ResponseEntity<MarkResponse> like(@AuthenticationPrincipal Long uid, @PathVariable Long id, @RequestBody ToggleRequest r) {
+        return ResponseEntity.ok(community.mark(uid, id, "like", r.on()));
     }
 
     @PutMapping("/posts/{id}/save")
-    public MarkResponse save(@AuthenticationPrincipal Long uid, @PathVariable Long id, @RequestBody ToggleRequest r) {
-        return community.mark(uid, id, "save", r.on());
+    public ResponseEntity<MarkResponse> save(@AuthenticationPrincipal Long uid, @PathVariable Long id, @RequestBody ToggleRequest r) {
+        return ResponseEntity.ok(community.mark(uid, id, "save", r.on()));
     }
 
     /** Público (las etiquetas <img> no mandan el token): el id es un UUID que solo conoce quien ve la publicación. */
