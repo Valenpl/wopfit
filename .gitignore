@@ -6,3 +6,4 @@ frontend/dist/
 frontend/test-results/
 frontend/playwright-report/
 backend/schema-gen.sql
+frontend/.vercel/

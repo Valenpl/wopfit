@@ -48,7 +48,9 @@ export default function AppRoutes({ stage }) {
     <Route path="/verificar" element={only(['out'], <Verify />)} />
     <Route path="/ingresar" element={only(['out'], <Login />)} />
     <Route path="/sobre-vos" element={only(['about'], <About />)} />
-    <Route path="/preferencias/:step" element={only(['prefs'], <Prefs />)} />
+    {/* Al terminar las preferencias se crea el plan y la etapa pasa a 'app' antes de que Prefs llegue a navegar:
+        el paso que sigue es "Plan listo", no Inicio. */}
+    <Route path="/preferencias/:step" element={stage === 'app' ? <Navigate to="/plan-listo" replace /> : only(['prefs'], <Prefs />)} />
     <Route path="/plan-listo" element={only(['ready', 'app'], <Ready />)} />
     <Route path="/inicio" element={app(<Home />)} />
     <Route path="/entreno" element={app(<Entreno />)} />
