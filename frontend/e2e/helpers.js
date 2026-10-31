@@ -8,7 +8,7 @@ export const PASS = 'clave1234';
  * Crea un usuario verificado con datos y preferencias. Por defecto le arma el plan.
  * `premium`: 'mensual' | 'semestral' | 'anual' para activarlo. Devuelve { token, email, call }.
  */
-export async function newUser(request, { name = 'Prueba', goals = ['mover'], days = [0, 2, 4], budget = 'bajo', avoid = [], plan = true, premium } = {}) {
+export async function newUser(request, { name = 'Prueba', goals = ['mover'], days = [0, 2, 4], budget = 'bajo', avoid = [], health = [], plan = true, premium } = {}) {
   let token;
   const email = `e2e-${name.split(' ')[0].toLowerCase()}-${Date.now()}-${Math.floor(Math.random() * 1e6)}@wopfit.test`;
   const call = async (method, path, data) => {
@@ -19,7 +19,7 @@ export async function newUser(request, { name = 'Prueba', goals = ['mover'], day
   const { devCode } = await call('POST', '/auth/register', { email, password: PASS });
   ({ token } = await call('POST', '/auth/verify', { email, code: devCode }));
   await call('PUT', '/users/me', { name, birthDate: '1995-03-10', heightCm: 170, weightKg: 68 });
-  await call('PUT', '/users/me/preferences', { goals, days, minutes: 30, budget, activities: [], avoid, otherAvoid: '', health: [], level: 'principiante', equipment: ['nada'] });
+  await call('PUT', '/users/me/preferences', { goals, days, minutes: 30, budget, activities: [], avoid, otherAvoid: '', health, level: 'principiante', equipment: ['nada'] });
   if (plan) await call('POST', '/users/me/plan');
   if (premium) await call('POST', '/users/me/subscription', { period: premium });
   return { token, email, call };

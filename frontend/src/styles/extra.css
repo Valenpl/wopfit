@@ -21,3 +21,6 @@
 .lpin.sel span{width:40px;height:40px;outline:3px solid rgba(30,127,203,.35)}
 .lme{display:block;width:18px;height:18px;border-radius:50%;background:var(--blue);border:3px solid #fff;box-shadow:0 0 0 8px rgba(30,127,203,.18)}
 .desk .lmap{height:400px}
+.tip{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);color:var(--ink)}
+.src{font-size:12px;color:var(--faint);margin-top:4px;font-weight:600}
+.src a{color:inherit;text-decoration:underline}

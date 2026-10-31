@@ -6,6 +6,7 @@ import { emailOk } from '../../utils/validation';
 import Btn from '../../components/shared/Btn.jsx';
 import Field from '../../components/shared/Field.jsx';
 import Icon from '../../components/shared/Icon.jsx';
+import PwChecks, { passChecks } from '../../components/shared/PwChecks.jsx';
 import PwField from '../../components/shared/PwField.jsx';
 import ScrollArea from '../../components/shared/ScrollArea.jsx';
 import TopBar from '../../components/shared/TopBar.jsx';
@@ -18,7 +19,7 @@ export default function Signup() {
     onSuccess: (r, arg) => nav('/verificar', { state: { email: arg.email, devCode: r.devCode, message: r.message } })
   });
   const set = k => e => setF({ ...f, [k]: e.target.value });
-  const checks = [[f.pass.length >= 8, 'Mínimo 8 caracteres'], [/\d/.test(f.pass), 'Al menos un número'], [f.pass.length > 0 && f.pass === f.pass2, 'Las contraseñas coinciden']];
+  const checks = passChecks(f.pass, f.pass2);
   const ok = emailOk(f.email) && checks.every(c => c[0]) && f.terms;
 
   const submit = e => {
@@ -34,7 +35,7 @@ export default function Signup() {
         error={touched && f.email && !emailOk(f.email) ? 'Revisá el formato del email.' : ''} />
       <PwField id="pass" label="Contraseña" placeholder="Creá una contraseña" autoComplete="new-password" value={f.pass} onChange={set('pass')} />
       <PwField id="pass2" label="Repetí tu contraseña" placeholder="Escribila de nuevo" autoComplete="new-password" value={f.pass2} onChange={set('pass2')} />
-      <div className="checks">{checks.map(([o, t]) => <div key={t} className={o ? 'ok' : ''}><span className={`ck ${o ? 'on' : ''}`}><Icon n="check" /></span>{t}</div>)}</div>
+      <PwChecks checks={checks} />
       <button type="button" className="terms" onClick={() => setF({ ...f, terms: !f.terms })} aria-pressed={f.terms}><span className={`ck box ${f.terms ? 'on' : ''}`}><Icon n="check" /></span><span>Acepto los <b>Términos</b> y la <b>Política de privacidad</b></span></button>
       {signup.error && <div className="formerr">{signup.error.message}</div>}
     </ScrollArea>

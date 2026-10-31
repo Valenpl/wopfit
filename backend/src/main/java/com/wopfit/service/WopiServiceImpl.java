@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -49,14 +50,14 @@ public class WopiServiceImpl implements WopiService {
     private final TimeService time;
     private final ObjectMapper json;
 
-    /** Una respuesta: texto (con **negrita**), tarjetas, botones, si admite "otras opciones" y de qué venía hablando. */
-    record Reply(String text, List<WopiCard> cards, List<WopiAction> actions, boolean more, String context) {
+    /** Una respuesta: texto (con **negrita**), tarjetas, botones, si admite "otras opciones", de qué venía hablando y la fuente si es un consejo de expertos. */
+    record Reply(String text, List<WopiCard> cards, List<WopiAction> actions, boolean more, String context, String source, String sourceUrl) {
         static Reply of(String text, WopiAction... actions) {
-            return new Reply(text, List.of(), List.of(actions), false, null);
+            return new Reply(text, List.of(), List.of(actions), false, null, null, null);
         }
     }
 
-    record Extra(List<WopiCard> cards, List<WopiAction> actions, boolean more) {}
+    record Extra(List<WopiCard> cards, List<WopiAction> actions, boolean more, String source, String sourceUrl) {}
 
     // ---------------- API ----------------
 
@@ -81,7 +82,7 @@ public class WopiServiceImpl implements WopiService {
         String prev = messages.findFirstByUserIdAndRoleOrderByIdDesc(userId, "wopi").map(WopiMessage::getContext).orElse(null);
         WopiMessage asked = save(userId, "user", q, null, null);
         Reply r = answer(userId, q, prev);
-        WopiMessage reply = save(userId, "wopi", r.text(), new Extra(r.cards(), r.actions(), r.more()), r.context());
+        WopiMessage reply = save(userId, "wopi", r.text(), new Extra(r.cards(), r.actions(), r.more(), r.source(), r.sourceUrl()), r.context());
         return new WopiAskResponse(premium.wopiLeft(userId, pr), dto(asked), dto(reply));
     }
 
@@ -109,7 +110,7 @@ public class WopiServiceImpl implements WopiService {
             e = null;
         }
         return new WopiMessageResponse(m.getId(), m.getRole(), m.getText(), e == null ? List.of() : e.cards(), e == null ? List.of() : e.actions(),
-                e != null && e.more());
+                e != null && e.more(), e == null ? null : e.source(), e == null ? null : e.sourceUrl());
     }
 
     // ---------------- respuestas ----------------
@@ -163,6 +164,11 @@ public class WopiServiceImpl implements WopiService {
             if (c[0].equals("meal")) return mealIdeas(userId, Integer.parseInt(c[1]), c[2].isEmpty() ? null : Integer.valueOf(c[2]), Integer.parseInt(c[3]));
             if (c[0].equals("quick")) return quick(userId, Integer.parseInt(c[1]) + 1, "");
         }
+        // Las dudas de salud, alimentación y sueño las responden los consejos de expertos, salvo que pida una comida concreta.
+        if (!has(t, "desayun|almuer|almorz|merend|merienda|\\bcen(a|ar|o|amos)\\b|receta|\\$|pesos|plata|barat")) {
+            Optional<ExpertAdvice.Advice> a = ExpertAdvice.answer(t, profile.prefs(userId));
+            if (a.isPresent()) return expert(a.get());
+        }
         if (has(t, "rutina|ejercicio|entren|bloque") && !has(t, "minuto|tiempo")) return routine(userId);
         if (has(t, "duele|dolor|rodilla|espalda|lesi")) return pain(userId, name);
         if (has(t, "minuto|tiempo|corto") && !has(t, "desayun|almuer|almorz|cen|comer|comida")) return quick(userId, 0, "¡Con poco tiempo también suma! ");
@@ -172,14 +178,13 @@ public class WopiServiceImpl implements WopiService {
             int h = time.now().getHour();
             return mealIdeas(userId, slot != null ? slot : h < 11 ? 0 : h < 16 ? 1 : 2, priceFrom(t), 0);
         }
-        // Descanso antes que motivación: "no puedo dormir" es de sueño, no de ganas.
-        if (has(t, "dorm|suen|estr|ansie|respir")) {
-            return Reply.of("Probá la respiración 4-7-8 antes de dormir: inhalá 4 segundos, sostené 7 y exhalá en 8. Repetilo 4 veces. "
-                    + "Y tratá de dejar el celu 30 minutos antes.", new WopiAction("Poner una meta de descanso", "go", "/metas/nueva"));
-        }
         if (has(t, "motiv|ganas|cansad|no puedo|frustr")) return motivation(userId);
-        return Reply.of("Puedo ayudarte con tu rutina, tus comidas, la lista del súper o cómo seguir cuando no tenés ganas. ¿Qué necesitás"
+        return Reply.of("Puedo ayudarte con tu rutina, tus comidas, la lista del súper, dudas de alimentación, sueño o estrés, o cómo seguir cuando no tenés ganas. ¿Qué necesitás"
                 + (name.isEmpty() ? "" : ", " + name) + "?");
+    }
+
+    private static Reply expert(ExpertAdvice.Advice a) {
+        return new Reply(a.tip().text(), List.of(), a.action() == null ? List.of() : List.of(a.action()), false, null, a.tip().source(), a.tip().url());
     }
 
     /** Dos ideas por vez del menú que le sirve (restricciones y presupuesto); "otras opciones" sigue con las próximas. */
@@ -197,7 +202,7 @@ public class WopiServiceImpl implements WopiService {
                 new WopiAction("Agregar a mi " + SLOT_NAMES[slot] + " de hoy", "meal", slot + "|" + m.name()))).toList();
         String text = (restart ? "Ya te mostré todas las opciones, vuelvo a empezar. " : "")
                 + "Te propongo estas ideas de " + SLOT_NAMES[slot] + " (" + avoidText(p) + ")" + (lim != null ? " por menos de " + money(lim) : "") + ":";
-        return new Reply(text, cards, List.of(), pool.size() > 2, "meal:" + slot + ":" + (lim == null ? "" : lim) + ":" + (from + 2));
+        return new Reply(text, cards, List.of(), pool.size() > 2, "meal:" + slot + ":" + (lim == null ? "" : lim) + ":" + (from + 2), null, null);
     }
 
     private SessionResponse pendingToday(TodayResponse td) {
@@ -214,7 +219,7 @@ public class WopiServiceImpl implements WopiService {
         WorkoutCatalog.Content a = workouts.alternative(kind, s == null ? 0 : s.template(), plan.getMinutes(), plan.getLevel(), p);
         WopiAction start = kind.equals("walk") ? new WopiAction("Empezar ahora", "go", "/entreno/caminata")
                 : s != null ? new WopiAction("Hacer esto hoy", "alt", s.id() + "|" + kind) : new WopiAction("Caminata de 15 min", "go", "/entreno/caminata");
-        return new Reply(lead + "Te propongo: **" + a.title() + "** (" + a.minutes() + " min). " + a.description(), List.of(), List.of(start), true, "quick:" + i);
+        return new Reply(lead + "Te propongo: **" + a.title() + "** (" + a.minutes() + " min). " + a.description(), List.of(), List.of(start), true, "quick:" + i, null, null);
     }
 
     private Reply routine(Long userId) {
@@ -245,7 +250,7 @@ public class WopiServiceImpl implements WopiService {
         acts.add(new WopiAction("Consultar a un entrenador", "go", "/profesionales?tipo=entre"));
         if (s != null) acts.add(new WopiAction("Hacer movilidad suave", "alt", s.id() + "|suave"));
         return new Reply("Lamento que te moleste algo" + (name.isEmpty() ? "" : ", " + name) + ". Por las dudas, hoy evitá sentadillas profundas y estocadas: "
-                + "cambialas por puente de glúteos y movilidad suave. **Si el dolor es fuerte o no se va, consultá con un profesional.**", List.of(), acts, false, null);
+                + "cambialas por puente de glúteos y movilidad suave. **Si el dolor es fuerte o no se va, consultá con un profesional.**", List.of(), acts, false, null, null, null);
     }
 
     private Reply shopping(Long userId) {
@@ -253,7 +258,7 @@ public class WopiServiceImpl implements WopiService {
         long forList = places.offers(userId).offers().stream().filter(o -> o.forList()).count();
         String top = String.join(", ", items.stream().limit(6).map(x -> x.name().substring(0, 1).toUpperCase(Locale.ROOT) + x.name().substring(1)).toList());
         return new Reply("Para esta semana necesitás principalmente: **" + top + "**." + (forList > 0 ? " Hay " + forList + (forList == 1 ? " oferta que te sirve." : " ofertas que te sirven.") : ""),
-                List.of(), List.of(new WopiAction("Ver la lista del súper", "go", "/comida?tab=super"), new WopiAction("Ver ofertas", "go", "/ofertas")), false, null);
+                List.of(), List.of(new WopiAction("Ver la lista del súper", "go", "/comida?tab=super"), new WopiAction("Ver ofertas", "go", "/ofertas")), false, null, null, null);
     }
 
     private Reply motivation(Long userId) {

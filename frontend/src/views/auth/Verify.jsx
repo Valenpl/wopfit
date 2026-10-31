@@ -5,6 +5,7 @@ import useRequest from '../../hooks/useRequest';
 import useToast from '../../hooks/useToast';
 import { emailOk } from '../../utils/validation';
 import Btn from '../../components/shared/Btn.jsx';
+import CodeInput from '../../components/shared/CodeInput.jsx';
 import Field from '../../components/shared/Field.jsx';
 import Icon from '../../components/shared/Icon.jsx';
 import ScrollArea from '../../components/shared/ScrollArea.jsx';
@@ -33,11 +34,7 @@ export default function Verify() {
       {state && state.email
         ? <p className="sub center">Te enviamos un código de 6 números a<br /><b style={{ color: 'var(--navy)' }}>{email}</b></p>
         : <><p className="sub center">Escribí tu email y el código que te mandamos.</p><Field id="vemail" label="Email" type="email" value={email} onChange={e => setEmail(e.target.value)} /></>}
-      <div className="code">
-        <div className="cboxes" aria-hidden="true">{[0, 1, 2, 3, 4, 5].map(i => <span key={i} className={`cbox ${i === Math.min(5, code.length) ? 'cur' : ''}`}>{code[i] || ''}</span>)}</div>
-        <input className="codein" inputMode="numeric" pattern="[0-9]*" maxLength={6} autoComplete="one-time-code" autoFocus value={code}
-          onChange={e => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))} aria-label="Código de 6 números" />
-      </div>
+      <CodeInput value={code} onChange={setCode} />
       {dev && <div className="devcode">Modo desarrollo: tu código es {dev}</div>}
       {check.error && <div className="formerr center">{check.error.message}</div>}
       <p className="center" style={{ marginTop: 22 }}>¿No te llegó? <button type="button" className="link" onClick={() => resend.run(email)} disabled={!emailOk(email)}>Reenviar código</button></p>

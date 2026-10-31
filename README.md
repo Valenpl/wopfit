@@ -12,6 +12,7 @@ Hábitos que se adaptan a tu vida real. Incluye:
 - lista del súper, ofertas y lugares cercanos en un mapa
 - Premium de demostración (sin cobros): Wopi, profesionales y más
 - comunidad con publicaciones y fotos
+- consejos de expertos (OMS, Guías Alimentarias Argentinas y más) en el plan, la rutina y Wopi, con su fuente
 - se instala como app en el celu
 
 ```
@@ -40,7 +41,7 @@ wopfit/
 
 Un solo backend (monolito) en 3 capas, en lugar de microservicios: para un equipo chico y una demo, varios servicios sólo suman servidores, costos y fallas entre ellos.
 
-**Planeado (en desarrollo):** migraciones con Flyway, sesión con token corto + token de renovación en cookie, planes versionados detrás de `PlanGenerationService` (hoy un generador simulado, mañana el modelo propio de Wopfit), emails reales para el código de verificación y un modelo de IA para Wopi. Lo simulado (Premium sin cobros, comercios, cupones, profesionales y personas de ejemplo) siempre se muestra como demo.
+**Planeado (en desarrollo):** migraciones con Flyway, sesión con token corto + token de renovación en cookie, planes versionados detrás de `PlanGenerationService` (hoy un generador simulado, mañana el modelo propio de Wopfit), emails reales para el código de verificación y un modelo de IA para Wopi, que va a usar la misma base de [consejos de expertos](docs/fuentes-expertos.md) que hoy usan las reglas. Lo simulado (Premium sin cobros, comercios, cupones, profesionales y personas de ejemplo) siempre se muestra como demo.
 
 ## Reglas del código
 
@@ -104,7 +105,7 @@ En pantallas de 1000 px o más se ve la versión compu, con barra lateral.
 ### Código de verificación del email
 Todavía no se mandan emails reales. En desarrollo (`WOPFIT_DEV_CODES=true`, que es el valor por defecto), el código de 6 números aparece en dos lugares:
 
-- en la pantalla "Revisá tu email"
+- en la pantalla "Revisá tu email" (o "Recuperá tu contraseña")
 - en el log del backend
 
 ### Tests
@@ -181,15 +182,15 @@ Se pueden poner en el `.env` de la raíz (ver `.env.example`) o como variables d
 
 | Módulo | Qué incluye |
 |---|---|
-| Cuenta | Registro con email y contraseña (BCrypt), código de verificación, login con JWT, cambio de contraseña |
+| Cuenta | Registro con email y contraseña (BCrypt), código de verificación, login con JWT, cambio de contraseña y "¿Olvidaste tu contraseña?" con un código por email (un código equivocado se invalida, así no se puede adivinar) |
 | Perfil | Nombre, fecha de nacimiento (13+), altura, peso |
 | Preferencias | Objetivos, días y minutos, presupuesto, actividades, alimentos que evita (sin TACC saca también la avena), salud, nivel, equipamiento |
-| Plan | Sesiones en los días elegidos. La rutina se arma según nivel, equipamiento y salud (bajo impacto con embarazo o lesión). Menú de 3 comidas filtrado por restricciones y ordenado por presupuesto |
+| Plan | Sesiones en los días elegidos. La rutina se arma según nivel, equipamiento y salud (bajo impacto con embarazo o lesión, y con embarazo nada boca arriba). El plan y cada rutina muestran los consejos de expertos que aplican a la persona, con la fuente ([docs/fuentes-expertos.md](docs/fuentes-expertos.md)). Menú de 3 comidas filtrado por restricciones y ordenado por presupuesto |
 | Registro | Marcar la rutina como hecha y cómo se sintió, comidas, 3 hábitos diarios |
 | Premium | De demostración, sin pagos: se elige el período y se activa al instante, vence solo y se puede volver al Gratuito. Saca los anuncios y los candados. `GET me` trae `subscription` |
 | Cerca tuyo y ofertas | Mapa real (Leaflet + OpenStreetMap) con 45 lugares de demostración en AMBA: cadenas ficticias en direcciones reales y parques reales. Cupones que se renuevan solos y marcan qué ingredientes de tu lista tienen oferta |
 | Ayuda profesional | 6 nutricionistas y entrenadores de ejemplo con agenda de lunes a sábado (algunos turnos ya vienen ocupados). Con Premium se reservan 2 consultas por mes, por videollamada o chat, y se pueden agregar al calendario (.ics) o cancelar |
-| Preguntale a Wopi | Asistente con respuestas armadas por reglas sobre tus datos: rutina de hoy, ideas de comida que respetan lo que no comés y tu presupuesto, lista del súper, ofertas, motivación y descanso. Si algo duele, deriva a un profesional. Los botones de cada respuesta llevan a la app (sumar una comida a hoy, hacer la versión corta, ver la lista). 3 consultas por mes gratis, 20 con Premium |
+| Preguntale a Wopi | Asistente con respuestas armadas por reglas sobre tus datos: rutina de hoy, ideas de comida que respetan lo que no comés y tu presupuesto, lista del súper, ofertas y motivación. Las dudas de alimentación, sueño, estrés y actividad las responde con consejos de expertos y muestra la fuente. Si algo duele, deriva a un profesional. Los botones de cada respuesta llevan a la app (sumar una comida a hoy, hacer la versión corta, ver la lista). 3 consultas por mes gratis, 20 con Premium |
 | Comunidad | Personas como vos (por objetivos en común) para seguir, publicaciones de recetas, actividades y preguntas con foto, me gusta, guardados y comentarios. En la comunidad se ve el nombre y la inicial del apellido. Trae 6 personas y 5 publicaciones de ejemplo |
 | App instalable | `manifest.webmanifest` e íconos para agregarla a la pantalla de inicio, y un service worker (solo en la versión publicada) que guarda la app y las imágenes, nunca la API. Pantalla "Instalá WopFit" con el botón del navegador o los pasos para iPhone y Android |
 | Lista del súper | Ingredientes del menú de la semana, de los más usados a los menos, sin las comidas marcadas como "no pude". Lo que tildás queda guardado por semana |
@@ -202,7 +203,7 @@ Se pueden poner en el `.env` de la raíz (ver `.env.example`) o como variables d
 
 Rutas públicas:
 
-- `POST` `auth/register`, `auth/verify`, `auth/authenticate`, `auth/resend`
+- `POST` `auth/register`, `auth/verify`, `auth/authenticate`, `auth/resend`, `auth/forgot` (`{ email }`) y `auth/reset` (`{ email, code, password }`, deja la sesión iniciada)
 - `GET` `health`, `catalog`
 
 El resto requiere `Authorization: Bearer <token>`. Criterio de las rutas (REGLAS 2.9): cada una empieza con un recurso en plural; lo que la persona logueada tiene una sola vez cuelga de `users/me`; las acciones sobre un recurso que no son alta, edición ni baja (marcar como hecho, saltear, reservar...) van como `POST` a una sub-ruta.

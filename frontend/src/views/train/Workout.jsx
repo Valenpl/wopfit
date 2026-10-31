@@ -13,6 +13,7 @@ import { checksKey, isAlt, selectChecks } from '../../utils/workoutChecks';
 import ReportSheet from '../../components/train/ReportSheet.jsx';
 import Btn from '../../components/shared/Btn.jsx';
 import ErrorBox from '../../components/shared/ErrorBox.jsx';
+import ExpertTips from '../../components/shared/ExpertTips.jsx';
 import Icon from '../../components/shared/Icon.jsx';
 import IconInline from '../../components/shared/IconInline.jsx';
 import Loading from '../../components/shared/Loading.jsx';
@@ -78,6 +79,7 @@ function Routine({ s, walk, altKey }) {
       </div>;
     })}
     <p className="center small muted mt16"><IconInline n="clock" /> Descanso entre series: {c.rest}</p>
+    <ExpertTips tips={s.tips} className="mt16" />
     {how && <Sheet onClose={() => setHow(null)}><h1 style={{ marginTop: 12 }}>{how}</h1><div className="card" style={{ background: '#F6FAFD' }}>{howto(how)}</div>
       <Note tone="blue" className="mt12">Si sentís dolor, frená y probá la versión más suave.</Note><button className="btn mt16" onClick={() => setHow(null)}>Entendido</button></Sheet>}
     {report && <ReportSheet session={report} onClose={() => setReport(null)} />}

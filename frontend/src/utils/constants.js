@@ -58,6 +58,7 @@ const HOWTO = {
   'Remo': 'Inclinate hacia adelante con la espalda recta y llevá el peso hacia la cadera, juntando los omóplatos.',
   'Flexiones': 'Manos al ancho de hombros, cuerpo en línea recta. Bajá el pecho controlado y empujá para subir.',
   'Plancha': 'Antebrazos en el piso, cuerpo en línea recta de cabeza a talones. Apretá el abdomen y respirá.',
+  'Patada de glúteo': 'En cuatro apoyos, con las manos debajo de los hombros, llevá una pierna hacia atrás y arriba con la rodilla doblada, sin arquear la espalda. Bajá lento y cambiá de pierna.',
   'Puente': 'Boca arriba con las rodillas flexionadas, elevá la cadera apretando los glúteos y bajá lento.',
   'Gato-vaca': 'En cuatro apoyos, alterná redondear la espalda (gato) y arquearla suave (vaca), siguiendo la respiración.',
   'Estocadas': 'Da un paso largo y bajá hasta que ambas rodillas formen 90°. Volvé y cambiá de pierna.',

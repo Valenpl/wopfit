@@ -1,12 +1,8 @@
 package com.wopfit.service;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,15 +44,7 @@ public class DemoData implements ApplicationRunner {
     private final CommunityProfileService communityProfiles;
 
     private static List<String[]> rows(String file) throws IOException {
-        List<String[]> out = new ArrayList<>();
-        try (BufferedReader r = new BufferedReader(new InputStreamReader(new ClassPathResource("demo/" + file).getInputStream(), StandardCharsets.UTF_8))) {
-            String line;
-            while ((line = r.readLine()) != null) {
-                if (line.isBlank() || line.startsWith("#")) continue;
-                out.add(line.split("\t", -1));
-            }
-        }
-        return out;
+        return Tsv.rows("demo/" + file);
     }
 
     private static String orNull(String s) {

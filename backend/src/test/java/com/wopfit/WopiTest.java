@@ -87,7 +87,19 @@ class WopiTest extends ApiTest {
         assertThat(values(routine.get("actions")).get(0)).matches("go /entreno/\\d+");
 
         assertThat(ask(t, "Hoy no tengo ganas", 200).at("/reply/text").asText()).contains("Esta semana ya hiciste");
-        assertThat(ask(t, "No puedo dormir", 200).at("/reply/text").asText()).contains("4-7-8");
+        JsonNode sleep = ask(t, "No puedo dormir", 200).get("reply");
+        assertThat(sleep.get("text").asText()).contains("**7 horas o más por noche**");
+        assertThat(sleep.get("source").asText()).startsWith("AASM");
+        assertThat(sleep.get("sourceUrl").asText()).startsWith("https://aasm.org/");
+        // Consejos de expertos: primero los que son para la persona (es celíaca) y con el botón que corresponde.
+        assertThat(ask(t, "¿La avena tiene gluten?", 200).at("/reply/text").asText()).contains("trigo, avena, cebada y centeno");
+        JsonNode water = ask(t, "¿Cuánta agua tengo que tomar?", 200).get("reply");
+        assertThat(water.get("text").asText()).contains("**8 vasos de agua por día**");
+        assertThat(water.get("source").asText()).contains("Guías Alimentarias para la Población Argentina");
+        assertThat(values(water.get("actions"))).containsExactly("go /metas/nueva");
+        // Si pide una comida, propone comidas aunque nombre algo que tiene consejo.
+        assertThat(ask(t, "¿Qué desayuno con fruta?", 200).at("/reply/text").asText()).startsWith("Te propongo estas ideas de desayuno");
+        assertThat(ask(t, "Hoy no tengo ganas", 200).at("/reply/source").isNull()).isTrue();
         assertThat(ask(t, "hola", 200).at("/reply/text").asText()).startsWith("Puedo ayudarte con tu rutina");
 
         // el mes que viene se renueva

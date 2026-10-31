@@ -34,6 +34,16 @@ public class AuthenticationController {
         return ResponseEntity.ok(auth.verify(r.email(), r.code()));
     }
 
+    @PostMapping("/forgot")
+    public ResponseEntity<RegisterResponse> forgot(@Valid @RequestBody ResendRequest r) {
+        return ResponseEntity.ok(auth.forgot(r.email()));
+    }
+
+    @PostMapping("/reset")
+    public ResponseEntity<AuthenticationResponse> reset(@Valid @RequestBody ResetRequest r) {
+        return ResponseEntity.ok(auth.reset(r.email(), r.code(), r.password()));
+    }
+
     @PostMapping("/authenticate")
     public ResponseEntity<AuthenticationResponse> authenticate(@Valid @RequestBody AuthenticationRequest r) {
         return ResponseEntity.ok(auth.authenticate(r.email(), r.password()));

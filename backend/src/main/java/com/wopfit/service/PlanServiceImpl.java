@@ -161,7 +161,7 @@ public class PlanServiceImpl implements PlanService {
         }
         return new SessionResponse(s.getId(), s.getDate(), status(s), s.getTemplate(), title, minutes, s.getFeel(), s.getReason(),
                 s.getReason() == null ? null : Catalog.WORKOUT_REASONS.get(s.getReason()), s.getMovedTo(), s.getMovedFrom(),
-                s.getAlternative(), s.isAlternativeDone(), content);
+                s.getAlternative(), s.isAlternativeDone(), content, withContent ? ExpertAdvice.tips("entreno", p) : List.of());
     }
 
     @Transactional

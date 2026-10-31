@@ -82,7 +82,9 @@ public class WorkoutCatalog {
             summary = "Brazos, espalda y abdomen";
         }
 
-        List<Exercise> mob = new ArrayList<>(List.of(new Exercise("Puente de glúteos", "2×12"), new Exercise("Gato-vaca", "1 min")));
+        // OMS 2020: en el embarazo, nada boca arriba después del primer trimestre.
+        String bridge = p.getHealth().contains("embarazo") ? "Patada de glúteo en cuatro apoyos" : "Puente de glúteos";
+        List<Exercise> mob = new ArrayList<>(List.of(new Exercise(bridge, "2×12"), new Exercise("Gato-vaca", "1 min")));
         mob.add(acts.contains("yoga") ? new Exercise("Saludo al sol suave", "2 min") : new Exercise("Estiramiento de isquios", "1 min"));
 
         List<String> chips = new ArrayList<>();
