@@ -40,6 +40,7 @@ export default function Login() {
       <h1 className="center">¡Qué bueno verte de nuevo!</h1><p className="sub center">Ingresá para seguir con tu plan.</p>
       <Field id="lemail" label="Email" placeholder="tu@email.com" type="email" inputMode="email" autoComplete="email" value={email} onChange={e => setEmail(e.target.value)} />
       <PwField id="lpass" label="Contraseña" placeholder="Tu contraseña" autoComplete="current-password" value={pass} onChange={e => setPass(e.target.value)} />
+      <div style={{ textAlign: 'right', marginTop: 10 }}><button type="button" className="link" style={{ fontSize: 14 }} onClick={() => nav('/recuperar', { state: { email: email.trim() } })}>¿Olvidaste tu contraseña?</button></div>
       {err && <div className="formerr">{err}</div>}
     </ScrollArea>
     <div className="foot"><Btn type="submit" busy={signin.busy || resend.busy} disabled={!ok}>Ingresar</Btn>

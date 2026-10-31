@@ -12,14 +12,13 @@ import { firstName, isPremium } from '../../utils/format';
 import ErrorBox from '../../components/shared/ErrorBox.jsx';
 import Icon from '../../components/shared/Icon.jsx';
 import Loading from '../../components/shared/Loading.jsx';
+import Rich from '../../components/shared/Rich.jsx';
 import ScrollArea from '../../components/shared/ScrollArea.jsx';
+import Source from '../../components/shared/Source.jsx';
 import TopBar from '../../components/shared/TopBar.jsx';
 
 const SUGG = ['¿Qué desayuno rápido?', '¿Qué almuerzo con $2.000?', '¿Qué ceno hoy?', 'Tengo 10 minutos, ¿qué hago?', 'Armame la lista del súper'];
 const SLOTN = ['desayuno', 'almuerzo', 'cena'];
-
-/** Texto de Wopi con **negrita**, sin HTML. */
-const Rich = ({ text }) => text.split(/(\*\*[^*]+\*\*)/).map((p, i) => (p.startsWith('**') && p.endsWith('**') ? <b key={i}>{p.slice(2, -2)}</b> : p));
 
 export default function Wopi() {
   const nav = useNavigate();
@@ -70,6 +69,7 @@ export default function Wopi() {
         {messages.map(m => (m.role === 'user'
           ? <div key={m.id} className="bub u">{m.text}</div>
           : <div key={m.id} className="bub w"><Rich text={m.text} />
+            {m.source && <Source name={m.source} url={m.sourceUrl} />}
             {m.cards.map(c => <span key={c.title} className="opt2"><b>{c.title}</b><small>{c.subtitle}</small>
               <button className="btn sm" onClick={() => act(c.action)}>{c.action.label}</button></span>)}
             {m.actions.length > 0 && <div className="row mt8" style={{ flexWrap: 'wrap', gap: 6 }}>{m.actions.map(a => <button key={a.label} className="btn sm ghost" style={{ minHeight: 34, fontSize: 13 }} onClick={() => act(a)}>{a.label}</button>)}</div>}

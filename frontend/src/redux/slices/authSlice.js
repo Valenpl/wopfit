@@ -12,6 +12,8 @@ export const register = apiThunk('auth/register', body => http.post('/auth/regis
 export const verify = apiThunk('auth/verify', body => http.post('/auth/verify', body), { toastError: false });
 export const resendCode = apiThunk('auth/resend', email => http.post('/auth/resend', { email }), { toastError: false });
 export const login = apiThunk('auth/login', body => http.post('/auth/authenticate', body), { toastError: false });
+export const forgotPassword = apiThunk('auth/forgot', email => http.post('/auth/forgot', { email }), { toastError: false });
+export const resetPassword = apiThunk('auth/reset', body => http.post('/auth/reset', body), { toastError: false, toast: 'Listo, ya podés usar tu contraseña nueva' });
 export const updateAbout = apiThunk('auth/updateAbout', body => http.put('/users/me', body));
 export const updatePreferences = apiThunk('auth/updatePreferences', body => http.put('/users/me/preferences', body));
 export const changePassword = apiThunk('auth/changePassword', body => http.put('/users/me/password', body), { toastError: false, toast: 'Contraseña actualizada' });
@@ -47,6 +49,7 @@ const authSlice = createSlice({
       .addCase(fetchMe.rejected, s => { s.meLoading = false; s.token = null; })
       .addCase(verify.fulfilled, signedIn)
       .addCase(login.fulfilled, signedIn)
+      .addCase(resetPassword.fulfilled, signedIn)
       .addCase(updateAbout.fulfilled, meUpdated)
       .addCase(updatePreferences.fulfilled, meUpdated)
       .addCase(activatePremium.fulfilled, meUpdated)

@@ -93,6 +93,37 @@ public class AuthenticationServiceImpl implements AuthenticationService {
         return new AuthenticationResponse(jwt.generateToken(u), profile.me(u.getId()));
     }
 
+    /** Manda un código para elegir una contraseña nueva. Responde lo mismo si el email no tiene cuenta, así no se puede averiguar quién está registrado. */
+    @Transactional
+    @Override
+    public RegisterResponse forgot(String email) {
+        String mail = email.trim().toLowerCase();
+        User u = users.findByEmailIgnoreCase(mail).orElse(null);
+        if (u != null) {
+            u.setVerificationCode(newCode());
+            log.info("Código para cambiar la contraseña de {}: {}", mail, u.getVerificationCode());
+        }
+        return new RegisterResponse("Si " + mail + " tiene una cuenta, te mandamos un código de 6 números", devCodes && u != null ? u.getVerificationCode() : null);
+    }
+
+    /**
+     * Cambia la contraseña con el código del email y deja la sesión iniciada (el código también confirma el email).
+     * Un código equivocado se borra, así no se puede probar hasta adivinarlo: hay que pedir otro.
+     */
+    @Transactional(noRollbackFor = InvalidDataException.class)
+    @Override
+    public AuthenticationResponse reset(String email, String code, String password) {
+        User u = users.findByEmailIgnoreCase(email.trim()).orElse(null);
+        if (u == null || u.getVerificationCode() == null || !u.getVerificationCode().equals(code)) {
+            if (u != null) u.setVerificationCode(null);
+            throw new InvalidDataException("El código no coincide. Pedí uno nuevo.");
+        }
+        u.setPasswordHash(encoder.encode(password));
+        u.setVerified(true);
+        u.setVerificationCode(null);
+        return new AuthenticationResponse(jwt.generateToken(u), profile.me(u.getId()));
+    }
+
     /** Pide la contraseña actual. Si no coincide es 400 y no 401: la sesión sigue siendo válida. */
     @Transactional
     @Override

@@ -1,5 +1,6 @@
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Login from '../views/auth/Login.jsx';
+import Recover from '../views/auth/Recover.jsx';
 import Signup from '../views/auth/Signup.jsx';
 import Verify from '../views/auth/Verify.jsx';
 import Welcome from '../views/auth/Welcome.jsx';
@@ -47,6 +48,7 @@ export default function AppRoutes({ stage }) {
     <Route path="/registro" element={only(['out'], <Signup />)} />
     <Route path="/verificar" element={only(['out'], <Verify />)} />
     <Route path="/ingresar" element={only(['out'], <Login />)} />
+    <Route path="/recuperar" element={only(['out'], <Recover />)} />
     <Route path="/sobre-vos" element={only(['about'], <About />)} />
     {/* Al terminar las preferencias se crea el plan y la etapa pasa a 'app' antes de que Prefs llegue a navegar:
         el paso que sigue es "Plan listo", no Inicio. */}

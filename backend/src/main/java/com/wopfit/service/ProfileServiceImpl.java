@@ -136,7 +136,7 @@ public class ProfileServiceImpl implements ProfileService {
 
     public static PlanResponse planDto(Plan plan, Preferences p) {
         return new PlanResponse(plan.getStartDate(), plan.getDays().stream().sorted().toList(), plan.getMinutes(), plan.getLevel(),
-                Catalog.levelName(plan.getLevel()), trainingSummary(p), foodSummary(p), healthNotes(p));
+                Catalog.levelName(plan.getLevel()), trainingSummary(p), foodSummary(p), healthNotes(p), ExpertAdvice.tips("plan", p));
     }
 
     public static String trainingSummary(Preferences p) {

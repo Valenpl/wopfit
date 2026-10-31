@@ -48,6 +48,9 @@ test('registro, verificación, datos, preferencias y volver a entrar', async ({ 
 
   await expect(page.getByRole('heading', { name: '¡Tu plan está listo!' })).toBeVisible();
   await expect(page.getByText('4 días / sem')).toBeVisible(); // lunes, martes, miércoles y viernes
+  // El plan explica qué recomiendan los expertos, con el link a la fuente.
+  await expect(page.getByRole('heading', { name: 'Lo que recomiendan los expertos' })).toBeVisible();
+  await expect(page.getByRole('link', { name: 'OMS, Directrices sobre actividad física y hábitos sedentarios (2020)' })).toHaveAttribute('href', /^https:/);
   await page.getByRole('button', { name: 'Empezar mi plan' }).click();
   await expect(page).toHaveURL('/inicio');
   await expect(page.getByRole('heading', { name: 'Hola, Alta' })).toBeVisible();
