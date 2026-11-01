@@ -23,12 +23,9 @@ public class Offer {
     @Column(nullable = false, length = 20)
     private String code;
 
-    /** Cadena con sucursales en el mapa; null = comercio online. */
-    @Column(length = 20)
-    private String brand;
-
-    @Column(nullable = false, length = 60)
-    private String store;
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "brand_id", foreignKey = @ForeignKey(name = "fk_offer_brand"))
+    private Brand brand;
 
     /** super, diet, gym, ropa o supl. */
     @Column(nullable = false, length = 10)

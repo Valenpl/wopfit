@@ -17,12 +17,14 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
+import com.wopfit.entity.Brand;
 import com.wopfit.entity.CommunityProfile;
 import com.wopfit.entity.Offer;
 import com.wopfit.entity.Place;
 import com.wopfit.entity.Post;
 import com.wopfit.entity.PostComment;
 import com.wopfit.entity.Professional;
+import com.wopfit.repository.BrandRepository;
 import com.wopfit.repository.CommunityProfileRepository;
 import com.wopfit.repository.OfferRepository;
 import com.wopfit.repository.PlaceRepository;
@@ -37,6 +39,7 @@ import com.wopfit.service.TimeService;
 @Component
 public class DemoData implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(DemoData.class);
+    private final BrandRepository brands;
     private final PlaceRepository places;
     private final OfferRepository offers;
     private final ProfessionalRepository pros;
@@ -100,12 +103,24 @@ public class DemoData implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments args) throws IOException {
+        if (brands.count() == 0) {
+            for (String[] c : rows("brands.tsv")) {
+                Brand b = new Brand();
+                b.setCode(c[0]);
+                b.setName(c[1]);
+                b.setCategory(orNull(c[2]));
+                brands.save(b);
+            }
+            log.info("Marcas de demostración cargadas: {}", brands.count());
+        }
+        Map<String, Brand> brandByCode = new HashMap<>();
+        brands.findAll().forEach(b -> brandByCode.put(b.getCode(), b));
         if (places.count() == 0) {
             for (String[] c : rows("places.tsv")) {
                 Place p = new Place();
-                p.setBrand(orNull(c[0]));
-                p.setName(c[1]);
-                p.setCategory(c[2]);
+                p.setBrand(brandByCode.get(c[0]));
+                p.setName(orNull(c[1]));
+                p.setCategory(orNull(c[2]));
                 p.setAddress(c[3]);
                 p.setBarrio(c[4]);
                 p.setOpens(c[5]);
@@ -120,14 +135,13 @@ public class DemoData implements ApplicationRunner {
             for (String[] c : rows("offers.tsv")) {
                 Offer o = new Offer();
                 o.setCode(c[0]);
-                o.setBrand(orNull(c[1]));
-                o.setStore(c[2]);
-                o.setCategory(c[3]);
-                o.setOff(c[4]);
-                o.setUnit(c[5]);
-                o.setDescription(c[6]);
-                o.setDays(Integer.parseInt(c[7]));
-                o.getIngredients().addAll(items(c[8]));
+                o.setBrand(brandByCode.get(c[1]));
+                o.setCategory(c[2]);
+                o.setOff(c[3]);
+                o.setUnit(c[4]);
+                o.setDescription(c[5]);
+                o.setDays(Integer.parseInt(c[6]));
+                o.getIngredients().addAll(items(c[7]));
                 o.setStartDate(time.today());
                 offers.save(o);
             }
