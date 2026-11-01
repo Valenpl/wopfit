@@ -31,7 +31,11 @@ import com.wopfit.entity.dto.WopiMessageResponse;
 import com.wopfit.entity.dto.WopiResponse;
 import com.wopfit.exceptions.LimitReachedException;
 import com.wopfit.repository.WopiMessageRepository;
-import com.wopfit.service.MealCatalog.Meal;
+import com.wopfit.service.support.MealCatalog.Meal;
+import com.wopfit.service.support.Catalog;
+import com.wopfit.service.support.MealCatalog;
+import com.wopfit.service.support.WorkoutCatalog;
+import com.wopfit.service.support.ExpertAdvice;
 
 @RequiredArgsConstructor
 @Service

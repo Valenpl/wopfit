@@ -1,0 +1,8 @@
+# Todos los archivos de texto con finales de línea LF en el repo (Windows los muestra igual).
+* text=auto eol=lf
+*.cmd text eol=crlf
+*.bat text eol=crlf
+*.png binary
+*.jpg binary
+*.ico binary
+*.pdf binary

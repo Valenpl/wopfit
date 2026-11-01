@@ -71,7 +71,7 @@ class WopiTest extends ApiTest {
         for (int i = 0; i < 6; i++) assertThat(msgs.get(i).get("role").asText()).isEqualTo(i % 2 == 0 ? "user" : "wopi");
 
         // con Premium son 20 por mes (ya usó 3)
-        call(post("/api/v1/users/me/subscription"), t, "{\"period\":\"mensual\"}", 200);
+        call(post("/api/v1/users/me/subscription"), t, "{\"period\":\"mensual\"}", 201);
         assertThat(call(get("/api/v1/wopi/messages"), t, null, 200).get("left").asInt()).isEqualTo(17);
 
         JsonNode pain = ask(t, "Me duele la rodilla", 200).get("reply");

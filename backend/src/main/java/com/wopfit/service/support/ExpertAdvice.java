@@ -1,4 +1,4 @@
-package com.wopfit.service;
+package com.wopfit.service.support;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -19,13 +19,13 @@ import com.wopfit.entity.dto.WopiAction;
  * Consejos de nutricionistas, entrenadores y médicos (resources/expertos, fuentes en docs/fuentes-expertos.md).
  * Los muestran el plan y la rutina, y Wopi los usa para responder. Si un archivo está mal, la app no arranca.
  */
-final class ExpertAdvice {
+public final class ExpertAdvice {
     private ExpertAdvice() {}
 
     private static final Set<String> PLACES = Set.of("plan", "entreno", "wopi");
 
     /** Un consejo: dónde se muestra, para quién es (* = todos), qué preguntas responde y el botón que suma en Wopi. */
-    record Advice(Set<String> where, Set<String> forWhom, Pattern words, ExpertTip tip, WopiAction action) {
+    public record Advice(Set<String> where, Set<String> forWhom, Pattern words, ExpertTip tip, WopiAction action) {
         boolean general() {
             return forWhom.contains("*");
         }
@@ -68,13 +68,13 @@ final class ExpertAdvice {
     }
 
     /** Los consejos del plan o de la rutina para la persona: primero los de su salud y objetivos, después los generales. */
-    static List<ExpertTip> tips(String where, Preferences p) {
+    public static List<ExpertTip> tips(String where, Preferences p) {
         return ALL.stream().filter(a -> a.where().contains(where) && a.appliesTo(p))
                 .sorted(Comparator.comparing(Advice::general)).map(Advice::tip).toList();
     }
 
     /** El consejo que responde la pregunta (en minúsculas y sin tildes), si hay alguno. */
-    static Optional<Advice> answer(String question, Preferences p) {
+    public static Optional<Advice> answer(String question, Preferences p) {
         return ALL.stream().filter(a -> a.where().contains("wopi") && a.words().matcher(question).find())
                 .min(Comparator.comparingInt(a -> a.rank(p)));
     }

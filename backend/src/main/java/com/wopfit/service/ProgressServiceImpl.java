@@ -26,6 +26,7 @@ import com.wopfit.entity.dto.Difficulty;
 import com.wopfit.entity.dto.HabitsResponse;
 import com.wopfit.entity.dto.HistoryResponse;
 import com.wopfit.entity.dto.HistoryWeek;
+import com.wopfit.entity.dto.MessageResponse;
 import com.wopfit.entity.dto.ObjectiveProgress;
 import com.wopfit.entity.dto.PlanResponse;
 import com.wopfit.entity.dto.ProgressResponse;
@@ -37,6 +38,7 @@ import com.wopfit.exceptions.InvalidDataException;
 import com.wopfit.repository.HabitLogRepository;
 import com.wopfit.repository.MealLogRepository;
 import com.wopfit.repository.WorkoutSessionRepository;
+import com.wopfit.service.support.Catalog;
 
 @RequiredArgsConstructor
 @Service
@@ -192,11 +194,12 @@ public class ProgressServiceImpl implements ProgressService {
 
     @Transactional
     @Override
-    public void dismiss(Long userId, String type) {
+    public MessageResponse dismiss(Long userId, String type) {
         Plan plan = plans.plan(userId);
         LocalDate mon = TimeServiceImpl.monday(time.today());
         if ("LIGHTEN".equals(type)) plan.setLightenSeenWeek(mon);
         else plan.setAdjustSeenWeek(mon);
+        return new MessageResponse("Listo");
     }
 
     @Transactional

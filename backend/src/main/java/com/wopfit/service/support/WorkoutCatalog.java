@@ -1,4 +1,4 @@
-package com.wopfit.service;
+package com.wopfit.service.support;
 
 import java.util.ArrayList;
 import java.util.List;

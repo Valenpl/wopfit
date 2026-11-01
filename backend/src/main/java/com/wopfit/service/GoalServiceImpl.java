@@ -15,6 +15,7 @@ import com.wopfit.entity.dto.GoalResponse;
 import com.wopfit.exceptions.GoalNotFoundException;
 import com.wopfit.exceptions.InvalidDataException;
 import com.wopfit.repository.GoalRepository;
+import com.wopfit.service.support.Catalog;
 
 @RequiredArgsConstructor
 @Service

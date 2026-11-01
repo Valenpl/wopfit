@@ -27,6 +27,8 @@ import com.wopfit.exceptions.SessionExpiredException;
 import com.wopfit.repository.PlanRepository;
 import com.wopfit.repository.PreferencesRepository;
 import com.wopfit.repository.UserRepository;
+import com.wopfit.service.support.Catalog;
+import com.wopfit.service.support.ExpertAdvice;
 
 @RequiredArgsConstructor
 @Service

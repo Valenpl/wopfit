@@ -59,7 +59,7 @@ abstract class ApiTest {
         call(put("/api/v1/users/me"), t, "{\"name\":\"Sofi\",\"birthDate\":\"1992-08-14\",\"heightCm\":160,\"weightKg\":58}", 200);
         call(put("/api/v1/users/me/preferences"), t, "{\"goals\":[\"comer\"],\"days\":[0,2,4],\"minutes\":30,\"budget\":\"medio\",\"activities\":[],"
                 + "\"avoid\":[\"tacc\"],\"otherAvoid\":\"\",\"health\":[],\"level\":\"principiante\",\"equipment\":[\"nada\"]}", 200);
-        call(post("/api/v1/users/me/plan"), t, null, 200);
+        call(post("/api/v1/users/me/plan"), t, null, 201);
         return t;
     }
 }

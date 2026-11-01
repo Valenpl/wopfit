@@ -1,4 +1,4 @@
-import { apiUrl } from '../../api/axios';
+import { apiUrl } from '../../utils/api';
 import { GOALS } from '../../utils/constants';
 import { ago } from '../../utils/dates';
 import { cap } from '../../utils/format';

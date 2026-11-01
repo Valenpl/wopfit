@@ -2,11 +2,13 @@ package com.wopfit.controllers.config;
 
 import java.io.IOException;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.AuthenticationProvider;
+import org.springframework.security.authorization.AuthorizationDecision;
 import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -23,6 +25,10 @@ public class SecurityConfig {
     private final JwtAuthenticationFilter jwtFilter;
     private final AuthenticationProvider authenticationProvider;
 
+    /** La consola de H2 solo existe con el perfil h2 (application-h2.properties). */
+    @Value("${spring.h2.console.enabled:false}")
+    private boolean h2Console;
+
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
@@ -31,7 +37,8 @@ public class SecurityConfig {
             .headers(h -> h.frameOptions(f -> f.sameOrigin())) // consola H2
             .sessionManagement(s -> s.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(a -> a
-                .requestMatchers("/api/v1/auth/**", "/api/v1/health", "/api/v1/catalog", "/h2-console/**").permitAll()
+                .requestMatchers("/api/v1/auth/**", "/api/v1/health", "/api/v1/catalog").permitAll()
+                .requestMatchers("/h2-console/**").access((auth, ctx) -> new AuthorizationDecision(h2Console))
                 .requestMatchers(HttpMethod.GET, "/api/v1/photos/*").permitAll() // id imposible de adivinar; <img> no manda el token
                 .requestMatchers("/api/v1/admin/**").hasAuthority("ADMIN")
                 .anyRequest().authenticated())

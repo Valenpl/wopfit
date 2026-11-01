@@ -48,7 +48,6 @@ public class ProgressController {
 
     @PostMapping("/plan/dismiss")
     public ResponseEntity<MessageResponse> dismiss(@AuthenticationPrincipal(expression = "id") Long uid, @Valid @RequestBody DismissRequest r) {
-        progress.dismiss(uid, r.type());
-        return ResponseEntity.ok(new MessageResponse("Listo"));
+        return ResponseEntity.ok(progress.dismiss(uid, r.type()));
     }
 }

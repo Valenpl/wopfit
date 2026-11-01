@@ -36,7 +36,7 @@ class FlowTest extends ApiTest {
         String prefs = "{\"goals\":[\"mover\",\"comer\"],\"days\":[0,2,4],\"minutes\":30,\"budget\":\"bajo\",\"activities\":[\"caminar\"],"
                 + "\"avoid\":[\"tacc\"],\"otherAvoid\":\"\",\"health\":[\"diabetes\"],\"level\":\"principiante\",\"equipment\":[\"nada\"]}";
         call(put("/api/v1/users/me/preferences"), t, prefs, 200);
-        JsonNode plan = call(post("/api/v1/users/me/plan"), t, null, 200);
+        JsonNode plan = call(post("/api/v1/users/me/plan"), t, null, 201);
         assertThat(plan.at("/plan/healthNotes").size()).isGreaterThan(0);
 
         JsonNode today = call(get("/api/v1/workouts/today"), t, null, 200);
