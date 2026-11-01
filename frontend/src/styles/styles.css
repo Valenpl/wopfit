@@ -502,7 +502,8 @@ label.opt{display:flex}
 .cboxes{display:flex;gap:clamp(5px,1.8vw,8px);justify-content:center;width:100%}
 .cbox{flex:1 1 0;max-width:46px;min-width:0;height:clamp(48px,14vw,58px);border-radius:14px;border:1.5px solid transparent;background:#fff;display:grid;place-items:center;font-family:var(--h);font-size:24px;font-weight:700;color:var(--navy)}
 .code:focus-within .cbox.cur{border-color:var(--blue)}
-.codein{position:absolute;inset:0;width:100%;height:100%;opacity:0;font-size:16px;border:0;background:transparent;color:transparent;caret-color:transparent}
+/* .code .codein le gana a ".code input": sin eso el campo invisible medía 46 px y tocar las cajitas no lo activaba */
+.code .codein{position:absolute;inset:0;width:100%;max-width:none;height:100%;opacity:0;font-size:16px;border:0;background:transparent;color:transparent;caret-color:transparent}
 
 /* ===================== versión compu ===================== */
 .sbrand,.sfoot{display:none}

@@ -25,7 +25,13 @@ test('registro, verificación, datos, preferencias y volver a entrar', async ({ 
   await input.fill(code === '000000' ? '111111' : '000000');
   await page.getByRole('button', { name: 'Verificar' }).click();
   await expect(page.locator('.toast, .formerr').first()).toContainText('El código no coincide');
-  await input.fill(code);
+  // Como una persona: hace clic sobre una de las cajitas (no la primera) y escribe. El campo invisible tiene que cubrirlas a todas.
+  await page.locator('.devcode').click(); // saca el foco del código
+  const box = await page.locator('.cbox').nth(3).boundingBox();
+  await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2);
+  await expect(input).toBeFocused();
+  await page.keyboard.type(code);
+  await expect(input).toHaveValue(code);
   await page.getByRole('button', { name: 'Verificar' }).click();
 
   // Datos básicos
