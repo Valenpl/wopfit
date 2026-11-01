@@ -13,6 +13,7 @@ import com.wopfit.repository.PreferencesRepository;
 import com.wopfit.repository.UserRepository;
 
 import lombok.RequiredArgsConstructor;
+import com.wopfit.service.support.Catalog;
 
 @Service
 @RequiredArgsConstructor

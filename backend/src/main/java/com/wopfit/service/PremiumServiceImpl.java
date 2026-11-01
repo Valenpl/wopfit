@@ -14,6 +14,7 @@ import com.wopfit.repository.ConsultationRepository;
 import com.wopfit.repository.SubscriptionRepository;
 import com.wopfit.repository.UserRepository;
 import com.wopfit.repository.WopiMessageRepository;
+import com.wopfit.service.support.Catalog;
 
 @RequiredArgsConstructor
 @Service

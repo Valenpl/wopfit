@@ -55,6 +55,8 @@ backend/src/main/java/com/wopfit/
 ├── exceptions/          XNotFoundException, XDuplicateException, ...
 ├── repository/          XRepository.java
 └── service/             XService.java (interfaz) + XServiceImpl.java
+    └── support/         clases de apoyo que no son services: catálogos fijos,
+                         lector de TSV y carga de datos demo
 ```
 
 ### 2.3 Entidades
@@ -74,6 +76,7 @@ backend/src/main/java/com/wopfit/
 ### 2.5 Services
 
 - Interfaz `XService` + clase `XServiceImpl` con `@Service` (clase 3).
+- Lo que usan los services y no es un service (catálogos de comidas y rutinas, consejos de expertos, lectura de archivos `.tsv`, datos demo) va en `service/support/`. En `service/` quedan solo interfaces e `Impl`.
 - Inyección por constructor: `@RequiredArgsConstructor` + campos `private final`. Elegimos una sola forma en todo el proyecto (en el e-commerce mezclábamos `@Autowired` en campos y constructor).
 - `@Transactional` en los métodos que escriben varias tablas.
 - El usuario logueado sale del token (`Authentication` / `SecurityContextHolder`), **nunca** de un id que manda el front.

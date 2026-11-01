@@ -1,5 +1,6 @@
 package com.wopfit.controllers;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,7 +23,9 @@ public class PlanController {
 
     @PostMapping
     public ResponseEntity<PlanUpdateResponse> createPlan(@AuthenticationPrincipal(expression = "id") Long uid) {
-        return ResponseEntity.ok(plans.createOrUpdate(uid));
+        // La primera vez se crea el plan (201); después se actualiza con las preferencias nuevas (200).
+        HttpStatus status = plans.hasPlan(uid) ? HttpStatus.OK : HttpStatus.CREATED;
+        return ResponseEntity.status(status).body(plans.createOrUpdate(uid));
     }
 
     @GetMapping

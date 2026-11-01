@@ -1,6 +1,7 @@
 package com.wopfit.service;
 
 import com.wopfit.entity.dto.HistoryResponse;
+import com.wopfit.entity.dto.MessageResponse;
 import com.wopfit.entity.dto.PlanResponse;
 import com.wopfit.entity.dto.ProgressResponse;
 
@@ -9,6 +10,6 @@ public interface ProgressService {
     ProgressResponse progress(Long userId);
     PlanResponse lighten(Long userId);
     PlanResponse grow(Long userId);
-    void dismiss(Long userId, String type);
+    MessageResponse dismiss(Long userId, String type);
     HistoryResponse history(Long userId);
 }

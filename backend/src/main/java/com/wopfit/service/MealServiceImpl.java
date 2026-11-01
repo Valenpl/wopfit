@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Optional;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
@@ -31,7 +32,9 @@ import com.wopfit.exceptions.InvalidDataException;
 import com.wopfit.repository.MealLogRepository;
 import com.wopfit.repository.OfferRepository;
 import com.wopfit.repository.ShoppingCheckRepository;
-import com.wopfit.service.MealCatalog.Meal;
+import com.wopfit.service.support.MealCatalog.Meal;
+import com.wopfit.service.support.Catalog;
+import com.wopfit.service.support.MealCatalog;
 
 @RequiredArgsConstructor
 @Service
@@ -52,8 +55,8 @@ public class MealServiceImpl implements MealService {
     /** La comida que toca: la elegida como alternativa, o una rotación del menú según el día y los cambios pedidos. */
     private Meal mealFor(Plan plan, Preferences p, LocalDate date, int slot, MealLog log) {
         if (log != null && log.getAlternativeName() != null) {
-            Meal m = catalog.byName(log.getAlternativeName());
-            if (m != null) return m;
+            Optional<Meal> m = catalog.byName(log.getAlternativeName());
+            if (m.isPresent()) return m.get();
         }
         List<Meal> opts = catalog.options(slot, p);
         long base = Math.max(0, ChronoUnit.DAYS.between(plan.getStartDate(), date));
@@ -215,8 +218,7 @@ public class MealServiceImpl implements MealService {
     @Override
     public MealDayResponse accept(Long userId, LocalDate date, int slot, String name) {
         checkSlot(slot);
-        Meal m = catalog.byName(name);
-        if (m == null) throw new InvalidDataException("No encontramos esa comida");
+        Meal m = catalog.byName(name).orElseThrow(() -> new InvalidDataException("No encontramos esa comida"));
         MealLog l = log(userId, date, slot);
         l.setAlternativeName(m.name());
         l.setStatus(MealStatus.ALTERNATIVE);

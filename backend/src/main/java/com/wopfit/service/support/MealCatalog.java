@@ -1,8 +1,9 @@
-package com.wopfit.service;
+package com.wopfit.service.support;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 
 import org.springframework.stereotype.Component;
@@ -82,10 +83,11 @@ public class MealCatalog {
         return list.stream().filter(x -> fits(x, p)).findFirst().orElse(ALT_INGRED.get(0));
     }
 
-    public Meal byName(String name) {
-        for (List<Meal> l : MEALS) for (Meal x : l) if (x.name().equals(name)) return x;
-        for (List<Meal> l : List.of(ALT_TIEMPO, ALT_INGRED, ALT_AFUERA, ALT_HAMBRE)) for (Meal x : l) if (x.name().equals(name)) return x;
-        return null;
+    /** La comida con ese nombre, del menú o de las alternativas. Vacío si no existe. */
+    public Optional<Meal> byName(String name) {
+        for (List<Meal> l : MEALS) for (Meal x : l) if (x.name().equals(name)) return Optional.of(x);
+        for (List<Meal> l : List.of(ALT_TIEMPO, ALT_INGRED, ALT_AFUERA, ALT_HAMBRE)) for (Meal x : l) if (x.name().equals(name)) return Optional.of(x);
+        return Optional.empty();
     }
 
     public List<String> tags(Meal meal, Preferences p) {

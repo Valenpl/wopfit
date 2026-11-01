@@ -52,7 +52,7 @@ class ProsTest extends ApiTest {
         call(get("/api/v1/professionals/9999"), free, null, 404);
 
         String prem = newUser("pros-premium@mail.com");
-        call(post("/api/v1/users/me/subscription"), prem, "{\"period\":\"mensual\"}", 200);
+        call(post("/api/v1/users/me/subscription"), prem, "{\"period\":\"mensual\"}", 201);
         assertThat(call(get("/api/v1/users/me"), prem, null, 200).at("/subscription/consultsLeft").asInt()).isEqualTo(2);
 
         // validaciones
@@ -70,7 +70,7 @@ class ProsTest extends ApiTest {
         JsonNode after = call(get("/api/v1/professionals/" + proId), free, null, 200);
         assertThat(slot(after, true)).isNotEqualTo(first);
         String other = newUser("pros-otro@mail.com");
-        call(post("/api/v1/users/me/subscription"), other, "{\"period\":\"mensual\"}", 200);
+        call(post("/api/v1/users/me/subscription"), other, "{\"period\":\"mensual\"}", 201);
         JsonNode taken = call(post("/api/v1/professionals/" + proId + "/consultations"), other, body(first[0], first[1], "Chat"), 409);
         assertThat(taken.get("error").asText()).contains("ocupado");
 

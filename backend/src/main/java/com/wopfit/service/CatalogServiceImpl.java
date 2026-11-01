@@ -3,6 +3,7 @@ package com.wopfit.service;
 import org.springframework.stereotype.Service;
 
 import com.wopfit.entity.dto.CatalogResponse;
+import com.wopfit.service.support.Catalog;
 
 @Service
 public class CatalogServiceImpl implements CatalogService {

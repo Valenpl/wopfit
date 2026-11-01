@@ -33,6 +33,9 @@ import com.wopfit.exceptions.InvalidDataException;
 import com.wopfit.exceptions.WorkoutNotFoundException;
 import com.wopfit.repository.PlanRepository;
 import com.wopfit.repository.WorkoutSessionRepository;
+import com.wopfit.service.support.Catalog;
+import com.wopfit.service.support.WorkoutCatalog;
+import com.wopfit.service.support.ExpertAdvice;
 
 @RequiredArgsConstructor
 @Service
@@ -109,6 +112,12 @@ public class PlanServiceImpl implements PlanService {
     public PlanResponse get(Long userId) {
         Plan plan = plan(userId);
         return ProfileServiceImpl.planDto(plan, profile.prefs(userId));
+    }
+
+    @Transactional(readOnly = true)
+    @Override
+    public boolean hasPlan(Long userId) {
+        return plans.findByUserId(userId).isPresent();
     }
 
     /** Crea las sesiones de los días del plan que faltan hasta {@code to}. */

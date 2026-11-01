@@ -1,5 +1,6 @@
 package com.wopfit.controllers;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -28,7 +29,7 @@ public class SubscriptionController {
     @PostMapping
     public ResponseEntity<MeResponse> subscribe(@AuthenticationPrincipal(expression = "id") Long uid, @Valid @RequestBody SubscriptionRequest r) {
         premium.activate(uid, r.period());
-        return ResponseEntity.ok(profile.me(uid));
+        return ResponseEntity.status(HttpStatus.CREATED).body(profile.me(uid));
     }
 
     @DeleteMapping

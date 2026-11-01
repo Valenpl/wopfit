@@ -33,7 +33,7 @@ class PlacesOffersTest extends ApiTest {
         JsonNode denied = call(get("/api/v1/places"), t, null, 403);
         assertThat(denied.get("error").asText()).contains("Premium");
 
-        call(post("/api/v1/users/me/subscription"), t, "{\"period\":\"mensual\"}", 200);
+        call(post("/api/v1/users/me/subscription"), t, "{\"period\":\"mensual\"}", 201);
         JsonNode places = call(get("/api/v1/places"), t, null, 200);
         assertThat(places.size()).isEqualTo(45);
         Set<String> cats = Set.of("super", "verdu", "diet", "gym", "parque");
@@ -96,7 +96,7 @@ class PlacesOffersTest extends ApiTest {
         for (JsonNode o : call(get("/api/v1/offers"), t, null, 200).get("offers")) assertThat(o.get("daysLeft").asInt()).isPositive();
 
         setToday(TODAY);
-        call(post("/api/v1/users/me/subscription"), t, "{\"period\":\"anual\"}", 200);
+        call(post("/api/v1/users/me/subscription"), t, "{\"period\":\"anual\"}", 201);
         assertThat(call(get("/api/v1/offers"), t, null, 200).get("alerts").asBoolean()).isTrue();
     }
 }

@@ -35,6 +35,7 @@ import com.wopfit.entity.dto.PeopleResponse;
 import com.wopfit.entity.dto.PersonResponse;
 import com.wopfit.entity.dto.PostDetailResponse;
 import com.wopfit.entity.dto.PostRequest;
+import com.wopfit.entity.dto.PhotoResponse;
 import com.wopfit.entity.dto.PostResponse;
 import com.wopfit.exceptions.InvalidDataException;
 import com.wopfit.exceptions.NotOwnerException;
@@ -47,6 +48,7 @@ import com.wopfit.repository.PhotoRepository;
 import com.wopfit.repository.PostCommentRepository;
 import com.wopfit.repository.PostMarkRepository;
 import com.wopfit.repository.PostRepository;
+import com.wopfit.service.support.Catalog;
 
 @RequiredArgsConstructor
 @Service
@@ -304,7 +306,8 @@ public class CommunityServiceImpl implements CommunityService {
 
     @Transactional(readOnly = true)
     @Override
-    public Photo photo(String id) {
-        return photos.findById(id).orElseThrow(() -> new PhotoNotFoundException());
+    public PhotoResponse photo(String id) {
+        Photo p = photos.findById(id).orElseThrow(() -> new PhotoNotFoundException());
+        return new PhotoResponse(p.getContentType(), p.getData());
     }
 }

@@ -1,4 +1,4 @@
-package com.wopfit.service;
+package com.wopfit.service.support;
 
 import java.io.IOException;
 import java.time.Instant;
@@ -28,6 +28,8 @@ import com.wopfit.repository.PlaceRepository;
 import com.wopfit.repository.PostCommentRepository;
 import com.wopfit.repository.PostRepository;
 import com.wopfit.repository.ProfessionalRepository;
+import com.wopfit.service.CommunityProfileService;
+import com.wopfit.service.TimeService;
 
 /** Carga los lugares, cupones, profesionales y la comunidad de demostración (resources/demo/*.tsv) la primera vez que arranca, si las tablas están vacías. */
 @RequiredArgsConstructor

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { fetchMe, selectReady, selectStage } from './redux/slices/authSlice';
-import { selectDesk, setView } from './redux/slices/uiSlice';
+import { hideToast, selectDesk, setView } from './redux/slices/uiSlice';
 import useKeyboard from './hooks/useKeyboard';
 import useWideScreen from './hooks/useWideScreen';
 import { isPremium } from './utils/format';
@@ -19,6 +19,7 @@ export default function App() {
   const ready = useSelector(selectReady);
   const stage = useSelector(selectStage);
   const desk = useSelector(selectDesk);
+  const toast = useSelector(s => s.ui.toast);
   const kb = useKeyboard();
   useWideScreen();
   // Con token guardado, se pide el usuario una vez (fetchMe tiene `condition`: sin token o ya cargado no sale).
@@ -33,7 +34,7 @@ export default function App() {
     <div className="phone">
       <div className="stage">{ready ? <AppRoutes stage={stage} /> : <Loading />}</div>
       {showTabs && <TabBar path={pathname} sub={!isTab} premium={isPremium(me)} onGo={to => nav(to)} onCelu={() => dispatch(setView('celu'))} />}
-      <Toaster />
+      <Toaster toast={toast} onHide={id => dispatch(hideToast(id))} />
     </div>
   </div>;
 }

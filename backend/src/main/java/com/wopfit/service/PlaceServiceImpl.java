@@ -21,6 +21,7 @@ import com.wopfit.entity.dto.PlaceResponse;
 import com.wopfit.exceptions.PremiumRequiredException;
 import com.wopfit.repository.OfferRepository;
 import com.wopfit.repository.PlaceRepository;
+import com.wopfit.service.support.Catalog;
 
 @RequiredArgsConstructor
 @Service

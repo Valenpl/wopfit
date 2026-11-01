@@ -18,6 +18,8 @@ public interface PlanService {
     Plan plan(Long userId);
     PlanUpdateResponse createOrUpdate(Long userId);
     PlanResponse get(Long userId);
+    /** Si la persona ya tiene un plan (para saber si POST /plan crea o actualiza). */
+    boolean hasPlan(Long userId);
     void ensureSessions(Plan plan, LocalDate to);
     String status(WorkoutSession s);
     SessionResponse dto(WorkoutSession s, Plan plan, Preferences p, boolean withContent);

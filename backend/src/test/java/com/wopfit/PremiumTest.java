@@ -23,7 +23,7 @@ class PremiumTest extends ApiTest {
         call(post("/api/v1/users/me/subscription"), t, "{\"period\":\"vitalicio\"}", 400);
         call(post("/api/v1/users/me/subscription"), t, "{}", 400);
 
-        me = call(post("/api/v1/users/me/subscription"), t, "{\"period\":\"anual\"}", 200);
+        me = call(post("/api/v1/users/me/subscription"), t, "{\"period\":\"anual\"}", 201);
         assertThat(me.at("/subscription/premium").asBoolean()).isTrue();
         assertThat(me.at("/subscription/period").asText()).isEqualTo("anual");
         assertThat(me.at("/subscription/periodName").asText()).isEqualTo("Anual");
@@ -31,7 +31,7 @@ class PremiumTest extends ApiTest {
         assertThat(call(get("/api/v1/users/me"), t, null, 200).at("/subscription/premium").asBoolean()).isTrue();
 
         // cambiar a mensual arranca de nuevo desde hoy
-        me = call(post("/api/v1/users/me/subscription"), t, "{\"period\":\"mensual\"}", 200);
+        me = call(post("/api/v1/users/me/subscription"), t, "{\"period\":\"mensual\"}", 201);
         assertThat(me.at("/subscription/until").asText()).isEqualTo("2026-11-21");
 
         // el último día sigue siendo Premium; al siguiente vence solo
@@ -42,7 +42,7 @@ class PremiumTest extends ApiTest {
 
         // volver al Gratuito
         setToday(TODAY);
-        call(post("/api/v1/users/me/subscription"), t, "{\"period\":\"semestral\"}", 200);
+        call(post("/api/v1/users/me/subscription"), t, "{\"period\":\"semestral\"}", 201);
         me = call(delete("/api/v1/users/me/subscription"), t, null, 200);
         assertThat(me.at("/subscription/premium").asBoolean()).isFalse();
         assertThat(me.at("/subscription/until").isNull()).isTrue();

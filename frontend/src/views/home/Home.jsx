@@ -21,9 +21,7 @@ import Loading from '../../components/shared/Loading.jsx';
 import More from '../../components/shared/More.jsx';
 import ScrollArea from '../../components/shared/ScrollArea.jsx';
 import Sect from '../../components/shared/Sect.jsx';
-
-/** Candado de "parte de Premium" para el plan Gratuito. */
-const LockTag = () => <span className="lk"><Icon n="lock" /></span>;
+import LockTag from '../../components/shared/LockTag.jsx';
 
 export default function Home() {
   const nav = useNavigate();
