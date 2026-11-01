@@ -2,7 +2,6 @@ package com.wopfit.service;
 
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -48,6 +47,7 @@ import com.wopfit.repository.PhotoRepository;
 import com.wopfit.repository.PostCommentRepository;
 import com.wopfit.repository.PostMarkRepository;
 import com.wopfit.repository.PostRepository;
+import com.wopfit.service.CommunityProfileService.Person;
 import com.wopfit.service.support.Catalog;
 
 @RequiredArgsConstructor
@@ -64,21 +64,17 @@ public class CommunityServiceImpl implements CommunityService {
     private final PostMarkRepository marks;
     private final FollowRepository follows;
     private final PhotoRepository photos;
+    private final CommunityProfileService community;
 
-    private record Candidate(CommunityProfile p, List<String> goals, List<String> shared) {}
-
-    private static List<String> list(String csv) {
-        return csv == null || csv.isBlank() ? List.of() : Arrays.stream(csv.split(",")).map(String::trim).filter(s -> !s.isEmpty()).toList();
-    }
+    private record Candidate(CommunityProfile p, Person person, List<String> shared) {}
 
     /** El perfil de la persona en la comunidad. Lo crea CommunityProfileService al guardar el nombre: acá solo se lee. */
     private CommunityProfile me(Long userId) {
         return profiles.findByUserId(userId).orElseThrow(() -> new InvalidDataException("Primero contanos cómo te llamás"));
     }
 
-    private String myGoal(CommunityProfile me) {
-        List<String> g = list(me.getGoals());
-        return g.isEmpty() ? "mover" : g.get(0);
+    private static String mainGoal(Person me) {
+        return me.goals().isEmpty() ? "mover" : me.goals().get(0);
     }
 
     /** Me gusta, guardados y comentarios ya contados, para armar muchas publicaciones sin consultar por cada una. */
@@ -110,17 +106,17 @@ public class CommunityServiceImpl implements CommunityService {
                 Map.of(postId, marks.countByPostIdAndKind(postId, "like")), Map.of(postId, comments.countByPostId(postId)));
     }
 
-    private PostResponse dto(Post p, CommunityProfile me, Stats s) {
+    private PostResponse dto(Post p, CommunityProfile me, Stats s, String authorName) {
         CommunityProfile a = p.getAuthor();
         Long id = p.getId();
-        return new PostResponse(id, a.getId(), a.getName(), a.getId().equals(me.getId()), p.getGoal(), Catalog.GOALS.get(p.getGoal()), p.getType(),
+        return new PostResponse(id, a.getId(), authorName, a.getId().equals(me.getId()), p.getGoal(), Catalog.GOALS.get(p.getGoal()), p.getType(),
                 p.getTitle(), p.getBody(), p.getEmoji(), p.getBg(), List.copyOf(p.getTags()), p.getPhotoId() == null ? null : "/api/v1/photos/" + p.getPhotoId(),
                 p.getBaseLikes() + s.likes().getOrDefault(id, 0L).intValue(), s.liked().contains(id), s.saved().contains(id),
                 s.comments().getOrDefault(id, 0L).intValue(), p.getCreatedAt());
     }
 
     private PostResponse dto(Post p, CommunityProfile me) {
-        return dto(p, me, stats(me, p.getId()));
+        return dto(p, me, stats(me, p.getId()), community.person(p.getAuthor()).name());
     }
 
     private Post post(Long id) {
@@ -137,18 +133,21 @@ public class CommunityServiceImpl implements CommunityService {
     @Override
     public PeopleResponse people(Long userId) {
         CommunityProfile me = me(userId);
-        Set<String> mine = new HashSet<>(list(me.getGoals()));
+        List<CommunityProfile> all = profiles.findAll();
+        Map<Long, Person> persons = community.people(all);
+        Person myself = persons.get(me.getId());
+        Set<String> mine = new HashSet<>(myself.goals());
         Set<Long> following = following(me);
 
         // Personas como vos: las 5 que más objetivos comparten con vos.
-        List<PersonResponse> people = profiles.findAll().stream().filter(c -> !c.getId().equals(me.getId()))
-                .map(c -> new Candidate(c, list(c.getGoals()), list(c.getGoals()).stream().filter(mine::contains).toList()))
+        List<PersonResponse> people = all.stream().filter(c -> !c.getId().equals(me.getId()))
+                .map(c -> new Candidate(c, persons.get(c.getId()), persons.get(c.getId()).goals().stream().filter(mine::contains).toList()))
                 .sorted(Comparator.comparingInt((Candidate c) -> -c.shared().size()).thenComparing(c -> c.p().getId()))
                 .limit(5)
-                .map(c -> new PersonResponse(c.p().getId(), c.p().getName(), c.goals(), c.shared().isEmpty() ? null : c.shared().get(0),
-                        c.p().getDaysPerWeek(), following.contains(c.p().getId())))
+                .map(c -> new PersonResponse(c.p().getId(), c.person().name(), c.person().goals(), c.shared().isEmpty() ? null : c.shared().get(0),
+                        c.person().daysPerWeek(), following.contains(c.p().getId())))
                 .toList();
-        String g = myGoal(me);
+        String g = mainGoal(myself);
         return new PeopleResponse(me.getId(), g, Catalog.GOALS.get(g), people);
     }
 
@@ -163,7 +162,7 @@ public class CommunityServiceImpl implements CommunityService {
         } else {
             // "Para vos": lo tuyo, lo de quienes seguís y lo de tus objetivos primero; después el resto.
             // Ese orden no sale de una consulta, así que se arma completo y se corta la página.
-            Set<String> mine = new HashSet<>(list(me.getGoals()));
+            Set<String> mine = new HashSet<>(community.person(me).goals());
             Set<Long> following = following(me);
             List<Post> first = new ArrayList<>(), rest = new ArrayList<>();
             for (Post p : posts.findAllByOrderByCreatedAtDesc()) {
@@ -176,7 +175,8 @@ public class CommunityServiceImpl implements CommunityService {
             page = new PageImpl<>(first.subList(from, to), pageable, first.size());
         }
         Stats s = stats(me);
-        return PageResponse.of(page.map(p -> dto(p, me, s)));
+        Map<Long, Person> authors = community.people(page.getContent().stream().map(Post::getAuthor).toList());
+        return PageResponse.of(page.map(p -> dto(p, me, s, authors.get(p.getAuthor().getId()).name())));
     }
 
     @Transactional
@@ -184,8 +184,10 @@ public class CommunityServiceImpl implements CommunityService {
     public PostDetailResponse detail(Long userId, Long postId) {
         CommunityProfile me = me(userId);
         Post p = post(postId);
-        List<CommentResponse> list = comments.findByPostIdOrderByCreatedAtAsc(postId).stream()
-                .map(c -> new CommentResponse(c.getId(), c.getAuthor().getName(), c.getAuthor().getId().equals(me.getId()), c.getText(), c.getCreatedAt())).toList();
+        List<PostComment> found = comments.findByPostIdOrderByCreatedAtAsc(postId);
+        Map<Long, Person> authors = community.people(found.stream().map(PostComment::getAuthor).toList());
+        List<CommentResponse> list = found.stream()
+                .map(c -> new CommentResponse(c.getId(), authors.get(c.getAuthor().getId()).name(), c.getAuthor().getId().equals(me.getId()), c.getText(), c.getCreatedAt())).toList();
         return new PostDetailResponse(dto(p, me), list);
     }
 
@@ -233,7 +235,7 @@ public class CommunityServiceImpl implements CommunityService {
         CommunityProfile me = me(userId);
         Post p = new Post();
         p.setAuthor(me);
-        p.setGoal(myGoal(me));
+        p.setGoal(mainGoal(community.person(me)));
         p.setType(r.type());
         p.setTitle(title);
         p.setBody(body.isEmpty() ? null : body);
@@ -264,7 +266,7 @@ public class CommunityServiceImpl implements CommunityService {
         c.setText(text.trim());
         c.setCreatedAt(Instant.now());
         comments.save(c);
-        return new CommentResponse(c.getId(), me.getName(), true, c.getText(), c.getCreatedAt());
+        return new CommentResponse(c.getId(), community.person(me).name(), true, c.getText(), c.getCreatedAt());
     }
 
     /** Me gusta ("like") o guardar ("save"). */

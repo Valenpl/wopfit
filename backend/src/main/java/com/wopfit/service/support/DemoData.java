@@ -19,6 +19,7 @@ import lombok.RequiredArgsConstructor;
 
 import com.wopfit.entity.Brand;
 import com.wopfit.entity.CommunityProfile;
+import com.wopfit.entity.DemoProfile;
 import com.wopfit.entity.Offer;
 import com.wopfit.entity.Place;
 import com.wopfit.entity.Post;
@@ -26,6 +27,7 @@ import com.wopfit.entity.PostComment;
 import com.wopfit.entity.Professional;
 import com.wopfit.repository.BrandRepository;
 import com.wopfit.repository.CommunityProfileRepository;
+import com.wopfit.repository.DemoProfileRepository;
 import com.wopfit.repository.OfferRepository;
 import com.wopfit.repository.PlaceRepository;
 import com.wopfit.repository.PostCommentRepository;
@@ -44,6 +46,7 @@ public class DemoData implements ApplicationRunner {
     private final OfferRepository offers;
     private final ProfessionalRepository pros;
     private final CommunityProfileRepository people;
+    private final DemoProfileRepository demoPeople;
     private final PostRepository posts;
     private final PostCommentRepository comments;
     private final TimeService time;
@@ -66,12 +69,14 @@ public class DemoData implements ApplicationRunner {
     private void loadCommunity() throws IOException {
         Map<String, CommunityProfile> byKey = new HashMap<>();
         for (String[] c : rows("people.tsv")) {
-            CommunityProfile p = new CommunityProfile();
-            p.setName(c[1]);
-            p.setGoals(c[2]);
-            p.setDaysPerWeek(Integer.parseInt(c[3]));
-            p.setDemo(true);
-            byKey.put(c[0], people.save(p));
+            CommunityProfile p = people.save(new CommunityProfile());
+            DemoProfile d = new DemoProfile();
+            d.setProfile(p);
+            d.setName(c[1]);
+            d.getGoals().addAll(items(c[2]));
+            d.setDaysPerWeek(Integer.parseInt(c[3]));
+            demoPeople.save(d);
+            byKey.put(c[0], p);
         }
         Instant now = Instant.now();
         Map<String, Post> postByKey = new HashMap<>();
@@ -161,7 +166,7 @@ public class DemoData implements ApplicationRunner {
             }
             log.info("Profesionales de demostración cargados: {}", pros.count());
         }
-        if (!people.existsByDemoTrue()) loadCommunity();
+        if (demoPeople.count() == 0) loadCommunity();
         int created = communityProfiles.createMissing();
         if (created > 0) log.info("Perfiles de comunidad creados para usuarios que no tenían: {}", created);
     }
