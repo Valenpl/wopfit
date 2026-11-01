@@ -34,8 +34,12 @@ public class PremiumServiceImpl implements PremiumService {
         };
     }
 
+    private static LocalDate until(Subscription s) {
+        return s.getStartDate().plusMonths(months(s.getPeriod()));
+    }
+
     private Subscription active(Long userId) {
-        return subs.findByUserId(userId).filter(s -> !s.getUntil().isBefore(time.today())).orElse(null);
+        return subs.findByUserId(userId).filter(s -> !until(s).isBefore(time.today())).orElse(null);
     }
 
     @Override
@@ -84,14 +88,14 @@ public class PremiumServiceImpl implements PremiumService {
         Subscription s = active(userId);
         boolean premium = s != null;
         return new SubscriptionResponse(premium, premium ? s.getPeriod() : null, premium ? Catalog.PREMIUM_PERIODS.get(s.getPeriod()) : null,
-                premium ? s.getUntil() : null, true, consultsLeft(userId, premium), wopiLeft(userId, premium));
+                premium ? until(s) : null, true, consultsLeft(userId, premium), wopiLeft(userId, premium));
     }
 
     /** Activa (o cambia de período) desde hoy. */
     @Transactional
     @Override
     public SubscriptionResponse activate(Long userId, String period) {
-        int m = months(period);
+        months(period); // rechaza un período que no existe
         LocalDate today = time.today();
         Subscription s = subs.findByUserId(userId).orElseGet(() -> {
             Subscription n = new Subscription();
@@ -100,7 +104,6 @@ public class PremiumServiceImpl implements PremiumService {
         });
         s.setPeriod(period);
         s.setStartDate(today);
-        s.setUntil(today.plusMonths(m));
         subs.save(s);
         return status(userId);
     }

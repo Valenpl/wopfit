@@ -7,7 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/** Premium de demostración: no hay cobros, solo el período elegido y hasta cuándo dura. */
+/** Premium de demostración: no hay cobros, solo el período elegido y desde cuándo. El vencimiento se calcula con esos dos datos. */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -27,7 +27,4 @@ public class Subscription {
 
     @Column(nullable = false)
     private LocalDate startDate;
-
-    @Column(name = "valid_until", nullable = false)
-    private LocalDate until;
 }
