@@ -3,6 +3,7 @@ package com.wopfit.service.support;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,6 +54,11 @@ public class DemoData implements ApplicationRunner {
         return s == null || s.isBlank() || s.equals("-") ? null : s;
     }
 
+    /** Una celda del TSV con varios valores separados por coma; en la base va una fila por valor. */
+    private static List<String> items(String s) {
+        return orNull(s) == null ? List.of() : Arrays.stream(s.split(",")).map(String::trim).filter(x -> !x.isEmpty()).toList();
+    }
+
     /** Personas, publicaciones y comentarios de ejemplo. Las fechas son relativas a hoy ("hace 2 h"). */
     private void loadCommunity() throws IOException {
         Map<String, CommunityProfile> byKey = new HashMap<>();
@@ -75,7 +81,7 @@ public class DemoData implements ApplicationRunner {
             p.setBody(c[5]);
             p.setEmoji(orNull(c[6]));
             p.setBg(orNull(c[7]));
-            p.setTags(orNull(c[8]));
+            p.getTags().addAll(items(c[8]));
             p.setBaseLikes(Integer.parseInt(c[9]));
             p.setCreatedAt(now.minus(Long.parseLong(c[10]), ChronoUnit.HOURS));
             postByKey.put(c[0], posts.save(p));
@@ -122,7 +128,7 @@ public class DemoData implements ApplicationRunner {
                 o.setUnit(c[5]);
                 o.setDescription(c[6]);
                 o.setDays(Integer.parseInt(c[7]));
-                o.setIngredients(orNull(c[8]));
+                o.getIngredients().addAll(items(c[8]));
                 o.setStartDate(time.today());
                 offers.save(o);
             }

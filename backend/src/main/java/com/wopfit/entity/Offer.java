@@ -2,6 +2,8 @@ package com.wopfit.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDate;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -46,16 +48,15 @@ public class Offer {
     @Column(nullable = false)
     private LocalDate startDate;
 
-    /** Ingredientes de la lista del súper que cubre, separados por coma. */
-    @Column(length = 200)
-    private String ingredients;
+    /** Ingredientes de la lista del súper que cubre. */
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "offer_ingredients", joinColumns = @JoinColumn(name = "offer_id", foreignKey = @ForeignKey(name = "fk_offer_ingredient_offer")))
+    @Column(name = "ingredient", nullable = false, length = 40)
+    @OrderBy
+    private Set<String> ingredients = new LinkedHashSet<>();
 
     /** El cupón sirve para ese ingrediente de la lista ("garbanzos" lo cubre "garbanzos"; "bebida vegetal de almendras" también). */
     public boolean covers(String item) {
-        if (ingredients == null || item == null) return false;
-        for (String g : ingredients.split(",")) {
-            if (!g.isBlank() && item.contains(g.trim())) return true;
-        }
-        return false;
+        return item != null && ingredients.stream().anyMatch(item::contains);
     }
 }

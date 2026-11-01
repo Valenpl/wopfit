@@ -2,7 +2,6 @@ package com.wopfit.service;
 
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -75,7 +74,7 @@ public class PlaceServiceImpl implements PlaceService {
         List<OfferResponse> out = offers.findAll().stream().sorted(Comparator.comparing(Offer::getId)).map(o -> {
             List<Branch> branches = o.getBrand() == null ? List.of() : all.stream().filter(p -> o.getBrand().equals(p.getBrand()))
                     .map(p -> new Branch(p.getId(), p.getAddress(), p.getBarrio(), p.getLat(), p.getLng())).toList();
-            List<String> ing = o.getIngredients() == null ? List.of() : Arrays.stream(o.getIngredients().split(",")).map(String::trim).toList();
+            List<String> ing = List.copyOf(o.getIngredients());
             return new OfferResponse(o.getId(), o.getCode(), o.getStore(), o.getCategory(), Catalog.OFFER_CATEGORIES.get(o.getCategory()),
                     o.getOff(), o.getUnit(), o.getDescription(), daysLeft(o), ing, list.stream().anyMatch(o::covers), branches);
         }).toList();
