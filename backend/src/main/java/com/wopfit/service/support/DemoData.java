@@ -110,9 +110,8 @@ public class DemoData implements ApplicationRunner {
                 p.setBarrio(c[4]);
                 p.setOpens(c[5]);
                 p.setCloses(c[6]);
-                p.setDiscount(c[7].equals("1"));
-                p.setLat(Double.parseDouble(c[8]));
-                p.setLng(Double.parseDouble(c[9]));
+                p.setLat(Double.parseDouble(c[7]));
+                p.setLng(Double.parseDouble(c[8]));
                 places.save(p);
             }
             log.info("Lugares de demostración cargados: {}", places.count());

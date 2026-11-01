@@ -56,7 +56,7 @@ public class PlaceServiceImpl implements PlaceService {
             boolean open = openAt(p, now);
             int n = p.getBrand() == null ? 0 : (int) all.stream().filter(o -> p.getBrand().equals(o.getBrand())).count();
             return new PlaceResponse(p.getId(), p.getName(), p.getBrand(), p.getCategory(), Catalog.PLACE_CATEGORIES.get(p.getCategory()),
-                    p.getAddress(), p.getBarrio(), p.getLat(), p.getLng(), open, status(p, open), p.isDiscount(), n);
+                    p.getAddress(), p.getBarrio(), p.getLat(), p.getLng(), open, status(p, open), n > 0, n);
         }).toList();
     }
 

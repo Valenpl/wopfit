@@ -45,6 +45,4 @@ public class Place {
     @Column(length = 5)
     private String closes;
 
-    /** Tiene descuento para usuarios WopFit. */
-    private boolean discount;
 }
