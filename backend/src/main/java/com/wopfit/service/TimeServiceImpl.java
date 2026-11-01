@@ -1,6 +1,7 @@
 package com.wopfit.service;
 
 import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
@@ -18,6 +19,11 @@ public class TimeServiceImpl implements TimeService {
     @Override
     public LocalTime now() {
         return LocalTime.now(clock);
+    }
+
+    @Override
+    public Instant instant() {
+        return clock.instant();
     }
 
     @Override

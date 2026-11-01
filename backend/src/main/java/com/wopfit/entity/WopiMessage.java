@@ -12,7 +12,7 @@ import lombok.Setter;
 @Setter
 @NoArgsConstructor
 @Entity
-@Table(name = "wopi_messages", indexes = @Index(name = "idx_wopi_message_month", columnList = "user_id, month_key"))
+@Table(name = "wopi_messages", indexes = @Index(name = "idx_wopi_message_created", columnList = "user_id, created_at"))
 public class WopiMessage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -45,10 +45,7 @@ public class WopiMessage {
     /** Por dónde sigue la lista de opciones. */
     private Integer contextOffset;
 
-    /** Mes de Buenos Aires ("2026-10"): las preguntas cuentan para el cupo de ese mes. */
-    @Column(name = "month_key", nullable = false, length = 7)
-    private String month;
-
+    /** Las preguntas cuentan para el cupo del mes de esta fecha, en hora de Buenos Aires. */
     @Column(nullable = false)
     private Instant createdAt;
 }

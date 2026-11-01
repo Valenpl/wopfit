@@ -1,7 +1,6 @@
 package com.wopfit.service;
 
 import java.text.Normalizer;
-import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -113,8 +112,7 @@ public class WopiServiceImpl implements WopiService {
             m.setContextPriceLimit(context.priceLimit());
             m.setContextOffset(context.offset());
         }
-        m.setMonth(premium.monthKey());
-        m.setCreatedAt(Instant.now());
+        m.setCreatedAt(time.instant());
         return messages.save(m);
     }
 

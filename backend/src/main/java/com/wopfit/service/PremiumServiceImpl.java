@@ -62,11 +62,6 @@ public class PremiumServiceImpl implements PremiumService {
     }
 
     @Override
-    public String monthKey() {
-        return time.today().toString().substring(0, 7);
-    }
-
-    @Override
     public int wopiLimit(boolean premium) {
         return premium ? WOPI_PREMIUM : WOPI_FREE;
     }
@@ -79,7 +74,10 @@ public class PremiumServiceImpl implements PremiumService {
 
     @Override
     public int wopiLeft(Long userId, boolean premium) {
-        return (int) Math.max(0, wopiLimit(premium) - wopi.countByUserIdAndMonthAndRole(userId, monthKey(), "user"));
+        LocalDate first = time.today().withDayOfMonth(1);
+        long used = wopi.countByUserIdAndRoleAndCreatedAtGreaterThanEqualAndCreatedAtLessThan(userId, "user",
+                first.atStartOfDay(TimeService.ZONE).toInstant(), first.plusMonths(1).atStartOfDay(TimeService.ZONE).toInstant());
+        return (int) Math.max(0, wopiLimit(premium) - used);
     }
 
     /** Estado del plan para /me: una sola consulta a la suscripción. */
