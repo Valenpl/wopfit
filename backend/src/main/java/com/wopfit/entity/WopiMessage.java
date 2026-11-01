@@ -32,9 +32,18 @@ public class WopiMessage {
     @Column(length = 4000)
     private String extra;
 
-    /** De qué venía hablando Wopi, para "dame otras opciones" (ej. "meal:1:2000:2"). */
-    @Column(length = 60)
-    private String context;
+    /** De qué venía hablando Wopi, para "dame otras opciones": "meal" o "quick". */
+    @Column(name = "context_kind", length = 10)
+    private String contextKind;
+
+    /** En "meal": la comida (0 desayuno, 1 almuerzo, 2 cena). */
+    private Integer contextSlot;
+
+    /** En "meal": el precio máximo que pidió, si pidió uno. */
+    private Integer contextPriceLimit;
+
+    /** Por dónde sigue la lista de opciones. */
+    private Integer contextOffset;
 
     /** Mes de Buenos Aires ("2026-10"): las preguntas cuentan para el cupo de ese mes. */
     @Column(name = "month_key", nullable = false, length = 7)

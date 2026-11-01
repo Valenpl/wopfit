@@ -55,9 +55,16 @@ public class WopiServiceImpl implements WopiService {
     private final ObjectMapper json;
 
     /** Una respuesta: texto (con **negrita**), tarjetas, botones, si admite "otras opciones", de qué venía hablando y la fuente si es un consejo de expertos. */
-    record Reply(String text, List<WopiCard> cards, List<WopiAction> actions, boolean more, String context, String source, String sourceUrl) {
+    record Reply(String text, List<WopiCard> cards, List<WopiAction> actions, boolean more, Context context, String source, String sourceUrl) {
         static Reply of(String text, WopiAction... actions) {
             return new Reply(text, List.of(), List.of(actions), false, null, null, null);
+        }
+    }
+
+    /** De qué venía hablando Wopi, para seguir con "dame otras opciones". */
+    record Context(String kind, Integer slot, Integer priceLimit, Integer offset) {
+        static Context of(WopiMessage m) {
+            return m.getContextKind() == null ? null : new Context(m.getContextKind(), m.getContextSlot(), m.getContextPriceLimit(), m.getContextOffset());
         }
     }
 
@@ -83,14 +90,14 @@ public class WopiServiceImpl implements WopiService {
             throw new LimitReachedException(pr ? "Usaste tus 20 consultas de este mes. Se renuevan el 1° del mes que viene."
                     : "Usaste tus 3 consultas gratis de este mes. Con Premium tenés 20.");
         }
-        String prev = messages.findFirstByUserIdAndRoleOrderByIdDesc(userId, "wopi").map(WopiMessage::getContext).orElse(null);
+        Context prev = messages.findFirstByUserIdAndRoleOrderByIdDesc(userId, "wopi").map(Context::of).orElse(null);
         WopiMessage asked = save(userId, "user", q, null, null);
         Reply r = answer(userId, q, prev);
         WopiMessage reply = save(userId, "wopi", r.text(), new Extra(r.cards(), r.actions(), r.more(), r.source(), r.sourceUrl()), r.context());
         return new WopiAskResponse(premium.wopiLeft(userId, pr), dto(asked), dto(reply));
     }
 
-    private WopiMessage save(Long userId, String role, String text, Extra extra, String context) {
+    private WopiMessage save(Long userId, String role, String text, Extra extra, Context context) {
         WopiMessage m = new WopiMessage();
         m.setUser(profile.user(userId));
         m.setRole(role);
@@ -100,7 +107,12 @@ public class WopiServiceImpl implements WopiService {
         } catch (JsonProcessingException e) {
             throw new IllegalStateException(e);
         }
-        m.setContext(context);
+        if (context != null) {
+            m.setContextKind(context.kind());
+            m.setContextSlot(context.slot());
+            m.setContextPriceLimit(context.priceLimit());
+            m.setContextOffset(context.offset());
+        }
         m.setMonth(premium.monthKey());
         m.setCreatedAt(Instant.now());
         return messages.save(m);
@@ -160,13 +172,12 @@ public class WopiServiceImpl implements WopiService {
         return t.isEmpty() ? "sin restricciones" : String.join(", ", t).toLowerCase(Locale.ROOT);
     }
 
-    Reply answer(Long userId, String question, String prev) {
+    Reply answer(Long userId, String question, Context prev) {
         String t = plain(question);
         String name = firstName(userId);
         if (has(t, "otra|otro|mas opciones|distint|diferente") && prev != null) {
-            String[] c = prev.split(":");
-            if (c[0].equals("meal")) return mealIdeas(userId, Integer.parseInt(c[1]), c[2].isEmpty() ? null : Integer.valueOf(c[2]), Integer.parseInt(c[3]));
-            if (c[0].equals("quick")) return quick(userId, Integer.parseInt(c[1]) + 1, "");
+            if (prev.kind().equals("meal")) return mealIdeas(userId, prev.slot(), prev.priceLimit(), prev.offset());
+            if (prev.kind().equals("quick")) return quick(userId, prev.offset() + 1, "");
         }
         // Las dudas de salud, alimentación y sueño las responden los consejos de expertos, salvo que pida una comida concreta.
         if (!has(t, "desayun|almuer|almorz|merend|merienda|\\bcen(a|ar|o|amos)\\b|receta|\\$|pesos|plata|barat")) {
@@ -206,7 +217,7 @@ public class WopiServiceImpl implements WopiService {
                 new WopiAction("Agregar a mi " + SLOT_NAMES[slot] + " de hoy", "meal", slot + "|" + m.name()))).toList();
         String text = (restart ? "Ya te mostré todas las opciones, vuelvo a empezar. " : "")
                 + "Te propongo estas ideas de " + SLOT_NAMES[slot] + " (" + avoidText(p) + ")" + (lim != null ? " por menos de " + money(lim) : "") + ":";
-        return new Reply(text, cards, List.of(), pool.size() > 2, "meal:" + slot + ":" + (lim == null ? "" : lim) + ":" + (from + 2), null, null);
+        return new Reply(text, cards, List.of(), pool.size() > 2, new Context("meal", slot, lim, from + 2), null, null);
     }
 
     private SessionResponse pendingToday(TodayResponse td) {
@@ -223,7 +234,7 @@ public class WopiServiceImpl implements WopiService {
         WorkoutCatalog.Content a = workouts.alternative(kind, s == null ? 0 : s.template(), plan.getMinutes(), plan.getLevel(), p);
         WopiAction start = kind.equals("walk") ? new WopiAction("Empezar ahora", "go", "/entreno/caminata")
                 : s != null ? new WopiAction("Hacer esto hoy", "alt", s.id() + "|" + kind) : new WopiAction("Caminata de 15 min", "go", "/entreno/caminata");
-        return new Reply(lead + "Te propongo: **" + a.title() + "** (" + a.minutes() + " min). " + a.description(), List.of(), List.of(start), true, "quick:" + i, null, null);
+        return new Reply(lead + "Te propongo: **" + a.title() + "** (" + a.minutes() + " min). " + a.description(), List.of(), List.of(start), true, new Context("quick", null, null, i), null, null);
     }
 
     private Reply routine(Long userId) {
