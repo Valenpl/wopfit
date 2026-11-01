@@ -43,6 +43,6 @@ public class Goal {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "goal_checks", joinColumns = @JoinColumn(name = "goal_id", foreignKey = @ForeignKey(name = "fk_goal_check_goal")))
-    @Column(name = "check_date")
+    @Column(name = "check_date", nullable = false)
     private Set<LocalDate> checks = new HashSet<>();
 }

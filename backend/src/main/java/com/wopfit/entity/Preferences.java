@@ -25,12 +25,12 @@ public class Preferences {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "preference_goals", joinColumns = @JoinColumn(name = "owner_id", foreignKey = @ForeignKey(name = "fk_preference_goal_preferences")))
-    @Column(name = "goal")
+    @Column(name = "goal", nullable = false)
     private Set<String> goals = new HashSet<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "preference_days", joinColumns = @JoinColumn(name = "owner_id", foreignKey = @ForeignKey(name = "fk_preference_day_preferences")))
-    @Column(name = "day_of_week")
+    @Column(name = "day_of_week", nullable = false)
     private Set<Integer> days = new HashSet<>();
 
     @Column(name = "minutes_per_session")
@@ -41,12 +41,12 @@ public class Preferences {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "preference_activities", joinColumns = @JoinColumn(name = "owner_id", foreignKey = @ForeignKey(name = "fk_preference_activity_preferences")))
-    @Column(name = "activity")
+    @Column(name = "activity", nullable = false)
     private Set<String> activities = new HashSet<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "preference_avoid", joinColumns = @JoinColumn(name = "owner_id", foreignKey = @ForeignKey(name = "fk_preference_avoid_preferences")))
-    @Column(name = "food")
+    @Column(name = "food", nullable = false)
     private Set<String> avoid = new HashSet<>();
 
     @Column(length = 80)
@@ -54,7 +54,7 @@ public class Preferences {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "preference_health", joinColumns = @JoinColumn(name = "owner_id", foreignKey = @ForeignKey(name = "fk_preference_health_preferences")))
-    @Column(name = "condition_code")
+    @Column(name = "condition_code", nullable = false)
     private Set<String> health = new HashSet<>();
 
     @Column(length = 20)
@@ -62,11 +62,11 @@ public class Preferences {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "preference_equipment", joinColumns = @JoinColumn(name = "owner_id", foreignKey = @ForeignKey(name = "fk_preference_equipment_preferences")))
-    @Column(name = "item")
+    @Column(name = "item", nullable = false)
     private Set<String> equipment = new HashSet<>();
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "preference_pending", joinColumns = @JoinColumn(name = "owner_id", foreignKey = @ForeignKey(name = "fk_preference_pending_preferences")))
-    @Column(name = "label")
+    @Column(name = "label", nullable = false)
     private Set<String> pendingChanges = new HashSet<>();
 }
