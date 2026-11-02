@@ -6,7 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-/** Un lugar de demostración del mapa "Cerca tuyo": comercio ficticio en una dirección real, o un parque. */
+/** Un lugar de demostración del mapa "Cerca tuyo": sucursal de un comercio ficticio en una dirección real, o un parque. */
 @Getter
 @Setter
 @NoArgsConstructor
@@ -17,15 +17,17 @@ public class Place {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    /** Cadena a la que pertenece (sucursales con las mismas ofertas). Null en los parques. */
-    @Column(length = 20)
-    private String brand;
+    /** Marca a la que pertenece (sucursales con las mismas ofertas). Null en los parques. */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "brand_id", foreignKey = @ForeignKey(name = "fk_place_brand"))
+    private Brand brand;
 
-    @Column(nullable = false, length = 80)
+    /** Solo en los parques: las sucursales usan el nombre de su marca. */
+    @Column(length = 80)
     private String name;
 
-    /** super, verdu, diet, gym o parque. */
-    @Column(nullable = false, length = 10)
+    /** Solo en los parques ("parque"): las sucursales usan la categoría de su marca. */
+    @Column(length = 10)
     private String category;
 
     @Column(nullable = false, length = 120)
@@ -45,6 +47,11 @@ public class Place {
     @Column(length = 5)
     private String closes;
 
-    /** Tiene descuento para usuarios WopFit. */
-    private boolean discount;
+    public String displayName() {
+        return brand == null ? name : brand.getName();
+    }
+
+    public String displayCategory() {
+        return brand == null ? category : brand.getCategory();
+    }
 }

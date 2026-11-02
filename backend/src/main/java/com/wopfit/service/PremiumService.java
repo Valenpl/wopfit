@@ -13,7 +13,6 @@ public interface PremiumService {
     int consultsLeft(Long userId);
     /** Igual que consultsLeft(userId), cuando ya se sabe si es Premium: no vuelve a buscar la suscripción. */
     int consultsLeft(Long userId, boolean premium);
-    String monthKey();
     int wopiLimit(boolean premium);
     int wopiLeft(Long userId);
     /** Igual que wopiLeft(userId), cuando ya se sabe si es Premium. */

@@ -74,7 +74,6 @@ public class GoalServiceImpl implements GoalService {
         if (g.getChecks().contains(today)) g.getChecks().remove(today);
         else g.getChecks().add(today);
         if (g.getChecks().size() >= g.getTimesPerWeek() * g.getWeeks()) {
-            g.setDone(true);
             g.setDoneAt(today);
         }
         return dto(g);

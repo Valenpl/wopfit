@@ -1,6 +1,7 @@
 package com.wopfit.service;
 
 import java.time.Clock;
+import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.time.ZoneId;
@@ -11,5 +12,6 @@ public interface TimeService {
 
     LocalDate today();
     LocalTime now();
+    Instant instant();
     void setClock(Clock clock);
 }
