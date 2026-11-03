@@ -15,13 +15,16 @@ import lombok.RequiredArgsConstructor;
 import com.wopfit.entity.Offer;
 import com.wopfit.entity.Place;
 import com.wopfit.entity.dto.Branch;
+import com.wopfit.entity.dto.NearbyPlaceResponse;
 import com.wopfit.entity.dto.OfferResponse;
 import com.wopfit.entity.dto.OffersResponse;
 import com.wopfit.entity.dto.PlaceResponse;
+import com.wopfit.exceptions.InvalidDataException;
 import com.wopfit.exceptions.PremiumRequiredException;
 import com.wopfit.repository.OfferRepository;
 import com.wopfit.repository.PlaceRepository;
 import com.wopfit.service.support.Catalog;
+import com.wopfit.service.support.GooglePlaces;
 
 @RequiredArgsConstructor
 @Service
@@ -31,6 +34,7 @@ public class PlaceServiceImpl implements PlaceService {
     private final PremiumService premium;
     private final MealService meals;
     private final TimeService time;
+    private final GooglePlaces google;
 
     private static boolean always(Place p) {
         return "00:00".equals(p.getOpens()) && "24:00".equals(p.getCloses());
@@ -80,5 +84,13 @@ public class PlaceServiceImpl implements PlaceService {
                     o.getOff(), o.getUnit(), o.getDescription(), daysLeft(o), ing, list.stream().anyMatch(o::covers), branches);
         }).toList();
         return new OffersResponse(premium.isPremium(userId), out);
+    }
+
+    @Override
+    public List<NearbyPlaceResponse> nearby(Long userId, double lat, double lng) {
+        if (!premium.isPremium(userId)) throw new PremiumRequiredException("El buscador de lugares cercanos es parte de Premium");
+        if (!Double.isFinite(lat) || !Double.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) throw new InvalidDataException("La ubicación no es válida");
+        // Con 3 decimales (unos 100 m) alcanza para buscar alrededor y no mandamos a Google la ubicación exacta.
+        return google.near(Math.round(lat * 1000) / 1000.0, Math.round(lng * 1000) / 1000.0);
     }
 }

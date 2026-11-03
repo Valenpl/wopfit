@@ -24,9 +24,9 @@ export const FREE_F = ['Plan básico de alimentación y entrenamiento', 'Asisten
 export const PREM_F = ['Todo lo del Gratuito', 'Asistente IA con más consultas', 'Seguimiento de hábitos y progreso', 'Buscador de lugares cercanos', '2 consultas por mes con nutricionistas o entrenadores', 'Alertas de ofertas', 'Promociones de aliados', 'Sin anuncios'];
 
 // Lugares y ofertas de demostración
-export const PCATS = [['todos', 'Todos', '📍'], ['super', 'Supermercados', '🛒'], ['diet', 'Dietéticas', '🌾'], ['verdu', 'Verdulerías', '🥬'], ['gym', 'Gimnasios', '🏋️'], ['parque', 'Parques', '🌳']];
-export const PCOL = { super: '#1E7FCB', diet: '#C08A2B', verdu: '#6DBB3A', gym: '#8E6BD1', parque: '#2E9E6A' };
-export const PEMO = { super: '🛒', diet: '🌾', verdu: '🥬', gym: '🏋️', parque: '🌳' };
+export const PCATS = [['todos', 'Todos', '📍'], ['super', 'Supermercados', '🛒'], ['diet', 'Dietéticas', '🌾'], ['verdu', 'Verdulerías', '🥬'], ['gym', 'Gimnasios', '🏋️'], ['parque', 'Parques', '🌳'], ['tienda', 'Tiendas deportivas', '👟']];
+export const PCOL = { super: '#1E7FCB', diet: '#C08A2B', verdu: '#6DBB3A', gym: '#8E6BD1', parque: '#2E9E6A', tienda: '#D2556A' };
+export const PEMO = { super: '🛒', diet: '🌾', verdu: '🥬', gym: '🏋️', parque: '🌳', tienda: '👟' };
 export const OCATS = [['todas', 'Todas', '🏷️'], ['super', 'Supermercados', '🛒'], ['diet', 'Dietéticas', '🌾'], ['gym', 'Gimnasios', '🏋️'], ['ropa', 'Ropa deportiva', '👟'], ['supl', 'Suplementos', '💊']];
 /** Si no hay ubicación, la demo se centra en UADE (Lima 775, Monserrat). */
 export const DEFAULT_HERE = { lat: -34.6170, lng: -58.3818, real: false };

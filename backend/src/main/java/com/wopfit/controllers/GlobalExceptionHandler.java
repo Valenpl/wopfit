@@ -19,6 +19,7 @@ import com.wopfit.exceptions.ConflictException;
 import com.wopfit.exceptions.ForbiddenException;
 import com.wopfit.exceptions.InvalidDataException;
 import com.wopfit.exceptions.NotFoundException;
+import com.wopfit.exceptions.PlacesUnavailableException;
 import com.wopfit.exceptions.UnauthorizedException;
 
 /** Convierte las excepciones en { "error": "..." } con el status que corresponde. El backend siempre responde. */
@@ -49,6 +50,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ConflictException.class)
     public ResponseEntity<Map<String, Object>> handleConflict(ConflictException e) {
         return error(HttpStatus.CONFLICT, e.getMessage());
+    }
+
+    @ExceptionHandler(PlacesUnavailableException.class)
+    public ResponseEntity<Map<String, Object>> handlePlacesUnavailable(PlacesUnavailableException e) {
+        return error(HttpStatus.SERVICE_UNAVAILABLE, e.getMessage());
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

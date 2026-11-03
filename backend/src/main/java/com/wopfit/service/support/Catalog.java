@@ -37,7 +37,7 @@ public final class Catalog {
     public static final List<String> SLOTS = List.of("Desayuno", "Almuerzo", "Cena");
     /** Categorías del mapa "Cerca tuyo" y de los cupones. */
     public static final Map<String, String> PLACE_CATEGORIES = ordered(
-            "super", "Supermercados", "diet", "Dietéticas", "verdu", "Verdulerías", "gym", "Gimnasios", "parque", "Parques");
+            "super", "Supermercados", "diet", "Dietéticas", "verdu", "Verdulerías", "gym", "Gimnasios", "parque", "Parques", "tienda", "Tiendas deportivas");
     public static final Map<String, String> OFFER_CATEGORIES = ordered(
             "super", "Supermercados", "diet", "Dietéticas", "gym", "Gimnasios", "ropa", "Ropa deportiva", "supl", "Suplementos");
     /** Períodos de Premium (demostración, sin cobros). */

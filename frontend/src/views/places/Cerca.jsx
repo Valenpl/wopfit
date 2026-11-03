@@ -1,12 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { fetchPlaces } from '../../redux/slices/placeSlice';
+import { fetchNearby, fetchPlaces, nearbyKey } from '../../redux/slices/placeSlice';
+import { getEntry } from '../../redux/helpers';
 import useAuth from '../../hooks/useAuth';
 import useFetch from '../../hooks/useFetch';
 import useHere from '../../hooks/useHere';
 import { PCATS, PCOL, PEMO } from '../../utils/constants';
 import { distTxt, isPremium, meters } from '../../utils/format';
-import LeafletMap from '../../components/places/LeafletMap.jsx';
+import GoogleMap from '../../components/places/GoogleMap.jsx';
 import ErrorBox from '../../components/shared/ErrorBox.jsx';
 import Icon from '../../components/shared/Icon.jsx';
 import Note from '../../components/shared/Note.jsx';
@@ -15,9 +16,12 @@ import TopBar from '../../components/shared/TopBar.jsx';
 
 const FIRST = 12;
 const walkMin = m => Math.max(1, Math.round(m / 80));
-const directions = (here, p) => `https://www.openstreetmap.org/directions?engine=fossgis_osrm_foot&route=${here.lat}%2C${here.lng}%3B${p.lat}%2C${p.lng}`;
+const directions = (here, p) => `https://www.google.com/maps/dir/?api=1&origin=${here.lat},${here.lng}&destination=${p.lat},${p.lng}&travelmode=walking`
+  + (p.googleId ? `&destination_place_id=${p.googleId}` : '');
+/** Los lugares de Google llegan con su id de Google: se le pone "g:" para que nunca choque con el id de un aliado. */
+const fromGoogle = p => ({ ...p, id: 'g:' + p.id, googleId: p.id, brand: null, barrio: '', discount: false, offers: 0 });
 
-/** Cerca tuyo (Premium): mapa y lista de lugares, ordenados por distancia. */
+/** Cerca tuyo (Premium): mapa y lista de lugares (aliados de WopFit y lugares reales de Google), ordenados por distancia. */
 export default function Cerca() {
   const nav = useNavigate();
   const { me } = useAuth();
@@ -30,12 +34,15 @@ export default function Cerca() {
   const [sel, setSel] = useState(() => Number(params.get('lugar')) || null);
   const [more, setMore] = useState(false);
   const { data, error, retry } = useFetch(fetchPlaces, undefined, s => s.places.places, { skip: !pr });
+  const key = nearbyKey(here);
+  const near = useFetch(fetchNearby, key, s => getEntry(s.places.nearby, key), { skip: !pr });
   // Refs a cada fila de la lista, para llevar a la vista el lugar que se tocó en el mapa.
   const rows = useRef({});
   const pick = useCallback(id => setSel(id), []);
 
   // Con useMemo la lista no cambia en cada tecla que no la afecta, y el mapa no redibuja los pines.
-  const all = useMemo(() => (pr && data ? data : []).map(p => ({ ...p, m: meters(here, p) })), [pr, data, here]);
+  const all = useMemo(() => (pr && data ? [...data, ...(near.data || []).map(fromGoogle)] : [])
+    .map(p => ({ ...p, m: meters(here, p) })), [pr, data, near.data, here]);
   const ql = q.trim().toLowerCase();
   const list = useMemo(() => all.filter(p => (cat === 'todos' || p.category === cat) && (!f.open || p.openNow) && (!f.disc || p.discount)
     && (!ql || (p.name + ' ' + p.categoryName + ' ' + p.address + ' ' + p.barrio).toLowerCase().includes(ql)))
@@ -43,7 +50,8 @@ export default function Cerca() {
   // Si el lugar elegido no está entre los primeros, se muestra la lista completa.
   const showAll = more || (sel && !list.slice(0, FIRST).some(p => p.id === sel));
   const shown = showAll ? list : list.slice(0, FIRST);
-  const far = all.length > 0 && Math.min(...all.map(p => p.m)) > 5000;
+  const mine = all.filter(p => !p.googleId);
+  const far = mine.length > 0 && Math.min(...mine.map(p => p.m)) > 5000;
 
   useEffect(() => {
     const row = sel && rows.current[sel];
@@ -55,15 +63,16 @@ export default function Cerca() {
     <h1>Cerca tuyo</h1><p className="sub">Supermercados, dietéticas, gimnasios y parques.</p>
     <div className="search"><Icon n="search" /><input value={q} onChange={e => setQ(e.target.value)} placeholder="Buscá supermercados, gimnasios…" aria-label="Buscar lugares" disabled={!pr} /></div>
     <div className="chiprow mt12">{PCATS.map(([k, t, e]) => <button key={k} className={`chip ${cat === k ? 'on' : ''}`} onClick={() => setCat(k)}>{e} {t}</button>)}</div>
-    <LeafletMap here={here} places={list} sel={sel} onSelect={pick}>
+    <GoogleMap here={here} places={list} sel={sel} onSelect={pick}>
       {!pr && <div className="gate"><div><div className="bigicon" style={{ width: 60, height: 60, margin: '0 auto', background: '#FFF1C9', color: '#8A6300' }}><Icon n="lock" /></div>
         <h3 className="mt12">El buscador de lugares cercanos es parte de Premium</h3>
         <button className="btn sm" style={{ margin: '12px auto 0' }} onClick={() => nav('/planes')}>Mejorar plan</button></div></div>}
-    </LeafletMap>
+    </GoogleMap>
     {!pr && <div className="card mt12 small muted">Con el plan Gratuito tenés el buscador básico de precios en <button className="link" onClick={() => nav('/ofertas')}>Ofertas</button>.</div>}
     {pr && <>
       {!here.real && <Note tone="blue" className="mt12">Te mostramos los lugares cerca de UADE (Monserrat). Activá la ubicación para ver los tuyos.</Note>}
       {far && <Note tone="peach" className="mt12">Por ahora los aliados de la demo están en CABA y Vicente López.</Note>}
+      {near.error && <Note tone="peach" className="mt12">No pudimos traer los lugares de Google. Te mostramos los aliados de WopFit.</Note>}
       <div className="chips mt12">
         <button className={`chip ${f.open ? 'on' : ''}`} onClick={() => setF({ ...f, open: !f.open })} aria-pressed={!!f.open}>Abierto ahora</button>
         <button className={`chip ${f.disc ? 'on' : ''}`} onClick={() => setF({ ...f, disc: !f.disc })} aria-pressed={!!f.disc}>Con descuento</button>
@@ -74,7 +83,7 @@ export default function Cerca() {
         <button className="em" style={{ background: PCOL[p.category] + '22' }} onClick={() => pick(p.id)} aria-label={'Ver ' + p.name + ' en el mapa'}>{PEMO[p.category]}</button>
         <div className="grow"><b style={{ color: 'var(--navy)' }}>{p.name}</b>
           <div className="tiny muted" style={{ fontWeight: 700 }}>{p.categoryName} · a {distTxt(p.m)} · {walkMin(p.m)} min caminando</div>
-          <div className="tiny muted">{p.address}, {p.barrio}</div>
+          <div className="tiny muted">{p.barrio ? p.address + ', ' + p.barrio : p.address}</div>
           <div className="tiny" style={{ color: p.openNow ? 'var(--green-d)' : 'var(--peach-d)', fontWeight: 700 }}>{p.status}</div>
           <div className="row mt8" style={{ gap: 8, flexWrap: 'wrap' }}>{p.discount && <span className="tag">Descuento WopFit</span>}
             <a className="btn sm outline" style={{ minHeight: 30, fontSize: 12, padding: '0 10px' }} href={directions(here, p)} target="_blank" rel="noreferrer"><Icon n="nav" /> Cómo llegar</a>
@@ -82,7 +91,7 @@ export default function Cerca() {
         {!showAll && list.length > shown.length && <div className="center mt12"><button className="more" onClick={() => setMore(true)}>Ver {list.length - shown.length} lugares más <Icon n="chev" /></button></div>}
         {data && list.length === 0 && <div className="card center muted">No encontramos lugares con esos filtros.</div>}
       </div>
-      <p className="tiny muted center mt12">Comercios ficticios en direcciones reales de AMBA, para la demo. Los parques son reales.</p>
+      <p className="tiny muted center mt12">Los aliados con descuento WopFit son comercios ficticios en direcciones reales de AMBA, para la demo. El resto de los lugares viene de Google Maps.</p>
     </>}
   </Screen>;
 }

@@ -8,3 +8,5 @@ frontend/playwright-report/
 backend/schema-gen.sql
 frontend/.vercel/
 application-local.properties
+.env.local
+.env.*.local

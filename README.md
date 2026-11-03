@@ -36,7 +36,7 @@ wopfit/
 | JPA / Hibernate | Usar la base desde Java | Cada tabla es una clase; viene integrado con Spring |
 | Spring Security + JWT | Login y permisos | Estándar de Spring; el backend verifica en cada pedido quién sos con un token firmado |
 | BCrypt | Guardar contraseñas | Se guarda un hash que no se puede revertir, nunca la contraseña |
-| Leaflet + OpenStreetMap | El mapa de "Cerca tuyo" | Gratis y abierto, sin claves; la ubicación se usa solo en el celu |
+| Google Maps (`@vis.gl/react-google-maps`) + Places API | El mapa de "Cerca tuyo" y los lugares reales (gimnasios, parques, súper, tiendas deportivas) | El mapa que todos conocen. El mapa se arma con componentes de React, sin tocar el DOM. Places se consulta desde el backend para que esa key no llegue al navegador |
 | Playwright | Tests de punta a punta | Maneja un navegador real contra el front y el backend |
 
 Un solo backend (monolito) en 3 capas, en lugar de microservicios: para un equipo chico y una demo, varios servicios sólo suman servidores, costos y fallas entre ellos.
@@ -144,13 +144,14 @@ Hace falta una cuenta en cada servicio; nada de esto se hace desde el repo.
 docker compose --profile app up -d --build
 ```
 - La primera vez, MySQL crea las tablas con `backend/db/schema.sql`.
-- Variables que hacen falta (en el `.env` o en el panel del hosting): `DB_PASSWORD`, `WOPFIT_JWT_SECRET` y `WOPFIT_CORS_ORIGINS`, con el dominio del front, por ejemplo `https://wopfit.vercel.app`.
+- Variables que hacen falta (en el `.env` o en el panel del hosting): `DB_PASSWORD`, `WOPFIT_JWT_SECRET` y `WOPFIT_CORS_ORIGINS`, con el dominio del front, por ejemplo `https://wopfit.vercel.app`. Para los lugares reales de Google, también `GOOGLE_PLACES_KEY`.
 - **Mientras no haya mail real**, la demo publicada necesita `WOPFIT_DEV_CODES=true` para mostrar el código de verificación en pantalla. Si no, nadie puede terminar de registrarse.
 - Si el hosting trae su propio MySQL (Railway, Render, etc.), alcanza con la imagen del `Dockerfile` y `DB_URL` apuntando a esa base. Las tablas se crean una vez con `schema.sql`.
 
 ### Front (Vercel)
 - Proyecto con **Root Directory** `frontend`. El build es `npm run build` y la salida, `dist`.
 - Variable `VITE_API_URL` con la URL del backend terminada en `/api/v1`, por ejemplo `https://api.wopfit.com/api/v1`.
+- Variables `VITE_GOOGLE_MAPS_KEY` y `VITE_GOOGLE_MAP_ID` para el mapa (ver [Google Maps: cómo sacar las keys](#google-maps-cómo-sacar-las-keys)). Después de cambiarlas hay que volver a desplegar, porque Vite las mete en el build.
 - `frontend/vercel.json` manda todas las rutas a `index.html`, así recargar en `/inicio` no da 404. Los archivos que existen, como `sw.js` o los íconos, se sirven igual.
 
 ## Datos de demostración
@@ -161,7 +162,7 @@ Los lugares, cupones y profesionales salen de `backend/src/main/resources/demo/*
 - **Comunidad:** `people.tsv`, `posts.tsv` y `comments.tsv`. Las personas de ejemplo son perfiles de la comunidad, no usuarios: no se puede entrar con ellas.
 - **Profesionales:** `professionals.tsv`, con nombres y matrículas ficticios.
 - **Cupones:** 10 de aliados ficticios. Cada uno se renueva solo cada cierta cantidad de días, así la demo nunca queda con cupones vencidos.
-- **Tu ubicación:** si la compartís, el front ordena por distancia con ella; si no, se centra en UADE (Lima 775). La ubicación nunca se manda al servidor.
+- **Tu ubicación:** si la compartís, el front ordena por distancia con ella; si no, se centra en UADE (Lima 775). Para buscar lugares de Google, al servidor llega redondeada a unos 100 m y no se guarda.
 - Para cambiar los datos, editá los `.tsv` y vaciá las tablas (con H2 alcanza con reiniciar).
 
 ## Configuración (variables de entorno)
@@ -176,7 +177,20 @@ Se pueden poner en el `.env` de la raíz (ver `.env.example`) o como variables d
 | `WOPFIT_JWT_SECRET` | sin default, va en `.env` | Clave para firmar los JWT (mínimo 32 caracteres) |
 | `WOPFIT_CORS_ORIGINS` | `http://localhost:5173` | Dominios del front, separados por coma |
 | `WOPFIT_DEV_CODES` | `true` (`false` con el perfil `prod`) | Mostrar el código de verificación en pantalla. Hace falta `true` en la demo publicada mientras no haya mail real |
+| `GOOGLE_PLACES_KEY` | vacía | Key de Google Places API (New). Sin key, *Cerca tuyo* muestra solo los aliados de la demo. Es secreta: solo en el backend |
 | `VITE_API_URL` (front) | `/api/v1` | URL de la API, si el front se publica en otro dominio |
+| `VITE_GOOGLE_MAPS_KEY` (front) | vacía | Key de Maps JavaScript API. Sin key, el mapa muestra un aviso y la lista funciona igual |
+| `VITE_GOOGLE_MAP_ID` (front) | `DEMO_MAP_ID` | Map ID de Google Cloud, necesario para los pines propios |
+
+### Google Maps: cómo sacar las keys
+
+1. En [Google Cloud Console](https://console.cloud.google.com/) creá un proyecto y activá la facturación (pide tarjeta; hay un cupo gratis por mes que alcanza para la demo). Conviene poner una alerta de presupuesto.
+2. En *APIs y servicios* habilitá **Maps JavaScript API** y **Places API (New)**.
+3. Creá dos keys en *Credenciales*:
+   - **Mapa (front):** restricción de aplicación *Sitios web* con `http://localhost:5173/*` y el dominio de Vercel (`https://wopfit-app-6.vercel.app/*`); restricción de API solo *Maps JavaScript API*. Va en `frontend/.env.local` como `VITE_GOOGLE_MAPS_KEY` y en las variables de entorno de Vercel.
+   - **Places (back):** restricción de API solo *Places API (New)* (y, cuando el backend tenga IP fija, restricción por IP). Va en el `.env` de la raíz como `GOOGLE_PLACES_KEY` o en el panel del hosting del backend. Nunca en el front.
+4. En *Google Maps Platform → Administración de mapas* creá un **Map ID** de tipo JavaScript y ponelo en `VITE_GOOGLE_MAP_ID`. Mientras tanto anda con `DEMO_MAP_ID`.
+5. El backend guarda cada búsqueda una hora por punto, así moverse por la pantalla no gasta pedidos.
 
 ## Qué hace (historias de usuario)
 
@@ -188,7 +202,7 @@ Se pueden poner en el `.env` de la raíz (ver `.env.example`) o como variables d
 | Plan | Sesiones en los días elegidos. La rutina se arma según nivel, equipamiento y salud (bajo impacto con embarazo o lesión, y con embarazo nada boca arriba). El plan y cada rutina muestran los consejos de expertos que aplican a la persona, con la fuente ([docs/fuentes-expertos.md](docs/fuentes-expertos.md)). Menú de 3 comidas filtrado por restricciones y ordenado por presupuesto |
 | Registro | Marcar la rutina como hecha y cómo se sintió, comidas, 3 hábitos diarios |
 | Premium | De demostración, sin pagos: se elige el período y se activa al instante, vence solo y se puede volver al Gratuito. Saca los anuncios y los candados. `GET me` trae `subscription` |
-| Cerca tuyo y ofertas | Mapa real (Leaflet + OpenStreetMap) con 45 lugares de demostración en AMBA: cadenas ficticias en direcciones reales y parques reales. Cupones que se renuevan solos y marcan qué ingredientes de tu lista tienen oferta |
+| Cerca tuyo y ofertas | Mapa de Google con los 45 lugares de demostración en AMBA (cadenas ficticias en direcciones reales y parques reales) más los gimnasios, parques, súper y tiendas deportivas reales que devuelve Google Places a menos de 2 km. Cupones que se renuevan solos y marcan qué ingredientes de tu lista tienen oferta |
 | Ayuda profesional | 6 nutricionistas y entrenadores de ejemplo con agenda de lunes a sábado (algunos turnos ya vienen ocupados). Con Premium se reservan 2 consultas por mes, por videollamada o chat, y se pueden agregar al calendario (.ics) o cancelar |
 | Preguntale a Wopi | Asistente con respuestas armadas por reglas sobre tus datos: rutina de hoy, ideas de comida que respetan lo que no comés y tu presupuesto, lista del súper, ofertas y motivación. Las dudas de alimentación, sueño, estrés y actividad las responde con consejos de expertos y muestra la fuente. Si algo duele, deriva a un profesional. Los botones de cada respuesta llevan a la app (sumar una comida a hoy, hacer la versión corta, ver la lista). 3 consultas por mes gratis, 20 con Premium |
 | Comunidad | Personas como vos (por objetivos en común) para seguir, publicaciones de recetas, actividades y preguntas con foto, me gusta, guardados y comentarios. En la comunidad se ve el nombre y la inicial del apellido. Trae 6 personas y 5 publicaciones de ejemplo |

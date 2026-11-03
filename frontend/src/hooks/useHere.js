@@ -1,7 +1,10 @@
 import { useEffect, useState } from 'react';
 import { DEFAULT_HERE } from '../utils/constants';
 
-/** Dónde está la persona: la ubicación del celu si la comparte, si no UADE. Nunca se manda al servidor. */
+/**
+ * Dónde está la persona: la ubicación del celu si la comparte, si no UADE.
+ * Al servidor solo viaja redondeada a unos 100 m, para buscar lugares de Google (ver fetchNearby). No se guarda.
+ */
 export default function useHere() {
   const [here, setHere] = useState(DEFAULT_HERE);
   useEffect(() => {
