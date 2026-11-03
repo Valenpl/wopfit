@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.wopfit.service.TimeService;
+import com.wopfit.service.support.GooglePlaces;
 
 /** Lugares cercanos (solo Premium) y cupones de demostración. */
 class PlacesOffersTest extends ApiTest {
@@ -98,5 +99,36 @@ class PlacesOffersTest extends ApiTest {
         setToday(TODAY);
         call(post("/api/v1/users/me/subscription"), t, "{\"period\":\"anual\"}", 201);
         assertThat(call(get("/api/v1/offers"), t, null, 200).get("alerts").asBoolean()).isTrue();
+    }
+
+    @Test
+    void lugaresDeGoogle() throws Exception {
+        String t = newUser("google@mail.com");
+        call(get("/api/v1/places/nearby?lat=-34.617&lng=-58.382"), null, null, 401);
+        assertThat(call(get("/api/v1/places/nearby?lat=-34.617&lng=-58.382"), t, null, 403).get("error").asText()).contains("Premium");
+
+        call(post("/api/v1/users/me/subscription"), t, "{\"period\":\"mensual\"}", 201);
+        // En los tests no hay GOOGLE_PLACES_KEY: no se llama a Google y la lista viene vacía.
+        assertThat(call(get("/api/v1/places/nearby?lat=-34.617&lng=-58.382"), t, null, 200).size()).isZero();
+        assertThat(call(get("/api/v1/places/nearby?lat=95&lng=-58.382"), t, null, 400).get("error").asText()).contains("ubicación");
+        call(get("/api/v1/places/nearby?lat=-34.617"), t, null, 400);
+    }
+
+    @Test
+    void respuestaDeGoogle() throws Exception {
+        JsonNode res = om.readTree("""
+                {"places":[
+                  {"id":"ChIJ1","displayName":{"text":"SportClub Palermo"},"shortFormattedAddress":"Av. Santa Fe 3200, Palermo",
+                   "location":{"latitude":-34.588,"longitude":-58.41},"currentOpeningHours":{"openNow":true}},
+                  {"id":"ChIJ2","displayName":{"text":"Plaza Sin Horario"},"location":{"latitude":-34.6,"longitude":-58.4}},
+                  {"id":"ChIJ3","displayName":{"text":"Sin coordenadas"}}
+                ]}""");
+        var list = GooglePlaces.parse(res, "gym");
+        assertThat(list).hasSize(2);
+        assertThat(list.get(0).categoryName()).isEqualTo("Gimnasios");
+        assertThat(list.get(0).status()).isEqualTo("Abierto ahora");
+        assertThat(list.get(1).openNow()).isNull();
+        assertThat(list.get(1).address()).isEmpty();
+        assertThat(GooglePlaces.parse(om.readTree("{}"), "gym")).isEmpty();
     }
 }

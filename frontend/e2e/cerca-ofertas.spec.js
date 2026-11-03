@@ -1,7 +1,10 @@
 import { expect, test } from '@playwright/test';
 import { loginAs, newUser, shot } from './helpers.js';
 
-// Cerca tuyo (mapa real, Premium) y Ofertas, con los datos de demostración del backend.
+// Cerca tuyo (mapa de Google, Premium) y Ofertas, con los datos de demostración del backend.
+// El mapa solo se dibuja si hay VITE_GOOGLE_MAPS_KEY; sin key se prueba el aviso y la lista.
+// El backend de los tests corre sin GOOGLE_PLACES_KEY, así que la lista tiene solo los aliados.
+const MAP = !!process.env.VITE_GOOGLE_MAPS_KEY;
 const users = {};
 
 test.beforeAll(async ({ request }) => {
@@ -12,12 +15,11 @@ test.beforeAll(async ({ request }) => {
 test.describe('con la ubicación en Palermo', () => {
   test.use({ geolocation: { latitude: -34.5878, longitude: -58.4300 }, permissions: ['geolocation'] });
 
-  test('Premium: mapa real con los lugares más cercanos primero', async ({ page }) => {
+  test('Premium: mapa con los lugares más cercanos primero', async ({ page }) => {
     await loginAs(page, users.prem);
     await page.goto('/cerca');
-    await expect(page.locator('.leaflet-container')).toBeVisible();
-    await expect(page.locator('.leaflet-tile-pane img').first()).toBeAttached(); // teselas de OpenStreetMap
-    await expect(page.locator('.lpin')).toHaveCount(45);
+    if (MAP) await expect(page.locator('.lpin')).toHaveCount(45);
+    else await expect(page.getByText('Falta la key de Google Maps')).toBeVisible();
     await expect(page.locator('.place').first()).toContainText('Palermo');
     await expect(page.locator('.place').first()).toContainText(/a \d+ m/);
     await expect(page.getByText('Activá la ubicación')).toHaveCount(0);
@@ -25,7 +27,8 @@ test.describe('con la ubicación en Palermo', () => {
     await shot(page, 'cerca-premium');
 
     await page.locator('.chiprow').getByRole('button', { name: /Gimnasios/ }).click();
-    await expect(page.locator('.lpin')).toHaveCount(9);
+    if (MAP) await expect(page.locator('.lpin')).toHaveCount(9);
+    await expect(page.locator('.place')).toHaveCount(9);
     for (const t of await page.locator('.place').allInnerTexts()) expect(t).toContain('Gimnasios');
     await page.locator('.chiprow').getByRole('button', { name: /Todos/ }).click();
     await page.getByRole('button', { name: 'Con descuento' }).click();
@@ -36,10 +39,12 @@ test.describe('con la ubicación en Palermo', () => {
     await expect(page.locator('.place').first()).toContainText('Belgrano');
     await page.getByLabel('Buscar lugares').fill('');
 
-    await page.locator('.lpin').first().click();
+    if (MAP) await page.locator('.lpin').first().click();
+    else await page.locator('.place').first().getByRole('button', { name: /^Ver .* en el mapa$/ }).click();
     await expect(page.locator('.place.sel')).toHaveCount(1);
     const href = await page.locator('.place').first().getByRole('link', { name: /Cómo llegar/ }).getAttribute('href');
-    expect(href).toContain('openstreetmap.org/directions');
+    expect(href).toContain('google.com/maps/dir/');
+    expect(href).toContain('travelmode=walking');
   });
 
   test('Ofertas: distancia a la sucursal más cercana y "Ver en el mapa"', async ({ page }) => {

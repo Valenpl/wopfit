@@ -10,17 +10,16 @@
 .link[disabled]{opacity:.5}
 .tabbar.sub{display:none}.desk .tabbar.sub{display:flex}
 
-/* ---------- mapa real (Leaflet + OpenStreetMap) ---------- */
-.lmap{z-index:0}
-.lmap .leaflet-container{height:100%;width:100%;font-family:inherit;background:#EAF2E6}
-.lmap .gate{z-index:1000}
-.lpin-wrap{background:none;border:0}
+/* ---------- mapa de Google (pines propios en AdvancedMarker) ---------- */
+.gmap{z-index:0;background:#EAF2E6}
+.gmap .gate{z-index:1000}
+.gmap .nokey{position:absolute;inset:0;display:grid;place-items:center;text-align:center;padding:16px}
 .lpin{display:flex;justify-content:center}
 .lpin span{width:32px;height:32px;border-radius:50% 50% 50% 0;transform:rotate(-45deg);display:grid;place-items:center;box-shadow:0 4px 10px rgba(0,0,0,.18);border:2px solid #fff}
 .lpin span i{transform:rotate(45deg);font-style:normal;font-size:15px}
 .lpin.sel span{width:40px;height:40px;outline:3px solid rgba(30,127,203,.35)}
 .lme{display:block;width:18px;height:18px;border-radius:50%;background:var(--blue);border:3px solid #fff;box-shadow:0 0 0 8px rgba(30,127,203,.18)}
-.desk .lmap{height:400px}
+.desk .gmap{height:400px}
 .tip{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);color:var(--ink)}
 .src{font-size:12px;color:var(--faint);margin-top:4px;font-weight:600}
 .src a{color:inherit;text-decoration:underline}

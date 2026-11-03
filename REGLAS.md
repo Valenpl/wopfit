@@ -13,6 +13,7 @@ Si algo del código actual no cumple estas reglas, se cambia. El código se est�
 | Frontend | React 18 + Vite, React Router, **Redux Toolkit** (`createSlice`, `createAsyncThunk`), **axios** |
 | Backend | Java 17, Spring Boot 3, Spring Web, Spring Data JPA (Hibernate), Spring Security + **JWT** (jjwt), Lombok, Validation |
 | Base | **MySQL 8** |
+| Mapa | Google Maps con `@vis.gl/react-google-maps` (front) y Google Places API desde el backend |
 
 No se suman librerías nuevas sin hablarlo antes en el grupo.
 
@@ -120,8 +121,9 @@ Mismo armado que en el e-commerce:
 6. `CorsConfig`: orígenes desde una variable de entorno.
 
 Secretos:
-- La clave del JWT y la contraseña de MySQL van en variables de entorno (`WOPFIT_JWT_SECRET`, `DB_PASSWORD`). En `application.properties` solo queda `${WOPFIT_JWT_SECRET}`.
-- Ningún secreto en Git ni en el front.
+- La clave del JWT, la contraseña de MySQL y la key de Google Places van en variables de entorno (`WOPFIT_JWT_SECRET`, `DB_PASSWORD`, `GOOGLE_PLACES_KEY`). En `application.properties` solo queda `${WOPFIT_JWT_SECRET}`.
+- Ningún secreto en Git ni en el front. Ojo: todo lo que empieza con `VITE_` termina adentro del JavaScript que baja el navegador, así que **no es secreto**. Por eso la key de Places vive solo en el backend.
+- La única key que va en el front es la del mapa (`VITE_GOOGLE_MAPS_KEY`). Es pública por diseño: la protege la restricción de Google Cloud (solo nuestros dominios y solo Maps JavaScript API). Igual va en `frontend/.env.local`, no en Git.
 
 ### 2.9 REST
 
@@ -183,7 +185,7 @@ Si alguna vez hace falta foco o scroll, se usa un `ref` de React y se comenta po
 - En *Cerca tuyo*, el lugar que se toca en el mapa se lleva a la vista con el ref de su fila.
 - En una publicación, el botón de comentarios pone el foco en el campo de texto.
 
-La única excepción es el mapa: Leaflet no es de React y dibuja adentro de un `div` que le pasamos con un ref. Queda encerrado en `components/places/LeafletMap.jsx` y React solo le pasa datos.
+El mapa tampoco toca el DOM: `components/places/GoogleMap.jsx` usa `@vis.gl/react-google-maps`, donde el mapa y los pines son componentes de React (`<Map>`, `<AdvancedMarker>`). Para mover la cámara se usa la API del mapa (`useMap().panTo`), no el DOM.
 
 La vista compu y el teclado abierto se marcan con clases en `#app` (`desk`, `kb`) que pone `App.jsx` según el estado, no con `document.documentElement.classList`.
 

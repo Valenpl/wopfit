@@ -33,6 +33,7 @@ services:
       WOPFIT_JWT_SECRET: ${WOPFIT_JWT_SECRET:?Falta WOPFIT_JWT_SECRET en el archivo .env}
       WOPFIT_CORS_ORIGINS: ${WOPFIT_CORS_ORIGINS:-http://localhost:5173}
       WOPFIT_DEV_CODES: ${WOPFIT_DEV_CODES:-false}
+      GOOGLE_PLACES_KEY: ${GOOGLE_PLACES_KEY:-}
     ports:
       - "8080:8080"
 volumes:
