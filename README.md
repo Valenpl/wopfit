@@ -28,7 +28,7 @@ wopfit/
 |---|---|---|
 | React + Vite | La interfaz web (celu y compu) | Ya estaba hecha y funcionando; Vite es el estándar actual para React |
 | Redux Toolkit + axios | Estado global y pedidos al backend | Un solo store con un slice por recurso; es lo que vimos en Aplicaciones Interactivas |
-| Vercel | Publicar el frontend | Gratis, con HTTPS y deploy automático desde GitHub |
+| Vercel + Render + TiDB Cloud | Publicar el front, el backend y la base | Los tres tienen plan gratis sin tarjeta (ver "Publicar") |
 | Java + Spring Boot | El backend: reglas de negocio y API | Lo conoce el equipo, es muy usado y trae web, seguridad y base de datos resueltos |
 | API REST (JSON) | Comunicación entre front y back | Simple y conocida: cada acción es una URL + GET, POST, PUT o DELETE |
 | 3 capas: controller → service → repository | Ordenar el backend | Cada capa tiene una tarea: recibir el pedido, aplicar las reglas, hablar con la base |
@@ -138,20 +138,58 @@ El backend se corta después de escribir `schema-gen.sql` (no hay tablas para lo
 
 Hace falta una cuenta en cada servicio; nada de esto se hace desde el repo.
 
-### Backend (cualquier lugar que corra Docker)
-`backend/Dockerfile` compila el backend y lo corre con los perfiles `mysql,prod`. Para levantar todo junto con la base en una máquina con Docker:
+### Gratis: TiDB Cloud (base) + Render (backend) + Vercel (front)
+Los tres tienen plan gratis sin tarjeta. Lo que hay que saber:
+- **TiDB Cloud Starter** es compatible con MySQL: 5 GiB y un cupo mensual de consultas que sobra para la demo. Pide TLS y el usuario lleva un prefijo (`xxxx.root`).
+- **Render (Free)** apaga el backend después de 15 minutos sin uso. El primer pedido lo despierta y tarda cerca de un minuto: la app muestra "Cargando…" mientras tanto.
+- **Vercel (Hobby)** publica el front, y cada pull request tiene su propio link de prueba.
+
+**1. Base (TiDB Cloud)**
+1. En [tidbcloud.com](https://tidbcloud.com) crear una instancia **Starter**, en la región más cercana.
+2. En **Connect**, generar la contraseña y anotar el host, el puerto (4000), el usuario (`xxxx.root`) y la contraseña.
+3. La URL para el backend queda así (la base `wopfit` se crea sola):
+   ```
+   jdbc:mysql://HOST:4000/wopfit?createDatabaseIfNotExist=true&sslMode=VERIFY_IDENTITY&enabledTLSProtocols=TLSv1.2,TLSv1.3&serverTimezone=America/Argentina/Buenos_Aires
+   ```
+
+**2. Backend (Render)**
+1. En [render.com](https://render.com): **New → Web Service → Public Git Repository**, con `https://github.com/Valenpl/wopfit`.
+   - Si el dueño del repo conecta su GitHub, Render vuelve a publicar solo con cada push a `main`.
+2. Configuración:
+   - **Language:** Docker.
+   - **Root Directory:** `backend`.
+   - **Instance type:** Free.
+   - **Health Check Path:** `/api/v1/health`.
+3. Variables de entorno:
+
+   | Variable | Valor |
+   |---|---|
+   | `DB_URL` | la URL del paso 1 |
+   | `DB_USER` | el usuario de TiDB (`xxxx.root`) |
+   | `DB_PASSWORD` | la contraseña de TiDB |
+   | `WOPFIT_JWT_SECRET` | 32 caracteres o más al azar (el botón **Generate** de Render sirve) |
+   | `WOPFIT_CORS_ORIGINS` | `https://wopfit.vercel.app, https://wopfit-*.vercel.app`, con el nombre real del proyecto de Vercel. El `*` deja entrar los links de prueba de cada PR |
+   | `WOPFIT_DEV_CODES` | `true` (sin mail real, si no nadie puede terminar de registrarse) |
+   | `SPRING_JPA_HIBERNATE_DDL_AUTO` | `update`, **solo para el primer deploy**: crea las tablas. Después se borra y queda `validate`, como pide REGLAS 4 |
+
+4. Cuando termina, `https://NOMBRE.onrender.com/api/v1/health` responde `{"status":"ok"}`.
+   - El `Dockerfile` ya limita la memoria de Java para que entre en los 512 MB del plan gratis.
+   - El puerto lo toma de `PORT`, que pone Render.
+
+**3. Front (Vercel)**
+1. En [vercel.com](https://vercel.com): **Add New → Project** e importar `Valenpl/wopfit`. Lo tiene que autorizar el dueño del repo en GitHub.
+2. Configuración:
+   - **Root Directory:** `frontend`. Vercel detecta Vite: el build es `npm run build` y la salida, `dist`.
+   - Variable `VITE_API_URL`: `https://NOMBRE.onrender.com/api/v1`.
+3. `frontend/vercel.json` manda todas las rutas a `index.html`, así recargar en `/inicio` no da 404.
+
+### Con Docker (una máquina propia)
+`backend/Dockerfile` compila el backend y lo corre con los perfiles `mysql,prod`. Para levantar todo junto con la base:
 ```bash
 docker compose --profile app up -d --build
 ```
 - La primera vez, MySQL crea las tablas con `backend/db/schema.sql`.
-- Variables que hacen falta (en el `.env` o en el panel del hosting): `DB_PASSWORD`, `WOPFIT_JWT_SECRET` y `WOPFIT_CORS_ORIGINS`, con el dominio del front, por ejemplo `https://wopfit.vercel.app`.
-- **Mientras no haya mail real**, la demo publicada necesita `WOPFIT_DEV_CODES=true` para mostrar el código de verificación en pantalla. Si no, nadie puede terminar de registrarse.
-- Si el hosting trae su propio MySQL (Railway, Render, etc.), alcanza con la imagen del `Dockerfile` y `DB_URL` apuntando a esa base. Las tablas se crean una vez con `schema.sql`.
-
-### Front (Vercel)
-- Proyecto con **Root Directory** `frontend`. El build es `npm run build` y la salida, `dist`.
-- Variable `VITE_API_URL` con la URL del backend terminada en `/api/v1`, por ejemplo `https://api.wopfit.com/api/v1`.
-- `frontend/vercel.json` manda todas las rutas a `index.html`, así recargar en `/inicio` no da 404. Los archivos que existen, como `sw.js` o los íconos, se sirven igual.
+- Variables que hacen falta (en el `.env`): `DB_PASSWORD`, `WOPFIT_JWT_SECRET`, `WOPFIT_CORS_ORIGINS` y, mientras no haya mail real, `WOPFIT_DEV_CODES=true`.
 
 ## Datos de demostración
 
@@ -174,7 +212,7 @@ Se pueden poner en el `.env` de la raíz (ver `.env.example`) o como variables d
 | `DB_USER` | `wopfit` | Usuario MySQL |
 | `DB_PASSWORD` | sin default, va en `.env` | Contraseña MySQL |
 | `WOPFIT_JWT_SECRET` | sin default, va en `.env` | Clave para firmar los JWT (mínimo 32 caracteres) |
-| `WOPFIT_CORS_ORIGINS` | `http://localhost:5173` | Dominios del front, separados por coma |
+| `WOPFIT_CORS_ORIGINS` | `http://localhost:5173` | Dominios del front, separados por coma. Aceptan `*` (por ejemplo `https://wopfit-*.vercel.app`) |
 | `WOPFIT_DEV_CODES` | `true` (`false` con el perfil `prod`) | Mostrar el código de verificación en pantalla. Hace falta `true` en la demo publicada mientras no haya mail real |
 | `VITE_API_URL` (front) | `/api/v1` | URL de la API, si el front se publica en otro dominio |
 

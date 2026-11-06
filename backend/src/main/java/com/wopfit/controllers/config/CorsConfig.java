@@ -10,14 +10,17 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-/** Dominios del front que pueden llamar a la API: salen de WOPFIT_CORS_ORIGINS. */
+/**
+ * Dominios del front que pueden llamar a la API: salen de WOPFIT_CORS_ORIGINS, separados por coma.
+ * Aceptan comodines, así entran también los deploys de prueba de Vercel: https://wopfit-*.vercel.app
+ */
 @Configuration
 public class CorsConfig {
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource(@Value("${wopfit.cors.origins}") String origins) {
         CorsConfiguration cfg = new CorsConfiguration();
-        cfg.setAllowedOrigins(Arrays.stream(origins.split(",")).map(String::trim).toList());
+        cfg.setAllowedOriginPatterns(Arrays.stream(origins.split(",")).map(String::trim).toList());
         cfg.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         cfg.setAllowedHeaders(List.of("Authorization", "Content-Type"));
         UrlBasedCorsConfigurationSource src = new UrlBasedCorsConfigurationSource();

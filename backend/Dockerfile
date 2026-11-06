@@ -12,5 +12,7 @@ WORKDIR /app
 COPY --from=build /app/target/wopfit-api-*.jar app.jar
 # MySQL + perfil de entrega (ddl-auto=validate). Los secretos llegan por variables de entorno.
 ENV SPRING_PROFILES_ACTIVE=mysql,prod
+# Que Java use hasta el 75 % de la memoria del contenedor: así entra en los 512 MB del plan gratis de Render.
+ENV JAVA_TOOL_OPTIONS="-XX:MaxRAMPercentage=75 -XX:+UseSerialGC -Xss512k"
 EXPOSE 8080
 ENTRYPOINT ["java", "-jar", "app.jar"]
