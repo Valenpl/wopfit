@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, lazy, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { fetchPlaces } from '../../redux/slices/placeSlice';
 import useAuth from '../../hooks/useAuth';
@@ -6,12 +6,16 @@ import useFetch from '../../hooks/useFetch';
 import useHere from '../../hooks/useHere';
 import { PCATS, PCOL, PEMO } from '../../utils/constants';
 import { distTxt, isPremium, meters } from '../../utils/format';
-import LeafletMap from '../../components/places/LeafletMap.jsx';
 import ErrorBox from '../../components/shared/ErrorBox.jsx';
 import Icon from '../../components/shared/Icon.jsx';
 import Note from '../../components/shared/Note.jsx';
 import Screen from '../../components/shared/Screen.jsx';
 import TopBar from '../../components/shared/TopBar.jsx';
+
+// El mapa (MapLibre) se baja recién cuando se abre esta pantalla: no pesa en el resto de la app.
+// Si no se puede bajar (sin conexión), queda el aviso y la lista sigue andando.
+const NoMap = ({ children }) => <div className="map lmap"><div className="lmap-fail small muted">No pudimos cargar el mapa. La lista de lugares sigue abajo.</div>{children}</div>;
+const MapView = lazy(() => import('../../components/places/MapView.jsx').catch(() => ({ default: NoMap })));
 
 const FIRST = 12;
 const walkMin = m => Math.max(1, Math.round(m / 80));
@@ -22,7 +26,7 @@ export default function Cerca() {
   const nav = useNavigate();
   const { me } = useAuth();
   const pr = isPremium(me);
-  const here = useHere();
+  const here = useHere({ watch: true });
   const [params] = useSearchParams();
   const [cat, setCat] = useState('todos');
   const [q, setQ] = useState('');
@@ -50,16 +54,19 @@ export default function Cerca() {
     if (row) row.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }, [sel, data]);
 
+  // Cartel de "parte de Premium": va arriba del mapa, y también mientras el mapa se baja.
+  const gate = !pr && <div className="gate"><div><div className="bigicon" style={{ width: 60, height: 60, margin: '0 auto', background: '#FFF1C9', color: '#8A6300' }}><Icon n="lock" /></div>
+    <h3 className="mt12">El buscador de lugares cercanos es parte de Premium</h3>
+    <button className="btn sm" style={{ margin: '12px auto 0' }} onClick={() => nav('/planes')}>Mejorar plan</button></div></div>;
+
   return <Screen>
     <TopBar right={pr ? <span className="tag gold">★ Premium</span> : null} />
     <h1>Cerca tuyo</h1><p className="sub">Supermercados, dietéticas, gimnasios y parques.</p>
     <div className="search"><Icon n="search" /><input value={q} onChange={e => setQ(e.target.value)} placeholder="Buscá supermercados, gimnasios…" aria-label="Buscar lugares" disabled={!pr} /></div>
     <div className="chiprow mt12">{PCATS.map(([k, t, e]) => <button key={k} className={`chip ${cat === k ? 'on' : ''}`} onClick={() => setCat(k)}>{e} {t}</button>)}</div>
-    <LeafletMap here={here} places={list} sel={sel} onSelect={pick}>
-      {!pr && <div className="gate"><div><div className="bigicon" style={{ width: 60, height: 60, margin: '0 auto', background: '#FFF1C9', color: '#8A6300' }}><Icon n="lock" /></div>
-        <h3 className="mt12">El buscador de lugares cercanos es parte de Premium</h3>
-        <button className="btn sm" style={{ margin: '12px auto 0' }} onClick={() => nav('/planes')}>Mejorar plan</button></div></div>}
-    </LeafletMap>
+    <Suspense fallback={<div className="map lmap">{gate}</div>}>
+      <MapView here={here} places={list} sel={sel} onSelect={pick}>{gate}</MapView>
+    </Suspense>
     {!pr && <div className="card mt12 small muted">Con el plan Gratuito tenés el buscador básico de precios en <button className="link" onClick={() => nav('/ofertas')}>Ofertas</button>.</div>}
     {pr && <>
       {!here.real && <Note tone="blue" className="mt12">Te mostramos los lugares cerca de UADE (Monserrat). Activá la ubicación para ver los tuyos.</Note>}

@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 import { loginAs, newUser, shot } from './helpers.js';
 
-// Cerca tuyo (mapa real, Premium) y Ofertas, con los datos de demostración del backend.
+// Cerca tuyo (mapa real con MapLibre + OpenFreeMap, Premium) y Ofertas, con los datos de demostración del backend.
 const users = {};
 
 test.beforeAll(async ({ request }) => {
@@ -15,8 +15,9 @@ test.describe('con la ubicación en Palermo', () => {
   test('Premium: mapa real con los lugares más cercanos primero', async ({ page }) => {
     await loginAs(page, users.prem);
     await page.goto('/cerca');
-    await expect(page.locator('.leaflet-container')).toBeVisible();
-    await expect(page.locator('.leaflet-tile-pane img').first()).toBeAttached(); // teselas de OpenStreetMap
+    await expect(page.locator('.lmap[data-ready="true"]')).toBeVisible({ timeout: 20000 }); // estilo y teselas de OpenFreeMap
+    await expect(page.locator('.lmap .maplibregl-canvas')).toBeVisible();
+    await expect(page.locator('.lwopi .lwopi-tag')).toHaveText('Vos'); // Wopi marca dónde estás
     await expect(page.locator('.lpin')).toHaveCount(45);
     await expect(page.locator('.place').first()).toContainText('Palermo');
     await expect(page.locator('.place').first()).toContainText(/a \d+ m/);
@@ -36,8 +37,14 @@ test.describe('con la ubicación en Palermo', () => {
     await expect(page.locator('.place').first()).toContainText('Belgrano');
     await page.getByLabel('Buscar lugares').fill('');
 
-    await page.locator('.lpin').first().click();
+    // El pin del lugar más cercano está a la vista: tocarlo lo elige en la lista y el mapa deja de seguirte.
+    const name = (await page.locator('.place b').first().innerText()).trim();
+    const address = (await page.locator('.place').first().locator('.tiny.muted').nth(1).innerText()).split(',')[0].trim();
+    await page.locator('.lmap').getByRole('button', { name: `${name}, ${address}` }).click();
     await expect(page.locator('.place.sel')).toHaveCount(1);
+    await expect(page.locator('.lmap-me')).toBeVisible();
+    await page.locator('.lmap-me').click();
+    await expect(page.locator('.lmap-me')).toHaveCount(0);
     const href = await page.locator('.place').first().getByRole('link', { name: /Cómo llegar/ }).getAttribute('href');
     expect(href).toContain('openstreetmap.org/directions');
   });
@@ -69,6 +76,21 @@ test('sin ubicación se centra en UADE', async ({ page }) => {
   await page.goto('/cerca');
   await expect(page.getByText('Te mostramos los lugares cerca de UADE (Monserrat)')).toBeVisible();
   await expect(page.locator('.place').first()).toContainText(/Monserrat|San Nicolás|Congreso/);
+  await expect(page.locator('.lwopi .lwopi-tag')).toHaveText('UADE');
+});
+
+test('Wopi camina con vos y la lista se reordena', async ({ page, context }) => {
+  await context.grantPermissions(['geolocation']);
+  await context.setGeolocation({ latitude: -34.5878, longitude: -58.4300 }); // Palermo
+  await loginAs(page, users.prem);
+  await page.goto('/cerca');
+  await expect(page.locator('.lmap[data-ready="true"]')).toBeVisible({ timeout: 20000 });
+  const before = await page.locator('.place').first().innerText();
+  await context.setGeolocation({ latitude: -34.5612, longitude: -58.4560 }); // Belgrano, a unos 4 km
+  await expect(page.locator('.lwopi.walking')).toHaveCount(1); // camina hasta la ubicación nueva...
+  await expect(page.locator('.lwopi.walking')).toHaveCount(0); // ...y se queda quieto al llegar
+  await expect(page.locator('.place').first()).not.toHaveText(before);
+  await expect(page.locator('.lmap-me')).toHaveCount(0); // el mapa lo siguió solo
 });
 
 test('Gratuito: el mapa queda bloqueado y no pide lugares', async ({ page }) => {
