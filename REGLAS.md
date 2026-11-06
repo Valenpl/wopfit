@@ -183,7 +183,7 @@ Si alguna vez hace falta foco o scroll, se usa un `ref` de React y se comenta po
 - En *Cerca tuyo*, el lugar que se toca en el mapa se lleva a la vista con el ref de su fila.
 - En una publicación, el botón de comentarios pone el foco en el campo de texto.
 
-La única excepción es el mapa: Leaflet no es de React y dibuja adentro de un `div` que le pasamos con un ref. Queda encerrado en `components/places/LeafletMap.jsx` y React solo le pasa datos.
+La única excepción es el mapa: MapLibre no es de React y dibuja el mapa y los pines adentro de un `div` que le pasamos con un ref. Queda encerrado en `components/places/MapView.jsx` y React solo le pasa datos.
 
 La vista compu y el teclado abierto se marcan con clases en `#app` (`desk`, `kb`) que pone `App.jsx` según el estado, no con `document.documentElement.classList`.
 
