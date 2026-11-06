@@ -38,6 +38,9 @@ export default function Ready() {
     <div className="card mt16"><div className="row"><div className="tile"><Icon n="dumb" /></div><div className="grow"><h3>Tu entrenamiento</h3><div className="small muted">{plan.trainingSummary}</div></div></div></div>
     <div className="card"><div className="row"><div className="tile p"><Icon n="fork" /></div><div className="grow"><h3>Tu alimentación</h3><div className="small muted">{plan.foodSummary}</div></div></div></div>
     {plan.healthNotes.length > 0 && <div className="card"><div className="row"><div className="tile"><Icon n="shield" /></div><div className="grow"><h3>Tu salud</h3><div className="small muted">{plan.healthNotes.join(' ')}</div></div></div></div>}
+    {plan.aiSummary && <div className="card"><div className="row"><span className="wopiav"><img src="/wopi.webp" alt="" /></span><div className="grow"><h3>Wopi lo armó así para vos</h3>
+      <div className="small muted">{plan.aiSummary}</div></div></div>
+      {plan.aiTips.length > 0 && <ul className="small mt8" style={{ margin: '8px 0 0', paddingLeft: 18, color: 'var(--ink)' }}>{plan.aiTips.map(t => <li key={t}>{t}</li>)}</ul>}</div>}
     <ExpertTips tips={plan.tips} />
     {!upd && <Note icon="heart" className="mt16">Si algún día no podés, avisanos y lo reacomodamos.</Note>}
   </Screen>;

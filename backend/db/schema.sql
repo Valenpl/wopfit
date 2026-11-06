@@ -110,6 +110,20 @@
         primary key (id)
     ) engine=InnoDB;
 
+    create table plan_ai_tips (
+        position integer not null,
+        plan_id bigint not null,
+        tip varchar(200) not null,
+        primary key (position, plan_id)
+    ) engine=InnoDB;
+
+    create table plan_day_templates (
+        day_of_week integer not null,
+        template integer not null,
+        plan_id bigint not null,
+        primary key (day_of_week, plan_id)
+    ) engine=InnoDB;
+
     create table plan_days (
         day_of_week integer,
         owner_id bigint not null
@@ -125,6 +139,7 @@
         updated_at datetime(6),
         user_id bigint not null,
         level varchar(20),
+        ai_summary varchar(600),
         primary key (id)
     ) engine=InnoDB;
 
@@ -367,6 +382,16 @@
        add constraint fk_photo_owner
        foreign key (owner_id)
        references community_profiles (id);
+
+    alter table plan_ai_tips
+       add constraint fk_plan_ai_tip_plan
+       foreign key (plan_id)
+       references plans (id);
+
+    alter table plan_day_templates
+       add constraint fk_plan_day_template_plan
+       foreign key (plan_id)
+       references plans (id);
 
     alter table plan_days
        add constraint fk_plan_day_plan

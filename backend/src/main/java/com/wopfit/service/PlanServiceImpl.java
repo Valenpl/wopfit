@@ -6,6 +6,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -34,6 +35,7 @@ import com.wopfit.exceptions.WorkoutNotFoundException;
 import com.wopfit.repository.PlanRepository;
 import com.wopfit.repository.WorkoutSessionRepository;
 import com.wopfit.service.support.Catalog;
+import com.wopfit.service.support.PlanAi;
 import com.wopfit.service.support.WorkoutCatalog;
 import com.wopfit.service.support.ExpertAdvice;
 
@@ -46,6 +48,7 @@ public class PlanServiceImpl implements PlanService {
     private final WorkoutSessionRepository sessions;
     private final ProfileService profile;
     private final WorkoutCatalog workouts;
+    private final PlanAi planAi;
     private final TimeService time;
 
     @Override
@@ -81,9 +84,24 @@ public class PlanServiceImpl implements PlanService {
         plan.setGeneratedUntil(today.minusDays(1));
         plan.setUpdatedAt(Instant.now());
         p.getPendingChanges().clear();
+        personalize(plan, u, p);
         plans.save(plan);
         ensureSessions(plan, today.plusDays(13));
         return new PlanUpdateResponse(ProfileServiceImpl.planDto(plan, p), changes);
+    }
+
+    /** Wopi elige con IA qué rutina va cada día y explica por qué. Sin IA (o si falla), el plan rota las rutinas como siempre. */
+    private void personalize(Plan plan, User u, Preferences p) {
+        String name = u.getName() == null || u.getName().isBlank() ? "" : u.getName().trim().split("\\s+")[0];
+        Optional<PlanAi.Advice> advice = planAi.personalize(p, name, Catalog.levelName(plan.getLevel()));
+        plan.getDayTemplates().clear();
+        plan.getAiTips().clear();
+        plan.setAiSummary(null);
+        advice.ifPresent(a -> {
+            plan.getDayTemplates().putAll(a.dayTemplates());
+            plan.setAiSummary(a.summary());
+            plan.getAiTips().addAll(a.tips());
+        });
     }
 
     private static String baseLevel(String step) {
@@ -141,6 +159,8 @@ public class PlanServiceImpl implements PlanService {
     }
 
     private static int templateFor(Plan plan, LocalDate d) {
+        Integer chosen = plan.getDayTemplates().get(TimeServiceImpl.dow(d));
+        if (chosen != null) return chosen;
         long week = ChronoUnit.WEEKS.between(TimeServiceImpl.monday(plan.getStartDate()), TimeServiceImpl.monday(d));
         int pos = (int) plan.getDays().stream().filter(x -> x < TimeServiceImpl.dow(d)).count();
         return (int) ((week + pos) % 3);
