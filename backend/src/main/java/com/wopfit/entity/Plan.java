@@ -3,7 +3,11 @@ package com.wopfit.entity;
 import jakarta.persistence.*;
 import java.time.Instant;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 import lombok.Getter;
@@ -47,4 +51,20 @@ public class Plan {
     private LocalDate lightenSeenWeek;
 
     private Instant updatedAt;
+
+    // Lo que propuso Wopi con IA (vacío si no hubo IA): qué rutina va cada día, por qué y consejos.
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "plan_day_templates", joinColumns = @JoinColumn(name = "plan_id", foreignKey = @ForeignKey(name = "fk_plan_day_template_plan")))
+    @MapKeyColumn(name = "day_of_week")
+    @Column(name = "template", nullable = false)
+    private Map<Integer, Integer> dayTemplates = new HashMap<>();
+
+    @Column(length = 600)
+    private String aiSummary;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "plan_ai_tips", joinColumns = @JoinColumn(name = "plan_id", foreignKey = @ForeignKey(name = "fk_plan_ai_tip_plan")))
+    @OrderColumn(name = "position")
+    @Column(name = "tip", nullable = false, length = 200)
+    private List<String> aiTips = new ArrayList<>();
 }

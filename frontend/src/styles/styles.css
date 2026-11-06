@@ -426,7 +426,7 @@ h1{font-size:clamp(23px,7.2vw,28px)}
 /* chat */
 .chat{display:flex;flex-direction:column;gap:10px}
 .bub{max-width:86%;padding:11px 14px;border-radius:20px;font-size:14.5px;line-height:1.4}
-.bub.w{background:#fff;color:var(--ink);border-bottom-left-radius:6px;align-self:flex-start;box-shadow:0 2px 10px rgba(15,42,92,.05)}
+.bub.w{white-space:pre-line;background:#fff;color:var(--ink);border-bottom-left-radius:6px;align-self:flex-start;box-shadow:0 2px 10px rgba(15,42,92,.05)}
 .bub.u{background:var(--blue);color:#fff;border-bottom-right-radius:6px;align-self:flex-end}
 .bub .opt2{display:block;background:#F4F9FD;border-radius:14px;padding:10px 12px;margin-top:8px;color:var(--navy)}
 .bub .opt2 small{display:block;color:var(--muted);font-weight:700}

@@ -2,10 +2,13 @@ package com.wopfit.service;
 
 import java.text.Normalizer;
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.LinkedHashMap;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -16,6 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.wopfit.entity.Plan;
 import com.wopfit.entity.Preferences;
@@ -36,6 +40,7 @@ import com.wopfit.service.support.Catalog;
 import com.wopfit.service.support.MealCatalog;
 import com.wopfit.service.support.WorkoutCatalog;
 import com.wopfit.service.support.ExpertAdvice;
+import com.wopfit.service.support.WopiAi;
 
 @RequiredArgsConstructor
 @Service
@@ -53,6 +58,7 @@ public class WopiServiceImpl implements WopiService {
     private final WorkoutCatalog workouts;
     private final TimeService time;
     private final ObjectMapper json;
+    private final WopiAi ai;
 
     /** Una respuesta: texto (con **negrita**), tarjetas, botones, si admite "otras opciones", de qué venía hablando y la fuente si es un consejo de expertos. */
     record Reply(String text, List<WopiCard> cards, List<WopiAction> actions, boolean more, String context, String source, String sourceUrl) {
@@ -71,7 +77,7 @@ public class WopiServiceImpl implements WopiService {
         List<WopiMessage> last = new ArrayList<>(messages.findTop40ByUserIdOrderByIdDesc(userId));
         Collections.reverse(last);
         boolean pr = premium.isPremium(userId);
-        return new WopiResponse(pr, premium.wopiLeft(userId, pr), premium.wopiLimit(pr), last.stream().map(this::dto).toList());
+        return new WopiResponse(pr, premium.wopiLeft(userId, pr), premium.wopiLimit(pr), ai.enabled(), last.stream().map(this::dto).toList());
     }
 
     @Transactional
@@ -84,8 +90,10 @@ public class WopiServiceImpl implements WopiService {
                     : "Usaste tus 3 consultas gratis de este mes. Con Premium tenés 20.");
         }
         String prev = messages.findFirstByUserIdAndRoleOrderByIdDesc(userId, "wopi").map(WopiMessage::getContext).orElse(null);
+        List<WopiAi.Turn> history = history(userId);
         WopiMessage asked = save(userId, "user", q, null, null);
-        Reply r = answer(userId, q, prev);
+        // Con IA responde Claude; si no hay key, falla o se niega, responden las reglas de siempre.
+        Reply r = aiAnswer(userId, q, prev, history).orElseGet(() -> answer(userId, q, prev));
         WopiMessage reply = save(userId, "wopi", r.text(), new Extra(r.cards(), r.actions(), r.more(), r.source(), r.sourceUrl()), r.context());
         return new WopiAskResponse(premium.wopiLeft(userId, pr), dto(asked), dto(reply));
     }
@@ -270,5 +278,112 @@ public class WopiServiceImpl implements WopiService {
         return Reply.of("Es normal tener días así. Esta semana ya hiciste " + w.done() + " de " + w.total()
                 + " entrenamientos. Hoy alcanza con algo chiquito: una caminata de 15 minutos también es progreso 💙",
                 new WopiAction("Caminata de 15 min", "go", "/entreno/caminata"));
+    }
+
+    // ---------------- con IA ----------------
+
+    private static final List<String> QUICK_KINDS = List.of("express", "liviana", "caminata", "sin_equipo");
+    private static final DateTimeFormatter WHEN = DateTimeFormatter.ofPattern("EEEE d 'de' MMMM, HH:mm", Locale.forLanguageTag("es-AR"));
+
+    /** Las herramientas que puede usar Claude: las mismas respuestas de las reglas, con sus tarjetas y botones. */
+    private static final List<com.anthropic.models.messages.Tool> TOOLS = List.of(
+            WopiAi.tool("ideas_de_comida", "Ideas de comidas del menú de la persona (respeta lo que no come y su presupuesto). Le muestra tarjetas para agregarlas a su día.",
+                    props("comida", Map.of("type", "string", "enum", List.of("desayuno", "almuerzo", "cena")),
+                            "precio_maximo", Map.of("type", "integer", "description", "Precio máximo en pesos, si lo pidió"),
+                            "desde", Map.of("type", "integer", "description", "Para mostrar otras opciones: cuántas ya se mostraron (0 la primera vez)")),
+                    List.of("comida")),
+            WopiAi.tool("rutina_de_hoy", "La rutina de entrenamiento de hoy (o si es día de descanso) y la próxima.", Map.of(), List.of()),
+            WopiAi.tool("rutina_corta", "Una versión corta para hoy, cuando tiene poco tiempo, poca energía o no tiene equipamiento.",
+                    props("tipo", Map.of("type", "string", "enum", QUICK_KINDS)), List.of("tipo")),
+            WopiAi.tool("lista_del_super", "Lo que necesita comprar esta semana y si hay ofertas que le sirven.", Map.of(), List.of()),
+            WopiAi.tool("consejo_de_expertos", "Un consejo de fuentes de salud reconocidas sobre alimentación, sueño, estrés, hidratación o actividad física.",
+                    props("tema", Map.of("type", "string", "description", "La duda, en pocas palabras")), List.of("tema")),
+            WopiAi.tool("molestia_o_dolor", "Qué hacer hoy si tiene una molestia o dolor al entrenar. Le muestra cómo consultar a un profesional.", Map.of(), List.of()),
+            WopiAi.tool("progreso_semana", "Cuántos entrenamientos hizo esta semana, para motivarla.", Map.of(), List.of()));
+
+    private static Map<String, Object> props(Object... kv) {
+        Map<String, Object> m = new LinkedHashMap<>();
+        for (int i = 0; i < kv.length; i += 2) m.put((String) kv[i], kv[i + 1]);
+        return m;
+    }
+
+    /** Los últimos mensajes de la charla, del más viejo al más nuevo. */
+    private List<WopiAi.Turn> history(Long userId) {
+        List<WopiMessage> last = new ArrayList<>(messages.findTop40ByUserIdOrderByIdDesc(userId).stream().limit(10).toList());
+        Collections.reverse(last);
+        return last.stream().map(m -> new WopiAi.Turn("user".equals(m.getRole()), m.getText())).toList();
+    }
+
+    private Optional<Reply> aiAnswer(Long userId, String question, String prev, List<WopiAi.Turn> history) {
+        if (!ai.enabled()) return Optional.empty();
+        Collected c = new Collected();
+        return ai.reply(context(userId, prev), history, question, TOOLS, (name, in) -> c.add(tool(userId, name, in)))
+                .map(text -> new Reply(text, c.cards, c.actions, c.more, c.context, c.source, c.sourceUrl));
+    }
+
+    private Reply tool(Long userId, String name, JsonNode in) {
+        return switch (name) {
+            case "ideas_de_comida" -> mealIdeas(userId, Math.max(0, List.of(SLOT_NAMES).indexOf(in.path("comida").asText())),
+                    in.hasNonNull("precio_maximo") && in.get("precio_maximo").asInt() > 0 ? in.get("precio_maximo").asInt() : null, Math.max(0, in.path("desde").asInt(0)));
+            case "rutina_de_hoy" -> routine(userId);
+            case "rutina_corta" -> quick(userId, Math.max(0, QUICK_KINDS.indexOf(in.path("tipo").asText())), "");
+            case "lista_del_super" -> shopping(userId);
+            case "consejo_de_expertos" -> ExpertAdvice.answer(plain(in.path("tema").asText()), profile.prefs(userId)).map(WopiServiceImpl::expert)
+                    .orElse(Reply.of("No hay un consejo de expertos cargado sobre ese tema."));
+            case "molestia_o_dolor" -> pain(userId, firstName(userId));
+            case "progreso_semana" -> motivation(userId);
+            default -> throw new IllegalArgumentException("Herramienta desconocida: " + name);
+        };
+    }
+
+    /** Junta las tarjetas y los botones de las herramientas que usó Claude, y le pasa el resultado en texto. */
+    private static class Collected {
+        final List<WopiCard> cards = new ArrayList<>();
+        final List<WopiAction> actions = new ArrayList<>();
+        boolean more;
+        String context, source, sourceUrl;
+
+        String add(Reply r) {
+            r.cards().stream().filter(x -> cards.size() < 4).forEach(cards::add);
+            r.actions().stream().filter(a -> actions.size() < 3 && actions.stream().noneMatch(b -> b.label().equals(a.label()))).forEach(actions::add);
+            more |= r.more();
+            if (r.context() != null) context = r.context();
+            if (source == null && r.source() != null) { source = r.source(); sourceUrl = r.sourceUrl(); }
+            StringBuilder b = new StringBuilder(r.text());
+            r.cards().forEach(x -> b.append("\n- ").append(x.title()).append(": ").append(x.subtitle()));
+            if (!r.actions().isEmpty()) b.append("\nLa persona ve los botones: ").append(String.join(", ", r.actions().stream().map(WopiAction::label).toList()));
+            if (r.source() != null) b.append("\nFuente: ").append(r.source());
+            return b.toString();
+        }
+    }
+
+    /** Lo que Wopi sabe de la persona y de su día. Sin email ni datos que no hacen falta. */
+    private String context(Long userId, String prev) {
+        Preferences p = profile.prefs(userId);
+        Plan plan = plans.plan(userId);
+        TodayResponse td = plans.today(userId);
+        WeekResponse w = plans.week(userId, time.today());
+        String name = firstName(userId);
+        StringBuilder s = new StringBuilder("Contexto (actualizado ahora):\n")
+                .append("Hoy es ").append(time.today().atTime(time.now()).format(WHEN)).append(".\n")
+                .append(name.isEmpty() ? "" : "Se llama " + name + ".\n")
+                .append("Objetivos: ").append(names(p.getGoals(), Catalog.GOALS)).append(". Nivel: ").append(Catalog.levelName(plan.getLevel()))
+                .append(". Entrena ").append(plan.getDays().size()).append(" días por semana, ").append(plan.getMinutes()).append(" min.\n")
+                .append("Comida: ").append(avoidText(p)).append("; presupuesto ").append(Catalog.BUDGETS.getOrDefault(p.getBudget(), p.getBudget()).toLowerCase(Locale.ROOT)).append(".\n")
+                .append("Salud: ").append(p.getHealth().isEmpty() ? "nada para tener en cuenta" : names(p.getHealth(), Catalog.HEALTH)).append(".\n");
+        if (plan.getAiSummary() != null) s.append("Su plan: ").append(plan.getAiSummary()).append('\n');
+        SessionResponse t = td.session();
+        s.append("Hoy: ").append(t == null || "MOVED".equals(t.status()) ? "día de descanso" : t.title() + " (" + t.status().toLowerCase(Locale.ROOT) + ")")
+                .append(". Esta semana hizo ").append(w.done()).append(" de ").append(w.total()).append(" entrenamientos.\n");
+        if (prev != null && prev.startsWith("meal:")) {
+            String[] c = prev.split(":", -1);
+            s.append("Lo último que le mostraste fueron ideas de ").append(SLOT_NAMES[Integer.parseInt(c[1])])
+                    .append(c[2].isEmpty() ? "" : " por menos de " + money(Integer.parseInt(c[2]))).append(". Si pide otras, usá desde=").append(c[3]).append(".\n");
+        }
+        return s.toString();
+    }
+
+    private static String names(java.util.Set<String> keys, Map<String, String> catalog) {
+        return keys.isEmpty() ? "no dijo" : String.join(", ", keys.stream().map(k -> catalog.getOrDefault(k, k).toLowerCase(Locale.ROOT)).toList());
     }
 }

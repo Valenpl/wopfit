@@ -22,7 +22,8 @@ import com.wopfit.service.TimeService;
 
 /** Base de los tests contra la API (H2 en memoria): llamar, crear un usuario con plan y fijar "hoy" (miércoles 21/10/2026). */
 // Clave solo para los tests: no firma tokens de ninguna base real.
-@SpringBootTest(properties = "wopfit.jwt.secret=clave-solo-para-los-tests-de-wopfit-123456")
+// Sin API key de Anthropic: los tests nunca llaman a la IA de verdad (ver WopiAiTest, que la simula).
+@SpringBootTest(properties = {"wopfit.jwt.secret=clave-solo-para-los-tests-de-wopfit-123456", "wopfit.ai.api-key="})
 @AutoConfigureMockMvc
 @ActiveProfiles("h2")
 abstract class ApiTest {
