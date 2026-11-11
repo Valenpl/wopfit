@@ -3,13 +3,17 @@
 --   mysql -u wopfit -p wopfit < backend/db/schema.sql
 -- Si cambia una entidad, hay que volver a generarlo (ver README, "Esquema de la base").
 
+    create table brands (
+        id bigint not null auto_increment,
+        category varchar(10),
+        code varchar(20) not null,
+        name varchar(80) not null,
+        primary key (id)
+    ) engine=InnoDB;
+
     create table community_profiles (
-        days_per_week integer not null,
-        demo bit not null,
         id bigint not null auto_increment,
         user_id bigint,
-        name varchar(40) not null,
-        goals varchar(80),
         primary key (id)
     ) engine=InnoDB;
 
@@ -24,6 +28,19 @@
         primary key (id)
     ) engine=InnoDB;
 
+    create table demo_profile_goals (
+        profile_id bigint not null,
+        goal varchar(10) not null,
+        primary key (profile_id, goal)
+    ) engine=InnoDB;
+
+    create table demo_profiles (
+        days_per_week integer not null,
+        profile_id bigint not null,
+        name varchar(40) not null,
+        primary key (profile_id)
+    ) engine=InnoDB;
+
     create table follows (
         followed_id bigint not null,
         follower_id bigint not null,
@@ -32,12 +49,12 @@
     ) engine=InnoDB;
 
     create table goal_checks (
-        check_date date,
-        goal_id bigint not null
+        check_date date not null,
+        goal_id bigint not null,
+        primary key (check_date, goal_id)
     ) engine=InnoDB;
 
     create table goals (
-        done bit not null,
         done_at date,
         start_date date not null,
         times_per_week integer not null,
@@ -71,18 +88,22 @@
         primary key (id)
     ) engine=InnoDB;
 
+    create table offer_ingredients (
+        offer_id bigint not null,
+        ingredient varchar(40) not null,
+        primary key (offer_id, ingredient)
+    ) engine=InnoDB;
+
     create table offers (
         days integer not null,
         start_date date not null,
+        brand_id bigint not null,
         id bigint not null auto_increment,
         category varchar(10) not null,
         discount_value varchar(10) not null,
-        brand varchar(20),
         code varchar(20) not null,
         unit varchar(20),
-        store varchar(60) not null,
         description varchar(120) not null,
-        ingredients varchar(200),
         primary key (id)
     ) engine=InnoDB;
 
@@ -96,16 +117,15 @@
     ) engine=InnoDB;
 
     create table places (
-        discount bit not null,
         lat float(53) not null,
         lng float(53) not null,
         closes varchar(5),
         opens varchar(5),
+        brand_id bigint,
         id bigint not null auto_increment,
-        category varchar(10) not null,
-        brand varchar(20),
+        category varchar(10),
         barrio varchar(40),
-        name varchar(80) not null,
+        name varchar(80),
         address varchar(120) not null,
         primary key (id)
     ) engine=InnoDB;
@@ -125,8 +145,9 @@
     ) engine=InnoDB;
 
     create table plan_days (
-        day_of_week integer,
-        owner_id bigint not null
+        day_of_week integer not null,
+        owner_id bigint not null,
+        primary key (day_of_week, owner_id)
     ) engine=InnoDB;
 
     create table plans (
@@ -160,6 +181,12 @@
         primary key (id)
     ) engine=InnoDB;
 
+    create table post_tags (
+        post_id bigint not null,
+        tag varchar(40) not null,
+        primary key (post_id, tag)
+    ) engine=InnoDB;
+
     create table posts (
         base_likes integer not null,
         author_id bigint not null,
@@ -171,44 +198,50 @@
         emoji varchar(16),
         photo_id varchar(36),
         title varchar(100) not null,
-        tags varchar(120),
         body varchar(1000),
         primary key (id)
     ) engine=InnoDB;
 
     create table preference_activities (
         owner_id bigint not null,
-        activity varchar(255)
+        activity varchar(255) not null,
+        primary key (owner_id, activity)
     ) engine=InnoDB;
 
     create table preference_avoid (
         owner_id bigint not null,
-        food varchar(255)
+        food varchar(255) not null,
+        primary key (owner_id, food)
     ) engine=InnoDB;
 
     create table preference_days (
-        day_of_week integer,
-        owner_id bigint not null
+        day_of_week integer not null,
+        owner_id bigint not null,
+        primary key (day_of_week, owner_id)
     ) engine=InnoDB;
 
     create table preference_equipment (
         owner_id bigint not null,
-        item varchar(255)
+        item varchar(255) not null,
+        primary key (owner_id, item)
     ) engine=InnoDB;
 
     create table preference_goals (
         owner_id bigint not null,
-        goal varchar(255)
+        goal varchar(255) not null,
+        primary key (owner_id, goal)
     ) engine=InnoDB;
 
     create table preference_health (
         owner_id bigint not null,
-        condition_code varchar(255)
+        condition_code varchar(255) not null,
+        primary key (owner_id, condition_code)
     ) engine=InnoDB;
 
     create table preference_pending (
         owner_id bigint not null,
-        label varchar(255)
+        label varchar(255) not null,
+        primary key (owner_id, label)
     ) engine=InnoDB;
 
     create table preferences (
@@ -243,7 +276,6 @@
 
     create table subscriptions (
         start_date date not null,
-        valid_until date not null,
         id bigint not null auto_increment,
         user_id bigint not null,
         period varchar(12) not null,
@@ -266,12 +298,14 @@
     ) engine=InnoDB;
 
     create table wopi_messages (
+        context_offset integer,
+        context_price_limit integer,
+        context_slot integer,
         role varchar(4) not null,
-        month_key varchar(7) not null,
         created_at datetime(6) not null,
         id bigint not null auto_increment,
         user_id bigint not null,
-        context varchar(60),
+        context_kind varchar(10),
         text varchar(1000) not null,
         extra varchar(4000),
         primary key (id)
@@ -293,6 +327,9 @@
         status enum ('DONE','MOVED','PENDING','SKIPPED') not null,
         primary key (id)
     ) engine=InnoDB;
+
+    alter table brands
+       add constraint uk_brand_code unique (code);
 
     alter table community_profiles
        add constraint uk_community_profile_user unique (user_id);
@@ -330,8 +367,8 @@
     alter table users
        add constraint uk_user_email unique (email);
 
-    create index idx_wopi_message_month
-       on wopi_messages (user_id, month_key);
+    create index idx_wopi_message_created
+       on wopi_messages (user_id, created_at);
 
     alter table community_profiles
        add constraint fk_community_profile_user
@@ -347,6 +384,16 @@
        add constraint fk_consultation_user
        foreign key (user_id)
        references users (id);
+
+    alter table demo_profile_goals
+       add constraint fk_demo_profile_goal_demo_profile
+       foreign key (profile_id)
+       references demo_profiles (profile_id);
+
+    alter table demo_profiles
+       add constraint fk_demo_profile_profile
+       foreign key (profile_id)
+       references community_profiles (id);
 
     alter table follows
        add constraint fk_follow_followed
@@ -378,10 +425,25 @@
        foreign key (user_id)
        references users (id);
 
+    alter table offer_ingredients
+       add constraint fk_offer_ingredient_offer
+       foreign key (offer_id)
+       references offers (id);
+
+    alter table offers
+       add constraint fk_offer_brand
+       foreign key (brand_id)
+       references brands (id);
+
     alter table photos
        add constraint fk_photo_owner
        foreign key (owner_id)
        references community_profiles (id);
+
+    alter table places
+       add constraint fk_place_brand
+       foreign key (brand_id)
+       references brands (id);
 
     alter table plan_ai_tips
        add constraint fk_plan_ai_tip_plan
@@ -422,6 +484,11 @@
        add constraint fk_post_mark_profile
        foreign key (profile_id)
        references community_profiles (id);
+
+    alter table post_tags
+       add constraint fk_post_tag_post
+       foreign key (post_id)
+       references posts (id);
 
     alter table posts
        add constraint fk_post_author

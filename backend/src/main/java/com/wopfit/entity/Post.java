@@ -2,6 +2,8 @@ package com.wopfit.entity;
 
 import jakarta.persistence.*;
 import java.time.Instant;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -43,8 +45,11 @@ public class Post {
     @Column(length = 9)
     private String bg;
 
-    @Column(length = 120)
-    private String tags;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "post_tags", joinColumns = @JoinColumn(name = "post_id", foreignKey = @ForeignKey(name = "fk_post_tag_post")))
+    @Column(name = "tag", nullable = false, length = 40)
+    @OrderBy
+    private Set<String> tags = new LinkedHashSet<>();
 
     /** Id público de la foto, si tiene. */
     @Column(length = 36)

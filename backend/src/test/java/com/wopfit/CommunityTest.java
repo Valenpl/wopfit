@@ -150,6 +150,26 @@ class CommunityTest extends ApiTest {
         assertThat(CommunityProfileServiceImpl.displayName(null)).isEqualTo("Vos");
     }
 
+    /** El perfil no guarda copias: nombre, objetivos y días salen de la cuenta y las preferencias, y las personas demo conservan los suyos. */
+    @Test
+    void datosDeLaCuentaEnLaComunidad() throws Exception {
+        String t = newUser("sin-copias@mail.com");
+        call(put("/api/v1/users/me"), t, "{\"name\":\"Ana López\",\"birthDate\":\"1992-08-14\",\"heightCm\":160,\"weightKg\":58}", 200);
+        JsonNode post = call(post("/api/v1/posts"), t, json("type", "pregunta", "body", "¿Qué desayunan?"), 201);
+        assertThat(post.get("author").asText()).isEqualTo("Ana L.");
+
+        call(put("/api/v1/users/me"), t, "{\"name\":\"Ana Pérez\",\"birthDate\":\"1992-08-14\",\"heightCm\":160,\"weightKg\":58}", 200);
+        JsonNode detail = call(get("/api/v1/posts/" + post.get("id").asLong()), t, null, 200);
+        assertThat(detail.at("/post/author").asText()).isEqualTo("Ana P.");
+
+        JsonNode people = call(get("/api/v1/people"), newUser("otra-persona@mail.com"), null, 200).get("people");
+        assertThat(people.size()).isEqualTo(5);
+        for (JsonNode p : people) {
+            assertThat(p.get("name").asText()).isNotBlank();
+            assertThat(p.get("goals").isArray()).isTrue();
+        }
+    }
+
     @Autowired CommunityProfileRepository profiles;
     @Autowired CommunityProfileService communityProfiles;
 

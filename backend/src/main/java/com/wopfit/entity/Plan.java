@@ -34,7 +34,7 @@ public class Plan {
 
     @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(name = "plan_days", joinColumns = @JoinColumn(name = "owner_id", foreignKey = @ForeignKey(name = "fk_plan_day_plan")))
-    @Column(name = "day_of_week")
+    @Column(name = "day_of_week", nullable = false)
     private Set<Integer> days = new HashSet<>();
 
     @Column(name = "minutes_per_session")

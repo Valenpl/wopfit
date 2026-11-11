@@ -179,7 +179,7 @@ Se pueden poner en el `.env` de la raíz (ver `.env.example`) o como variables d
 | `WOPFIT_DEV_CODES` | `true` (`false` con el perfil `prod`) | Mostrar el código de verificación en pantalla. Hace falta `true` en la demo publicada mientras no haya mail real |
 | `VITE_API_URL` (front) | `/api/v1` | URL de la API, si el front se publica en otro dominio |
 | `ANTHROPIC_API_KEY` | vacío | Prende la IA de Wopi (chat y planes). Sin key, Wopi usa las reglas de siempre |
-| `WOPFIT_AI_MODEL` | `claude-opus-5-5` | Modelo de Claude para Wopi. `claude-haiku-5-5` sale unas 40 veces menos |
+| `WOPFIT_AI_MODEL` | `claude-haiku-5-5` | Modelo de Claude para Wopi. Haiku es el más barato; `claude-opus-5-5` da más calidad y sale unas 40 veces más |
 
 ## Wopi con IA
 

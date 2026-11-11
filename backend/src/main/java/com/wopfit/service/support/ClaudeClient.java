@@ -26,7 +26,7 @@ public class ClaudeClient {
     private final AnthropicClient client;
     private final String model;
 
-    public ClaudeClient(@Value("${wopfit.ai.api-key:}") String apiKey, @Value("${wopfit.ai.model:claude-opus-5-5}") String model) {
+    public ClaudeClient(@Value("${wopfit.ai.api-key:}") String apiKey, @Value("${wopfit.ai.model:claude-haiku-5-5}") String model) {
         this.model = model;
         this.client = apiKey == null || apiKey.isBlank() ? null
                 : AnthropicOkHttpClient.builder().apiKey(apiKey).timeout(Duration.ofSeconds(45)).maxRetries(1).build();
