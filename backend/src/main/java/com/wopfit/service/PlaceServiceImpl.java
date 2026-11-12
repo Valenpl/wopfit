@@ -2,7 +2,6 @@ package com.wopfit.service;
 
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
-import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
@@ -42,8 +41,12 @@ public class PlaceServiceImpl implements PlaceService {
         return !t.isBefore(open) && ("24:00".equals(p.getCloses()) || t.isBefore(LocalTime.parse(p.getCloses())));
     }
 
+    private static boolean sameBrand(Place p, Offer o) {
+        return p.getBrand() != null && p.getBrand().getId().equals(o.getBrand().getId());
+    }
+
     private static String status(Place p, boolean open) {
-        if (always(p)) return p.getCategory().equals("parque") ? "Abierto siempre" : "Abierto 24 h";
+        if (always(p)) return p.displayCategory().equals("parque") ? "Abierto siempre" : "Abierto 24 h";
         return open ? "Abierto hasta las " + p.getCloses() : "Cerrado · abre a las " + p.getOpens();
     }
 
@@ -55,9 +58,9 @@ public class PlaceServiceImpl implements PlaceService {
         List<Offer> all = offers.findAll();
         return places.findAll().stream().sorted(Comparator.comparing(Place::getId)).map(p -> {
             boolean open = openAt(p, now);
-            int n = p.getBrand() == null ? 0 : (int) all.stream().filter(o -> p.getBrand().equals(o.getBrand())).count();
-            return new PlaceResponse(p.getId(), p.getName(), p.getBrand(), p.getCategory(), Catalog.PLACE_CATEGORIES.get(p.getCategory()),
-                    p.getAddress(), p.getBarrio(), p.getLat(), p.getLng(), open, status(p, open), p.isDiscount(), n);
+            int n = p.getBrand() == null ? 0 : (int) all.stream().filter(o -> sameBrand(p, o)).count();
+            return new PlaceResponse(p.getId(), p.displayName(), p.getBrand() == null ? null : p.getBrand().getCode(), p.displayCategory(), Catalog.PLACE_CATEGORIES.get(p.displayCategory()),
+                    p.getAddress(), p.getBarrio(), p.getLat(), p.getLng(), open, status(p, open), n > 0, n);
         }).toList();
     }
 
@@ -73,10 +76,10 @@ public class PlaceServiceImpl implements PlaceService {
         Set<String> list = meals.weekIngredients(userId, time.today());
         List<Place> all = places.findAll();
         List<OfferResponse> out = offers.findAll().stream().sorted(Comparator.comparing(Offer::getId)).map(o -> {
-            List<Branch> branches = o.getBrand() == null ? List.of() : all.stream().filter(p -> o.getBrand().equals(p.getBrand()))
+            List<Branch> branches = all.stream().filter(p -> sameBrand(p, o))
                     .map(p -> new Branch(p.getId(), p.getAddress(), p.getBarrio(), p.getLat(), p.getLng())).toList();
-            List<String> ing = o.getIngredients() == null ? List.of() : Arrays.stream(o.getIngredients().split(",")).map(String::trim).toList();
-            return new OfferResponse(o.getId(), o.getCode(), o.getStore(), o.getCategory(), Catalog.OFFER_CATEGORIES.get(o.getCategory()),
+            List<String> ing = List.copyOf(o.getIngredients());
+            return new OfferResponse(o.getId(), o.getCode(), o.getBrand().getName(), o.getCategory(), Catalog.OFFER_CATEGORIES.get(o.getCategory()),
                     o.getOff(), o.getUnit(), o.getDescription(), daysLeft(o), ing, list.stream().anyMatch(o::covers), branches);
         }).toList();
         return new OffersResponse(premium.isPremium(userId), out);

@@ -3,6 +3,7 @@ package com.wopfit.service.support;
 import java.io.IOException;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,13 +17,17 @@ import org.springframework.transaction.annotation.Transactional;
 
 import lombok.RequiredArgsConstructor;
 
+import com.wopfit.entity.Brand;
 import com.wopfit.entity.CommunityProfile;
+import com.wopfit.entity.DemoProfile;
 import com.wopfit.entity.Offer;
 import com.wopfit.entity.Place;
 import com.wopfit.entity.Post;
 import com.wopfit.entity.PostComment;
 import com.wopfit.entity.Professional;
+import com.wopfit.repository.BrandRepository;
 import com.wopfit.repository.CommunityProfileRepository;
+import com.wopfit.repository.DemoProfileRepository;
 import com.wopfit.repository.OfferRepository;
 import com.wopfit.repository.PlaceRepository;
 import com.wopfit.repository.PostCommentRepository;
@@ -36,10 +41,12 @@ import com.wopfit.service.TimeService;
 @Component
 public class DemoData implements ApplicationRunner {
     private static final Logger log = LoggerFactory.getLogger(DemoData.class);
+    private final BrandRepository brands;
     private final PlaceRepository places;
     private final OfferRepository offers;
     private final ProfessionalRepository pros;
     private final CommunityProfileRepository people;
+    private final DemoProfileRepository demoPeople;
     private final PostRepository posts;
     private final PostCommentRepository comments;
     private final TimeService time;
@@ -53,16 +60,23 @@ public class DemoData implements ApplicationRunner {
         return s == null || s.isBlank() || s.equals("-") ? null : s;
     }
 
+    /** Una celda del TSV con varios valores separados por coma; en la base va una fila por valor. */
+    private static List<String> items(String s) {
+        return orNull(s) == null ? List.of() : Arrays.stream(s.split(",")).map(String::trim).filter(x -> !x.isEmpty()).toList();
+    }
+
     /** Personas, publicaciones y comentarios de ejemplo. Las fechas son relativas a hoy ("hace 2 h"). */
     private void loadCommunity() throws IOException {
         Map<String, CommunityProfile> byKey = new HashMap<>();
         for (String[] c : rows("people.tsv")) {
-            CommunityProfile p = new CommunityProfile();
-            p.setName(c[1]);
-            p.setGoals(c[2]);
-            p.setDaysPerWeek(Integer.parseInt(c[3]));
-            p.setDemo(true);
-            byKey.put(c[0], people.save(p));
+            CommunityProfile p = people.save(new CommunityProfile());
+            DemoProfile d = new DemoProfile();
+            d.setProfile(p);
+            d.setName(c[1]);
+            d.getGoals().addAll(items(c[2]));
+            d.setDaysPerWeek(Integer.parseInt(c[3]));
+            demoPeople.save(d);
+            byKey.put(c[0], p);
         }
         Instant now = Instant.now();
         Map<String, Post> postByKey = new HashMap<>();
@@ -75,7 +89,7 @@ public class DemoData implements ApplicationRunner {
             p.setBody(c[5]);
             p.setEmoji(orNull(c[6]));
             p.setBg(orNull(c[7]));
-            p.setTags(orNull(c[8]));
+            p.getTags().addAll(items(c[8]));
             p.setBaseLikes(Integer.parseInt(c[9]));
             p.setCreatedAt(now.minus(Long.parseLong(c[10]), ChronoUnit.HOURS));
             postByKey.put(c[0], posts.save(p));
@@ -94,19 +108,30 @@ public class DemoData implements ApplicationRunner {
     @Override
     @Transactional
     public void run(ApplicationArguments args) throws IOException {
+        if (brands.count() == 0) {
+            for (String[] c : rows("brands.tsv")) {
+                Brand b = new Brand();
+                b.setCode(c[0]);
+                b.setName(c[1]);
+                b.setCategory(orNull(c[2]));
+                brands.save(b);
+            }
+            log.info("Marcas de demostración cargadas: {}", brands.count());
+        }
+        Map<String, Brand> brandByCode = new HashMap<>();
+        brands.findAll().forEach(b -> brandByCode.put(b.getCode(), b));
         if (places.count() == 0) {
             for (String[] c : rows("places.tsv")) {
                 Place p = new Place();
-                p.setBrand(orNull(c[0]));
-                p.setName(c[1]);
-                p.setCategory(c[2]);
+                p.setBrand(brandByCode.get(c[0]));
+                p.setName(orNull(c[1]));
+                p.setCategory(orNull(c[2]));
                 p.setAddress(c[3]);
                 p.setBarrio(c[4]);
                 p.setOpens(c[5]);
                 p.setCloses(c[6]);
-                p.setDiscount(c[7].equals("1"));
-                p.setLat(Double.parseDouble(c[8]));
-                p.setLng(Double.parseDouble(c[9]));
+                p.setLat(Double.parseDouble(c[7]));
+                p.setLng(Double.parseDouble(c[8]));
                 places.save(p);
             }
             log.info("Lugares de demostración cargados: {}", places.count());
@@ -115,14 +140,13 @@ public class DemoData implements ApplicationRunner {
             for (String[] c : rows("offers.tsv")) {
                 Offer o = new Offer();
                 o.setCode(c[0]);
-                o.setBrand(orNull(c[1]));
-                o.setStore(c[2]);
-                o.setCategory(c[3]);
-                o.setOff(c[4]);
-                o.setUnit(c[5]);
-                o.setDescription(c[6]);
-                o.setDays(Integer.parseInt(c[7]));
-                o.setIngredients(orNull(c[8]));
+                o.setBrand(brandByCode.get(c[1]));
+                o.setCategory(c[2]);
+                o.setOff(c[3]);
+                o.setUnit(c[4]);
+                o.setDescription(c[5]);
+                o.setDays(Integer.parseInt(c[6]));
+                o.getIngredients().addAll(items(c[7]));
                 o.setStartDate(time.today());
                 offers.save(o);
             }
@@ -142,7 +166,7 @@ public class DemoData implements ApplicationRunner {
             }
             log.info("Profesionales de demostración cargados: {}", pros.count());
         }
-        if (!people.existsByDemoTrue()) loadCommunity();
+        if (demoPeople.count() == 0) loadCommunity();
         int created = communityProfiles.createMissing();
         if (created > 0) log.info("Perfiles de comunidad creados para usuarios que no tenían: {}", created);
     }

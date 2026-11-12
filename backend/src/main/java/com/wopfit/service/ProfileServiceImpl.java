@@ -69,7 +69,7 @@ public class ProfileServiceImpl implements ProfileService {
         u.setBirthDate(r.birthDate());
         u.setHeightCm(r.heightCm());
         u.setWeightKg(r.weightKg());
-        communityProfiles.sync(u, prefsRepo.findByUserId(userId).orElse(null));
+        communityProfiles.create(u);
         return me(userId);
     }
 
@@ -126,7 +126,7 @@ public class ProfileServiceImpl implements ProfileService {
         p.setEquipment(equip);
         p.getPendingChanges().addAll(labels);
         prefsRepo.save(p);
-        communityProfiles.sync(u, p);
+        communityProfiles.create(u);
         return me(userId);
     }
 

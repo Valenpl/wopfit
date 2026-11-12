@@ -8,5 +8,4 @@ import com.wopfit.entity.CommunityProfile;
 
 public interface CommunityProfileRepository extends JpaRepository<CommunityProfile, Long> {
     Optional<CommunityProfile> findByUserId(Long userId);
-    boolean existsByDemoTrue();
 }
