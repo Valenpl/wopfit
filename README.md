@@ -36,7 +36,7 @@ wopfit/
 | JPA / Hibernate | Usar la base desde Java | Cada tabla es una clase; viene integrado con Spring |
 | Spring Security + JWT | Login y permisos | Estándar de Spring; el backend verifica en cada pedido quién sos con un token firmado |
 | BCrypt | Guardar contraseñas | Se guarda un hash que no se puede revertir, nunca la contraseña |
-| Leaflet + OpenStreetMap | El mapa de "Cerca tuyo" | Gratis y abierto, sin claves; la ubicación se usa solo en el celu |
+| MapLibre + OpenFreeMap | El mapa de "Cerca tuyo" | Datos reales de OpenStreetMap, gratis, sin claves ni cuenta; el estilo se pinta con los colores de WopFit y Wopi marca dónde estás. La ubicación se usa solo en el navegador |
 | Playwright | Tests de punta a punta | Maneja un navegador real contra el front y el backend |
 | Claude (Anthropic) + SDK oficial de Java | La IA de Wopi: el chat y los planes personalizados | Opcional: sin `ANTHROPIC_API_KEY`, Wopi responde con las reglas de siempre. La key queda en el backend |
 
@@ -255,7 +255,7 @@ Con `ANTHROPIC_API_KEY` configurada, Wopi usa Claude (de Anthropic) en dos lugar
 | Plan | Sesiones en los días elegidos. La rutina se arma según nivel, equipamiento y salud (bajo impacto con embarazo o lesión, y con embarazo nada boca arriba). El plan y cada rutina muestran los consejos de expertos que aplican a la persona, con la fuente ([docs/fuentes-expertos.md](docs/fuentes-expertos.md)). Menú de 3 comidas filtrado por restricciones y ordenado por presupuesto |
 | Registro | Marcar la rutina como hecha y cómo se sintió, comidas, 3 hábitos diarios |
 | Premium | De demostración, sin pagos: se elige el período y se activa al instante, vence solo y se puede volver al Gratuito. Saca los anuncios y los candados. `GET me` trae `subscription` |
-| Cerca tuyo y ofertas | Mapa real (Leaflet + OpenStreetMap) con 45 lugares de demostración en AMBA: cadenas ficticias en direcciones reales y parques reales. Cupones que se renuevan solos y marcan qué ingredientes de tu lista tienen oferta |
+| Cerca tuyo y ofertas | Mapa real (MapLibre + OpenFreeMap, con el estilo de WopFit y Wopi caminando con vos) con 45 lugares de demostración en AMBA: cadenas ficticias en direcciones reales y parques reales. Cupones que se renuevan solos y marcan qué ingredientes de tu lista tienen oferta |
 | Ayuda profesional | 6 nutricionistas y entrenadores de ejemplo con agenda de lunes a sábado (algunos turnos ya vienen ocupados). Con Premium se reservan 2 consultas por mes, por videollamada o chat, y se pueden agregar al calendario (.ics) o cancelar |
 | Preguntale a Wopi | Asistente con respuestas armadas por reglas sobre tus datos: rutina de hoy, ideas de comida que respetan lo que no comés y tu presupuesto, lista del súper, ofertas y motivación. Las dudas de alimentación, sueño, estrés y actividad las responde con consejos de expertos y muestra la fuente. Si algo duele, deriva a un profesional. Los botones de cada respuesta llevan a la app (sumar una comida a hoy, hacer la versión corta, ver la lista). 3 consultas por mes gratis, 20 con Premium |
 | Comunidad | Personas como vos (por objetivos en común) para seguir, publicaciones de recetas, actividades y preguntas con foto, me gusta, guardados y comentarios. En la comunidad se ve el nombre y la inicial del apellido. Trae 6 personas y 5 publicaciones de ejemplo |
