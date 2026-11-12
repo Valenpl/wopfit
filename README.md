@@ -38,6 +38,7 @@ wopfit/
 | BCrypt | Guardar contraseñas | Se guarda un hash que no se puede revertir, nunca la contraseña |
 | Leaflet + OpenStreetMap | El mapa de "Cerca tuyo" | Gratis y abierto, sin claves; la ubicación se usa solo en el celu |
 | Playwright | Tests de punta a punta | Maneja un navegador real contra el front y el backend |
+| Claude (Anthropic) + SDK oficial de Java | La IA de Wopi: el chat y los planes personalizados | Opcional: sin `ANTHROPIC_API_KEY`, Wopi responde con las reglas de siempre. La key queda en el backend |
 
 Un solo backend (monolito) en 3 capas, en lugar de microservicios: para un equipo chico y una demo, varios servicios sólo suman servidores, costos y fallas entre ellos.
 
@@ -215,6 +216,34 @@ Se pueden poner en el `.env` de la raíz (ver `.env.example`) o como variables d
 | `WOPFIT_CORS_ORIGINS` | `http://localhost:5173` | Dominios del front, separados por coma. Aceptan `*` (por ejemplo `https://wopfit-*.vercel.app`) |
 | `WOPFIT_DEV_CODES` | `true` (`false` con el perfil `prod`) | Mostrar el código de verificación en pantalla. Hace falta `true` en la demo publicada mientras no haya mail real |
 | `VITE_API_URL` (front) | `/api/v1` | URL de la API, si el front se publica en otro dominio |
+| `ANTHROPIC_API_KEY` | vacío | Prende la IA de Wopi (chat y planes). Sin key, Wopi usa las reglas de siempre |
+| `WOPFIT_AI_MODEL` | `claude-haiku-5-5` | Modelo de Claude para Wopi. Haiku es el más barato; `claude-opus-5-5` da más calidad y sale unas 40 veces más |
+
+## Wopi con IA
+
+Con `ANTHROPIC_API_KEY` configurada, Wopi usa Claude (de Anthropic) en dos lugares.
+
+**El chat**
+- Claude responde en lenguaje natural, con el contexto de la persona:
+  - nombre, objetivos, nivel, días y minutos;
+  - lo que no come, su presupuesto y su salud;
+  - la rutina de hoy y el progreso de la semana.
+- Para los datos usa herramientas del backend: ideas de comida, rutina de hoy, rutina corta, lista del súper, consejos de expertos, molestias y progreso. Son las mismas respuestas de siempre, con sus tarjetas y botones, así que no inventa comidas, precios ni ejercicios.
+- El cupo de consultas por mes (3 gratis, 20 con Premium) sigue igual y limita el gasto.
+
+**El plan**
+- Al crear o actualizar el plan, Claude elige qué rutina del catálogo va cada día.
+- También escribe por qué el plan es así y 3 consejos para esa persona. Se ve en "Plan listo".
+- El backend revisa lo que devuelve: solo días de la persona y rutinas que existen.
+- El contenido de cada rutina sale del catálogo, que ya se adapta a lesiones y embarazo.
+
+**Si algo falla**
+- Sin key, si la API no responde o si Claude se niega, Wopi responde con las reglas de siempre y el plan rota las rutinas como antes. La app nunca se rompe por la IA.
+
+**Datos y costos**
+- A Claude le llegan el nombre (no el apellido), las preferencias, la salud declarada, el plan y los últimos mensajes de la charla. Nunca el email ni la contraseña.
+- El chat muestra un aviso de que responde con IA.
+- La API de Anthropic es paga por uso; ver la tabla de modelos en `WOPFIT_AI_MODEL`.
 
 ## Qué hace (historias de usuario)
 

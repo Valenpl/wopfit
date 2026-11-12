@@ -38,7 +38,7 @@ export default function Wopi() {
 
   if (error && !data) return <div className="screen"><ScrollArea><TopBar /><ErrorBox error={error} onRetry={retry} /></ScrollArea></div>;
   if (!data) return <Loading />;
-  const { left, limit, messages } = data;
+  const { left, limit, ai, messages } = data;
 
   const send = q => {
     const text = (q || '').trim();
@@ -82,6 +82,7 @@ export default function Wopi() {
         <h3>{pr ? 'Usaste todas tus consultas del mes' : 'Seguí charlando con Wopi en Premium'}</h3>
         <p className="small muted">{pr ? 'Se renuevan el 1° del mes que viene.' : 'Con Premium tenés 20 consultas por mes, lugares cerca tuyo y 2 consultas con profesionales.'}</p>
         {!pr && <button className="btn sm" onClick={() => nav('/planes')}>Mejorar plan</button>}</div>}
+      {ai && <p className="tiny muted center mt16">Wopi responde con IA (Claude, de Anthropic). Para eso usa tu plan, tus preferencias y esta charla; nunca tu email.</p>}
       <p className="tiny muted center mt16">Wopi no reemplaza a un profesional de la salud.</p>
     </ScrollArea>
     <form className="composer" onSubmit={e => { e.preventDefault(); send(msg); }}>
